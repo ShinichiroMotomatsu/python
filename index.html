@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ビジネスパーソンのための「生成AI x Python」はじめの一歩</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; justify-content: center; }
+        .slide-container { width: 90%; max-width: 900px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; margin-bottom: 20px;}
+        .slide { padding: 30px 40px; border-bottom: 1px solid #ddd; min-height: 500px; display: none; flex-direction: column; justify-content: center; }
+        .slide.active { display: flex; }
+        .slide:last-child { border-bottom: none; }
+        h1, h2, h3 { color: #333; }
+        h1 { font-size: 2.1em; text-align: center; color: #005f73; margin-bottom: 15px; }
+        h2 { font-size: 1.7em; color: #0077b6; border-bottom: 2px solid #0077b6; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px;}
+        h3 { font-size: 1.3em; color: #028090; margin-top: 20px; margin-bottom: 10px;}
+        p, li { font-size: 1.0em; line-height: 1.7; color: #444; }
+        ul { margin-left: 20px; padding-left: 10px;}
+        .code-block { background-color: #2d2d2d; color: #f0f0f0; padding: 12px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; font-size: 0.9em; margin-top: 8px; margin-bottom: 8px; }
+        .note { background-color: #e7f5ff; border-left: 5px solid #2196F3; padding: 12px; margin-top: 12px; font-size: 0.9em; }
+        .highlight { color: #d9534f; font-weight: bold; }
+        .center-text { text-align: center; }
+        .slide-image { /* For img tags (screenshots) */
+            display: block;
+            margin: 15px auto;
+            max-width: 80%;
+            height: auto;
+            max-height: 180px;
+            background-color: #e9e9e9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            object-fit: contain;
+            font-style: italic;
+            text-align: center;
+            color: #777;
+        }
+        /* Small SVG icons used for decoration, not as main "figures" */
+        .flex-container svg, .slide:nth-child(15) .flex-container svg {
+             max-width: 100%; /* Already set generally */
+             height: auto;   /* Already set generally */
+        }
+
+        .colab-button-style { background-color: #FFA000; color: white; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .gemini-style { color: #4285F4; font-weight: bold; }
+        .python-style { color: #306998; font-weight: bold; }
+        .colab-style { color: #FFA000; font-weight: bold; }
+        .flex-container { display: flex; align-items: center; justify-content: space-around; margin: 15px 0; }
+        .flex-item { text-align: center; }
+        .flex-item p {font-size: 0.9em; margin-top: 5px;}
+
+        .navigation-buttons { text-align: center; margin-top: 10px; margin-bottom: 30px; }
+        .nav-button { background-color: #0077b6; color: white; border: none; padding: 10px 20px; font-size: 1em; border-radius: 5px; cursor: pointer; margin: 0 10px; transition: background-color 0.2s ease; }
+        .nav-button:hover:not(:disabled) { background-color: #005f73; }
+        .nav-button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .page-number { font-size: 0.95em; color: #555; margin: 0 15px; display: inline-block; min-width: 50px; text-align: center;}
+
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <div class="slide">
+            <h1>ビジネスパーソンのための<br>「生成AI <span class="gemini-style">x</span> <span class="python-style">Python</span>」はじめの一歩</h1>
+            <p class="center-text" style="margin-top: 20px;">～ <span class="gemini-style">Gemini</span>と<span class="colab-style">Google Colab</span>で業務効率化体験 ～</p>
+            <p class="center-text" style="font-size: 0.9em; margin-top: 40px;">講師： 本松慎一郎</p>
+            <p class="center-text" style="font-size: 0.9em;">日付： 2025年5月9日</p>
+        </div>
+
+        <div class="slide">
+            <h2>1. はじめに</h2>
+            <h3>本日のゴールと講義の流れ</h3>
+            <ul>
+                <li>生成AI（<span class="gemini-style">Gemini</span>）がプログラミングや業務効率化に役立つことを<span class="highlight">理解する</span></li>
+                <li><span class="gemini-style">Gemini</span>に指示して<span class="python-style">Python</span>コードを生成し、<span class="colab-style">Google Colab</span>で実行する流れを<span class="highlight">体験する</span></li>
+                <li>プログラミングに対する<span class="highlight">心理的なハードルを下げる</span></li>
+                <li>今後の<span class="highlight">学習意欲</span>や<span class="highlight">活用イメージ</span>を持つ</li>
+            </ul>
+            <div class="flex-container">
+                <div class="flex-item">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="理解を示す電球のアイコン">
+                        <title>理解のアイコン</title>
+                        <path d="M9 21.5C9 22.3284 9.67157 23 10.5 23H13.5C14.3284 23 15 22.3284 15 21.5V21H9V21.5ZM12 2C7.02944 2 3 6.02944 3 11C3 14.3967 5.06801 17.4584 8 18.8126V20C8 20.5523 8.44772 21 9 21H15C15.5523 21 16 20.5523 16 20V18.8126C18.932 17.4584 21 14.3967 21 11C21 6.02944 16.9706 2 12 2Z" fill="#FFC107"/>
+                        <path d="M12 5C11.4477 5 11 5.44772 11 6V7C11 7.55228 11.4477 8 12 8C12.5523 8 13 7.55228 13 7V6C13 5.44772 12.5523 5 12 5Z" fill="#FFFDE7"/>
+                        <path d="M15.5355 6.46447C15.145 6.07394 14.5118 6.07394 14.1213 6.46447L13.4142 7.17157C13.0237 7.5621 13.0237 8.19526 13.4142 8.58579C13.8047 8.97631 14.4379 8.97631 14.8284 8.58579L15.5355 7.87868C15.9261 7.48815 15.9261 6.85499 15.5355 6.46447Z" fill="#FFFDE7"/>
+                        <path d="M8.46447 6.46447C8.07394 6.07394 7.44078 6.07394 7.05025 6.46447L6.34315 7.17157C5.95262 7.5621 5.95262 8.19526 6.34315 8.58579C6.73367 8.97631 7.36683 8.97631 7.75736 8.58579L8.46447 7.87868C8.85499 7.48815 8.85499 6.85499 8.46447 6.46447Z" fill="#FFFDE7"/>
+                    </svg>
+                    <p>理解</p>
+                </div>
+                <div class="flex-item">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="体験を示す手のアイコン">
+                        <title>体験のアイコン</title>
+                        <path d="M12.747 2.08274C11.4897 1.04046 9.80008 1.21071 8.72469 2.43674L4.24315 7.56326C3.13929 8.82173 3.10179 10.7293 4.16979 12.0427L11.0079 20.3537C11.0607 20.4175 11.1313 20.4654 11.2093 20.4914C12.0545 20.776 12.9936 20.4108 13.4667 19.6697L17.1383 13.712C17.5847 12.9976 18.3458 12.5 19.1893 12.5H19.5C20.8807 12.5 22 11.3807 22 10V8.5C22 7.11929 20.8807 6 19.5 6H18.75C17.4284 6 16.2693 5.00855 16.0663 3.6992C15.9053 2.69006 14.0043 3.12499 12.747 2.08274Z" fill="#4CAF50"/></svg>
+                    <p>体験</p>
+                </div>
+                <div class="flex-item">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="未来へ進むロケットのアイコン">
+                        <title>未来へのアイコン</title>
+                        <path d="M13.1622 2.31196L14.7887 3.93849C15.1122 4.26196 15.0173 4.8028 14.5996 4.99071L7.79323 8.3948C7.39315 8.5738 7.10086 8.98946 7.08355 9.43123L6.87811 14.9915C6.86116 15.423 7.12978 15.8238 7.52904 16.016L13.4016 18.7629C13.8384 18.9731 14.3033 18.8344 14.5669 18.4641L16.5272 15.7444C16.8227 15.3359 17.4116 15.2096 17.8615 15.4586L19.6997 16.3777C20.1495 16.6267 20.6818 16.3777 20.8704 15.9278L21.9221 13.4393C22.1107 12.9894 21.8617 12.4571 21.4118 12.2081L19.5736 11.289C19.1237 11.04 18.9974 10.4511 19.2929 10.0426L21.2532 7.32292C21.5168 6.95264 21.3781 6.48774 20.9614 6.27751L13.1622 2.31196Z" fill="#2196F3"/></svg>
+                    <p>未来へ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>1. はじめに</h2>
+            <h3>なぜ今、ビジネスパーソンがプログラミングに触れると良いのか？</h3>
+            <ul>
+                <li><span class="highlight">AI時代におけるスキルの変化：</span>
+                    <ul>
+                        <li>AIを「使う側」になるために、AIと対話する能力が重要に。</li>
+                        <li>プログラミング的思考（論理的思考、問題解決能力）はAI活用にも役立ちます。</li>
+                    </ul>
+                </li>
+                <li><span class="highlight">業務効率化の可能性：</span>
+                    <ul>
+                        <li>簡単な定型業務なら、AIに指示して自動化できるかも？</li>
+                        <li>データ分析やレポート作成のヒントを得られるかも？</li>
+                    </ul>
+                </li>
+                <li><span class="highlight">生成AIとプログラミングの強力な連携：</span>
+                    <ul>
+                        <li>従来は専門知識が必要だったプログラミングのハードルを、生成AIが大幅に下げてくれます。</li>
+                        <li>「こんなことがしたい」を言葉で伝えるだけで、AIがコードを提案してくれます。</li>
+                    </ul>
+                </li>
+            </ul>
+            </div>
+
+        <div class="slide">
+            <h2>2. 生成AI「<span class="gemini-style">Gemini</span>」に触れてみよう</h2>
+            <h3><span class="gemini-style">Gemini</span>とは？</h3>
+            <ul>
+                <li>Googleによって開発された高性能な<span class="highlight">生成AI</span>です。</li>
+                <li>様々な種類の情報を理解し、組み合わせて応答することができます。
+                    <ul>
+                        <li>テキスト（文章）、画像、音声、動画、そして<span class="highlight">コード</span>など</li>
+                    </ul>
+                </li>
+                <li><span class="highlight">何ができるの？（例）</span>
+                    <ul>
+                        <li>質問応答、文章作成・要約、翻訳</li>
+                        <li>アイデア出し、ブレインストーミング</li>
+                        <li>そして、<span class="python-style">Python</span>などのプログラミングコードの生成！</li>
+                    </ul>
+                </li>
+                <li>得意なこと：大量の情報に基づいた応答、創造的なテキスト生成</li>
+                <li>苦手なこと（注意点）：事実と異なる情報を生成する可能性（ハルシネーション）、最新すぎる情報には対応できない場合がある</li>
+            </ul>
+            </div>
+
+        <div class="slide">
+            <h2>2. 生成AI「<span class="gemini-style">Gemini</span>」に触れてみよう</h2>
+            <h3><span class="gemini-style">Gemini</span>への「良い指示（プロンプト）」の基本</h3>
+            <p>AIから期待する答えを引き出すには、<span class="highlight">明確で具体的な指示</span>が重要です。</p>
+            <ul>
+                <li><span class="highlight">役割を与える：</span>「あなたは優秀なマーケターです」「あなたは経験豊富なプログラマーです」など</li>
+                <li><span class="highlight">具体的に書く：</span>何を、どのように、どんな形式で、何文字くらいで、など</li>
+                <li><span class="highlight">背景情報を伝える：</span>何のために使うのか、どんな状況か</li>
+                <li><span class="highlight">段階的に指示する：</span>複雑なことは一度に頼まず、分けて指示する</li>
+            </ul>
+            <div class="note">
+                <p><strong>今日のポイント：</strong> プログラミングコードを生成してもらう場合は、<br>「<span class="highlight">何をしたいか</span>」「<span class="highlight">どんなデータを使うか</span>」「<span class="highlight">期待する結果は何か</span>」を明確に伝えましょう！</p>
+            </div>
+            <h3>デモンストレーション（プログラミング以外での活用イメージ）</h3>
+            <p>例：</p>
+            <ul>
+                <li>「新商品のキャッチコピーを3つ提案してください。ターゲットは30代女性、商品の特徴はオーガニック素材です。」</li>
+                <li>「以下の文章を小学生にもわかるように要約してください。[長文を貼り付け]」</li>
+            </ul>
+            <img src="img/gemini_chat_demo.png" alt="Geminiチャット画面での簡単な質問応答や文章作成のデモ" >
+        </div>
+
+        <div class="slide">
+            <h2>3. <span class="python-style">Python</span>と<span class="colab-style">Google Colab</span>の準備運動</h2>
+            <h3><span class="python-style">Python</span>とは？</h3>
+            <ul>
+                <li>シンプルで読みやすい文法が特徴のプログラミング言語です。</li>
+                <li>初心者にも比較的学びやすいと言われています。</li>
+                <li>Web開発、データ分析、AI開発、業務自動化など、<span class="highlight">幅広い分野で活用</span>されています。</li>
+                <li>ビジネスシーンでは、Excel作業の自動化、簡単なデータ集計・可視化などに使えます。</li>
+            </ul>
+            <h3><span class="colab-style">Google Colab</span>とは？</h3>
+            <ul>
+                <li>Googleが提供する、ブラウザ上で<span class="python-style">Python</span>を記述・実行できる無料のサービスです。</li>
+                <li><span class="highlight">メリット：</span>
+                    <ul>
+                        <li>面倒な<span class="highlight">環境構築が不要</span>（PCに何もインストールしなくてOK！）</li>
+                        <li><span class="highlight">無料</span>で利用可能（一部制限あり）</li>
+                        <li>Googleアカウントがあればすぐに始められる</li>
+                        <li>作成したファイルはGoogle Driveに保存・共有可能</li>
+                    </ul>
+                </li>
+            </ul>
+            </div>
+
+        <div class="slide">
+            <h2>3. <span class="python-style">Python</span>と<span class="colab-style">Google Colab</span>の準備運動</h2>
+            <h3><span class="colab-style">Google Colab</span>の基本操作：ノートブックの新規作成</h3>
+            <ol>
+                <li><a href="https://drive.google.com/drive/" target="_blank">Google Drive</a>を開きます。</li>
+                <li>「新規」ボタンをクリックします。</li>
+                <li>「その他」 > 「Google Colaboratory」を選択します。<br>(もし表示されない場合は、「アプリを追加」から「Colaboratory」を検索して接続してください)</li>
+            </ol>
+            <img src="img/colab_new_notebook_drive.png" alt="Google DriveでColabノートブックを新規作成する手順の画面">
+            <p class="note">または、<a href="https://colab.research.google.com/" target="_blank">https://colab.research.google.com/</a> に直接アクセスし、「ファイル」メニューから「ノートブックを新規作成」でもOKです。</p>
+
+            <h3><span class="colab-style">Google Colab</span>の基本操作：コードセルとテキストセル</h3>
+            <p><span class="colab-style">Colab</span>のノートブックは、「セル」という単位で構成されます。</p>
+            <ul>
+                <li><span class="highlight">コードセル：</span> <span class="python-style">Python</span>のコードを記述し、実行するためのセルです。</li>
+                <li><span class="highlight">テキストセル：</span> 説明文や見出しなどを記述するためのセルです（このスライドのような文章を書けます）。</li>
+            </ul>
+            <img src="img/colab_cells_example.png" alt="Colabの画面で、コードセルとテキストセルが示されている様子">
+        </div>
+
+        <div class="slide">
+            <h2>3. <span class="python-style">Python</span>と<span class="colab-style">Google Colab</span>の準備運動</h2>
+            <h3>簡単な<span class="python-style">Python</span>コードの実行体験</h3>
+            <p>早速、最初のコードを実行してみましょう！</p>
+            <p>1. コードセルに以下のコードを入力（またはコピー＆ペースト）します。</p>
+            <div class="code-block">
+print("Hello, World!")
+            </div>
+            <p>2. コードセルの左側にある<span class="highlight">再生ボタン (▶)</span> をクリックするか、<kbd>Shift</kbd> + <kbd>Enter</kbd> キーを押して実行します。</p>
+            <img src="img/colab_helloworld_code.png" alt="Colabのコードセルに print Hello World と入力し実行ボタンが示されている画面">
+
+            <p>実行すると、セルの下に結果が表示されます。</p>
+            <div class="code-block" style="background-color: #f5f5f5; color: #333; border: 1px solid #ddd;">
+Hello, World!
+            </div>
+            <img src="img/colab_helloworld_result.png" alt="上記のコードの実行結果がColabに表示されている画面" >
+            <p class="note">`print()` は、指定した文字や数値などを画面に出力する<span class="python-style">Python</span>の命令です。</p>
+        </div>
+
+
+        <div class="slide">
+            <h2>4. 本番！<span class="gemini-style">Gemini</span>に<span class="python-style">Python</span>コードを作ってもらおう</h2>
+            <p>いよいよ、<span class="gemini-style">Gemini</span>に<span class="python-style">Python</span>コードを生成してもらい、<span class="colab-style">Colab</span>で実行する流れを体験します。</p>
+            <div style="border: 2px solid #0077b6; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h3 style="margin-top:0; font-size: 1.2em;">体験の流れ（4ステップ）</h3>
+                <ol style="font-size: 1.0em; line-height: 1.8;">
+                    <li><strong>ステップ1：やりたいことを明確にする</strong></li>
+                    <li><strong>ステップ2：<span class="gemini-style">Gemini</span>にプロンプトを入力してコードを生成</strong></li>
+                    <li><strong>ステップ3：生成されたコードを<span class="colab-style">Colab</span>で実行</strong></li>
+                    <li><strong>ステップ4：コードの意味を<span class="gemini-style">Gemini</span>に聞いてみる</strong></li>
+                </ol>
+            </div>
+             </div>
+
+        <div class="slide">
+            <h2>4. 本番！<span class="gemini-style">Gemini</span>に<span class="python-style">Python</span>コードを作ってもらおう</h2>
+            <h3>ステップ1：やりたいことを明確にする</h3>
+            <p>例：簡単な業務課題を<span class="python-style">Python</span>で解決してみましょう。</p>
+            <div class="note">
+                <p><strong>今日の課題：</strong></p>
+                <p>「会議参加者リスト（文字列）から、参加人数をカウントし、参加者名を五十音順に並び替えて表示する<span class="python-style">Python</span>コードを<span class="gemini-style">Gemini</span>に作ってもらう」</p>
+                <p style="font-size:0.9em;"><u>元データ（例）:</u> 「田中一郎, 鈴木花子, 佐藤健太, 山田太郎, 高橋さくら」</p>
+            </div>
+
+            <h3>ステップ2：<span class="gemini-style"><a href="https://gemini.google.com/" target="_blank">Gemini</a></span>にプロンプトを入力してコードを生成</h3>
+            <p><span class="gemini-style">Gemini</span>に以下のようなプロンプト（指示）を入力します。</p>
+            <div class="code-block" style="background-color: #e0f7fa; color: #00796b; font-size:0.85em; max-height: 180px; overflow-y: auto;">
+# Pythonコード生成のお願い
+
+## 概要
+会議の参加者リスト（文字列形式）を処理したいです。
+
+## やりたいこと
+1. 参加者の総数をカウントする。
+2. 参加者名を五十音順（昇順）に並び替える。
+3. 上記の結果（参加者総数と、並び替えた参加者リスト）を表示する。
+
+## 入力データ (例)
+参加者リストの文字列: "田中一郎, 鈴木花子, 佐藤健太, 山田太郎, 高橋さくら"
+
+## 出力形式
+特になし。結果が分かればOKです。
+
+上記の処理を行うPythonコードを生成してください。
+            </div>
+            <img src="img/gemini_prompt_input_participants.png" alt="Geminiへのプロンプト入力画面 (参加者リスト処理)">
+            <p class="note" style="font-size:0.9em"><strong>ポイント：</strong>「何をしたいか」「どんなデータか」「どんな結果がほしいか」を具体的に伝える！</p>
+        </div>
+
+        <div class="slide">
+            <h2>4. 本番！<span class="gemini-style">Gemini</span>に<span class="python-style">Python</span>コードを作ってもらおう</h2>
+            <h3>ステップ2続き：<span class="gemini-style">Gemini</span>が生成したコードを確認</h3>
+            <p><span class="gemini-style">Gemini</span>が<span class="python-style">Python</span>コードを生成してくれます。（生成されるコードは毎回完全に同じとは限りません）</p>
+            <img src="img/gemini_generated_code_participants.png" alt="Geminiが生成した参加者リスト処理Pythonコードの例">
+            <p class="note" style="font-size:0.9em"><strong>注意：</strong> 生成AIが作るコードは<span class="highlight">常に完璧とは限りません</span>。意図通りか確認したり、時には修正が必要な場合もあります。</p>
+
+            <h3>ステップ3：生成されたコードを<span class="colab-style">Colab</span>で実行</h3>
+            <ol style="font-size:0.95em;">
+                <li><span class="gemini-style">Gemini</span>が生成した<span class="python-style">Python</span>コードをコピーします。</li>
+                <li><span class="colab-style">Google Colab</span>の新しいコードセルに貼り付けます。</li>
+                <li>実行ボタン (▶) をクリックします。</li>
+            </ol>
+            <img src="img/colab_run_generated_code_participants.png" alt="ColabにGemini生成コードを貼り付け実行した結果画面 (参加者リスト)" >
+            <p>期待通り、参加人数と並び替えられたリストが表示されましたか？</p>
+            <p style="font-size:0.9em">もしエラーが出た場合：</p>
+            <ul style="font-size:0.9em">
+                <li>エラーメッセージをよく読んでみましょう（最初は難しく感じるかもしれません）。</li>
+                <li>エラーメッセージを<span class="gemini-style">Gemini</span>に伝えて、「このエラーはどういう意味ですか？どうすれば修正できますか？」と聞いてみるのも有効です。</li>
+            </ul>
+            <img src="img/colab_error_example.png" alt="Colabでの簡単なエラー表示例">
+            <ul style="font-size:0.9em">
+                <li>エラーメッセージを<span class="gemini-style">Gemini</span>そのままGeminiに張り付けるだけでも多くの場合エラーをGeminiが修正してくれます。</li>
+            </ul>
+            <img src="img/colab_error_example2.png" alt="Colabでの簡単なエラー表示例">
+        </div>
+
+        <div class="slide">
+            <h2>4. 本番！<span class="gemini-style">Gemini</span>に<span class="python-style">Python</span>コードを作ってもらおう</h2>
+            <h3>ステップ4：コードの意味を<span class="gemini-style">Gemini</span>に聞いてみる</h3>
+            <p>生成されたコードが何をしているのか、よくわからない部分があるかもしれません。</p>
+            <p>そんな時は、<span class="gemini-style">Gemini</span>にコードを提示して、<span class="highlight">「このPythonコードの各行が何をしているか、初心者にもわかるように解説してください」</span>と頼んでみましょう。</p>
+            <img src="img/gemini_code_explanation.png" alt="GeminiにPythonコードの解説を依頼し回答を得ている画面">
+            <p>このように、<span class="gemini-style">Gemini</span>はコード生成だけでなく、<span class="highlight">学習のサポート</span>もしてくれます。</p>
+            <div class="note">
+                <p><strong>試してみよう（時間があれば）：</strong></p>
+                <ul>
+                    <li>元の参加者リストに新しい名前を追加して、再度実行してみる。</li>
+                    <li>並び順を「降順」（逆順）にするにはどうすれば良いか、<span class="gemini-style">Gemini</span>に聞いてコードを修正してみる。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>5. まとめと次のステップ</h2>
+            <h3>本日の振り返り：体験を通して何ができたか</h3>
+            <ul>
+                <li>生成AI（<span class="gemini-style">Gemini</span>）の基本的な使い方と、<span class="highlight">「良い指示」の重要性</span>を理解した。</li>
+                <li><span class="python-style">Python</span>実行環境（<span class="colab-style">Google Colab</span>）の<span class="highlight">簡単な使い方</span>を体験した。</li>
+                <li>「やりたいこと」を<span class="gemini-style">Gemini</span>に伝えることで、<span class="python-style">Python</span>コードが<span class="highlight">自動で生成される</span>ことを体験した。</li>
+                <li>生成されたコードを実行し、<span class="highlight">結果を得る</span>ことができた。</li>
+                <li>生成AIがコードの<span class="highlight">解説もしてくれる</span>ことを知った。</li>
+            </ul>
+            <div class="flex-container">
+                 <div class="flex-item">
+                    <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="達成を示すチェックマークのアイコン">
+                        <title>達成のアイコン</title>
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" fill="#4CAF50"/></svg>
+                    <p style="font-size:1.0em;">達成！</p>
+                </div>
+            </div>
+            <p class="center-text" style="font-size: 1.2em; margin-top: 10px;">プログラミングの<span class="highlight">最初の一歩</span>、踏み出せましたね！</p>
+        </div>
+
+        <div class="slide">
+            <h2>5. まとめと次のステップ</h2>
+            <h3>生成AIを活用したプログラミングの可能性</h3>
+            <ul>
+                <li><span class="highlight">定型業務の自動化：</span> メール作成、ファイル整理、簡単なレポート作成など。</li>
+                <li><span class="highlight">データ分析・可視化の補助：</span> Excelデータの集計、グラフ作成のコード生成。</li>
+                <li><span class="highlight">アイデアのプロトタイピング：</span> 新しいサービスのアイデアを簡単なプログラムで試作。</li>
+                <li><span class="highlight">学習ツールとして：</span> わからないことを質問したり、コードの解説を求めたり。</li>
+            </ul>
+
+            <h3>今後の学習のためのヒント</h3>
+            <ul>
+                <li>まずは今日の体験を元に、身の回りの<span class="highlight">小さな「こうなったら便利だな」</span>を<span class="gemini-style">Gemini</span>に相談してみましょう。</li>
+                <li><span class="python-style">Python</span>の入門書やオンライン学習サイトで基礎を少しずつ学んでみるのも良いでしょう。（<span class="gemini-style">Gemini</span>に「Pythonの優しい入門サイト教えて」と聞いてもOK！）</li>
+                <li>エラーを恐れず、色々試してみることが大切です。エラーが出たら<span class="gemini-style">Gemini</span>に聞いてみましょう。</li>
+            </ul>
+            <p class="note">プログラミングはあくまで「<span class="highlight">手段</span>」です。皆さんの<span class="highlight">ビジネス上の目的を達成するため</span>に、生成AIとプログラミングをどう活かせるか、という視点を持ってみてください。</p>
+            </div>
+
+
+        <div class="slide">
+            <h1>演習</h1>
+            <h3>演習1：</h3>
+            <ul>
+                <li><span class="gemini-style">Gemini</span>で「＋チャットを新規作成」で、新しいチャットを開いてください。</li>
+                <li><span class="gemini-style">Gemini</span>に以下のようなプロンプト（指示）を入力します。</li>
+            </ul>
+
+           <div class="code-block" style="background-color: #e0f7fa; color: #00796b; font-size:0.85em; max-height: 180px; overflow-y: auto;">
+Google Colaboで動作するJavaScriptを使ったテトリスを作ってください。
+            </div>
+            <p><span class="gemini-style">Colabo</span>で「＋コード」を押下して新たなコードセルを作成し、Geminiで作ったコードをコピー＆ペーストして実行してみてください。</p>
+
+            <h3>演習2：</h3>
+            <ul>
+                <li><span class="gemini-style">Gemini</span>で「＋チャットを新規作成」で、新しいチャットを開いてください。</li>
+                <li><span class="gemini-style">Gemini</span>に以下のようなプロンプト（指示）を入力します。</li>
+            </ul>
+
+           <div class="code-block" style="background-color: #e0f7fa; color: #00796b; font-size:0.85em; max-height: 180px; overflow-y: auto;">
+Google Colab用にGeminiのAPIを呼び出して、与えられた文字列に対して返答を返すプログラムを一つのコードセル内で完結するよう作成してください。またモデルは"gemini-2.5-pro-exp-03-25"を指定してください。            </div>
+            <p><span class="gemini-style">Colabo</span>で「＋コード」を押下して新たなコードセルを作成し、Geminiで作ったコードをコピー＆ペーストして実行してみてください。</p>
+ 
+    </div>
+
+        <div class="slide">
+            <h1>質疑応答</h1>
+            <div class="flex-container" style="margin-top: 30px; margin-bottom: 30px;">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Q&Aを示す吹き出しのアイコン">
+                    <title>Q&A アイコン</title>
+                    <path d="M19 3H5C3.89543 3 3 3.89543 3 5V15C3 16.1046 3.89543 17 5 17H8V20.5L12.5 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3Z" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-size="3.5px" fill="#0077b6" font-family="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" font-weight="bold">Q&A</text>
+                </svg>
+            </div>
+            <p class="center-text" style="margin-top: 30px;">ご清聴ありがとうございました。</p>
+        </div>
+    </div>
+
+    <div class="navigation-buttons">
+        <button id="prevButton" class="nav-button">前へ</button>
+        <span id="pageInfo" class="page-number"></span>
+        <button id="nextButton" class="nav-button">次へ</button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const pageInfo = document.getElementById('pageInfo');
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            slides.forEach((slide) => {
+                slide.classList.remove('active');
+            });
+            if (slides[index]) {
+                slides[index].classList.add('active');
+            }
+            updateNavigation();
+            window.scrollTo(0, 0);
+        }
+
+        function updateNavigation() {
+            if (slides.length > 0) {
+                pageInfo.textContent = `${currentSlide + 1} / ${slides.length}`;
+            } else {
+                pageInfo.textContent = `0 / 0`;
+            }
+            prevButton.disabled = currentSlide === 0;
+            nextButton.disabled = currentSlide === slides.length - 1;
+        }
+
+        prevButton.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        });
+
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
