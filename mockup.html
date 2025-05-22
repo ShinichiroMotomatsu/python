@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIエージェント経費精算モックアップ</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 20px; /* To avoid overlap with potential fixed headers */
+        }
+        .mobile-container {
+            width: 375px; /* Typical mobile width */
+            min-height: 812px; /* Typical mobile height */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .status-bar {
+            background-color: #f8f8f8;
+            padding: 5px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+        .status-bar .time {
+            font-weight: bold;
+        }
+        .status-bar .icons span {
+            margin-left: 5px;
+        }
+        .info-icon-header {
+            text-align: right;
+            padding: 10px 15px 0; /* Added padding for info icon */
+            font-size: 20px;
+            color: #888;
+        }
+        .screen {
+            padding: 15px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .screen-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .agent-message-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #eef7ff;
+            border-radius: 8px;
+            border: 1px solid #cce0ff;
+        }
+        .agent-icon {
+            font-size: 24px; /* Placeholder for robot icon */
+            margin-right: 10px;
+        }
+        .agent-message {
+            background-color: #d1e7fd;
+            padding: 10px 15px;
+            border-radius: 15px 15px 15px 0; /* Speech bubble shape */
+            font-size: 14px;
+            color: #004085;
+            flex-grow: 1;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .list-item.active {
+            background-color: #e9ecef;
+            border-left: 4px solid #007bff;
+            padding-left: 11px; /* Adjust for border */
+        }
+        .list-item .icon {
+            margin-right: 10px;
+            font-size: 20px;
+            color: #007bff;
+        }
+        .list-item .arrow {
+            margin-left: auto;
+            color: #aaa;
+        }
+        .button {
+            display: block;
+            width: calc(100% - 30px);
+            padding: 12px 15px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 15px;
+            text-decoration: none;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        .button-danger {
+            background-color: #dc3545;
+            font-size: 12px;
+            padding: 5px 8px;
+            width: auto;
+        }
+        .centered-content {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .robot-icon-large {
+            font-size: 60px; /* Placeholder for large robot icon */
+            margin-bottom: 10px;
+        }
+        .help-text {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .card {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .card-header .filename {
+            font-weight: bold;
+        }
+        .card p {
+            margin: 4px 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .x-icon {
+            cursor: pointer;
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .alternatives-list {
+            margin-top: 10px;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+        .alternative-item {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .alternative-item:hover {
+            background-color: #dde2e6;
+        }
+        .speech-bubble-note {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #495057;
+            margin: 15px 0;
+            position: relative;
+        }
+        .speech-bubble-note::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent #ced4da transparent transparent;
+        }
+        .split-item-header {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .add-split-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 15px auto;
+        }
+        .preview-section {
+            margin-bottom: 20px;
+        }
+        .preview-section-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .preview-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .preview-item .label {
+            color: #555;
+        }
+        .preview-item .value {
+            color: #111;
+            text-align: right;
+        }
+        .preview-item .modify-button {
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #ccc;
+            background-color: #f8f8f8;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #555;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: #007bff;
+        }
+        .nav-item .icon {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .dropdown-arrow {
+            text-align: center;
+            color: #007bff;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="status-bar">
+            <span class="time">18:28</span>
+            <span class="icons"><span>📶</span><span>🔋</span></span>
+        </div>
+
+        <div id="screen1MainMenu" class="screen">
+            <div class="info-icon-header">ⓘ</div>
+            <div class="list-item" onclick="alert('領収書の読み取り画面へ（未実装）')">
+                <span class="icon">📷</span> 領収書の読み取り <span class="arrow">&gt;</span>
+            </div>
+            <div class="list-item" onclick="alert('ファイルから登録画面へ（未実装）')">
+                <span class="icon">📁</span> ファイルから登録 <span class="arrow">&gt;</span>
+            </div>
+            <div class="list-item" onclick="alert('閲覧・編集画面へ（未実装）')">
+                <span class="icon">✏️</span> 閲覧・編集 <span class="arrow">&gt;</span>
+            </div>
+            <div class="list-item active" onclick="showScreen('screen2AgentWelcome')">
+                <span class="icon" style="color: #333;">■</span> AIエージェント
+            </div>
+            <div style="flex-grow: 1;"></div> </div>
+
+        <div id="screen2AgentWelcome" class="screen hidden">
+            <div class="screen-title">エージェント精算</div>
+            <div class="centered-content">
+                <div class="robot-icon-large">🤖</div>
+                <p class="help-text">手間のかかる経費申請を手助け致します</p>
+            </div>
+            <button class="button" onclick="showScreen('screen3ReceiptSelection')">精算を開始する</button>
+        </div>
+
+        <div id="screen3ReceiptSelection" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">はじめに精算する領収書を教えて下さい</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 70%; align-self: flex-end;">候補から今回精算する領収書を選ぶ</div>
+
+            <div class="section-title">登録: 1件</div>
+            <div class="card" id="registeredReceipt1">
+                <div class="card-header">
+                    <span class="filename">カクヤス.pdf</span>
+                    <button class="button-danger" onclick="removeReceipt('registeredReceipt1')">削除</button>
+                </div>
+                <p>取引日: 2025/01/30</p>
+                <p>登録日: 2025/01/30</p>
+                <p>東株式会社カクヤス</p>
+            </div>
+            <div class="dropdown-arrow">▼</div>
+            <div class="section-title">未申請の領収書 12件 
+                <button style="font-size:12px; margin-left:5px;">新しい順</button>
+                <button style="font-size:12px;">ファイル名</button>
+            </div>
+            <div class="card" onclick="selectUnappliedReceipt(this)">
+                <p>EX予約 (14).pdf</p>
+                <p>取引日: 2025/01/30 登録日: 2025/01/30</p>
+                <p>東海旅客鉄道株式会社 ⚪</p>
+            </div>
+            <div class="card" onclick="selectUnappliedReceipt(this)">
+                <p>サンプル領収書.pdf</p>
+                <p>取引日: 2025/01/28 登録日: 2025/01/28</p>
+                <p>株式会社ABCストア ⚪</p>
+            </div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen4DataAssociation')">選択完了・次へ</button>
+        </div>
+
+        <div id="screen4DataAssociation" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">事前申請やクレジットカードデータはこちらですか？</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 70%; align-self: flex-end;">事前申請やクレジットカードデータを提案してくれるので、選択(ある場合)</div>
+
+            <div class="section-title">紐づける事前申請</div>
+            <div class="card" id="linkedAdvanceApp">
+                <div style="display:flex; justify-content: space-between;">
+                    <p><strong>伝票:</strong> No.00030538</p>
+                    <span class="x-icon" onclick="removeAssociation('linkedAdvanceApp')">×</span>
+                </div>
+                <p><strong>申請日:</strong> 2025/1/07</p>
+                <p><strong>概要・目的:</strong> 営業部で、社内のカフェスペースで交流会実施のため、飲食の購入</p>
+            </div>
+
+            <div class="section-title">紐づけるクレジットカード支払い明細</div>
+            <div class="card" id="linkedCreditCard" onclick="showCreditCardAlternatives()">
+                <div style="display:flex; justify-content: space-between;">
+                    <div>
+                        <p><strong>利用明細ID:</strong> 12345678</p>
+                        <p><strong>会社:</strong> カクヤス株式会社</p>
+                    </div>
+                    <span class="x-icon" onclick="event.stopPropagation(); removeAssociation('linkedCreditCard')">×</span>
+                </div>
+                <p><strong>受領日:</strong> 2025/01/12 <strong>金額:</strong> 15,000円</p>
+                <p><strong>利用日:</strong> 2025/01/10</p>
+            </div>
+             <div id="creditCardAlternatives" class="alternatives-list hidden">
+                <p style="font-size:13px; color:#555;">他の候補:</p>
+                <div class="alternative-item" onclick="selectAlternativeCreditCard({id:'*****', company:'OOO株式会社', date:'2025/01/14', amount:'20,000円'})">
+                    利用明細ID: *****, 会社: OOO株式会社, 利用日: 2025/01/14, 金額: 20,000円
+                </div>
+                <div class="alternative-item" onclick="selectAlternativeCreditCard({id:'+++++', company:'XXX株式会社', date:'2025/01/15', amount:'10,000円'})">
+                    利用明細ID: +++++, 会社: XXX株式会社, 利用日: 2025/01/15, 金額: 10,000円
+                </div>
+            </div>
+            <div class="dropdown-arrow">▼</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen6HeaderInput')">これで問題ない ( > ヘッダー項目の入力に進みます)</button>
+            <button class="button button-secondary" onclick="showScreen('screen3ReceiptSelection')">領収書を添付し忘れた ( > 登録に戻ります)</button>
+        </div>
+
+        <div id="screen6HeaderInput" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">ヘッダーの必須項目を入力しました。必要に応じて修正をお願いします。</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 80%; align-self: flex-end;">領収書、事前申請、クレカ、過去の伝票などから必須項目を提案してくれるので、必要に応じて修正</div>
+
+            <div class="form-group">
+                <label for="s6-purpose">概要・目的</label>
+                <textarea id="s6-purpose">営業部で、社内のカフェスペースで交流会実施のため、飲食の購入</textarea>
+            </div>
+            <div class="form-group">
+                <label for="s6-vendor">購入先 <span style="font-size:10px; color: gray;">[領収書の内容から予測]</span></label>
+                <input type="text" id="s6-vendor" value="カクヤス">
+            </div>
+            <div class="form-group">
+                <label for="s6-applicant">申請者</label>
+                <input type="text" id="s6-applicant" value="宮川拓也 (352)">
+            </div>
+            <div class="form-group">
+                <label for="s6-department">負担部門</label>
+                <input type="text" id="s6-department" value="営業部 (90)">
+            </div>
+            <div class="dropdown-arrow">▼</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen7LineItemInput')">この内容でOK ( > 明細項目の入力に進みます)</button>
+            <button class="button button-secondary" onclick="showScreen('screen3ReceiptSelection')">領収書を添付し忘れた ( > 登録に戻ります)</button>
+        </div>
+
+        <div id="screen7LineItemInput" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">明細の必須項目を入力しました。必要に応じて修正をお願いします。</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 60%; align-self: flex-end;">トトの技術で内訳も予測</div>
+             <p style="font-weight:bold; margin-bottom:10px;">カクヤス.pdf</p>
+
+            <div class="form-group">
+                <label for="s7-date">日付</label>
+                <input type="date" id="s7-date" value="2025-01-10">
+            </div>
+            <div class="form-group">
+                <label for="s7-breakdown">内訳</label>
+                <input type="text" id="s7-breakdown" value="社内交流費(飲食は税込2,200円以下) /会議費 ((10001))">
+            </div>
+            <div class="form-group">
+                <label for="s7-participants">参加人数</label>
+                <input type="number" id="s7-participants" value="8">
+            </div>
+            <div class="form-group">
+                <label for="s7-paymentMethod">支払方法</label>
+                <input type="text" id="s7-paymentMethod" value="クレジットカード">
+            </div>
+            <div class="form-group">
+                <label for="s7-amount">金額</label>
+                <input type="text" id="s7-amount" value="15000円">
+            </div>
+            <div class="form-group">
+                <label for="s7-taxRate">税率</label>
+                <input type="text" id="s7-taxRate" value="10%">
+            </div>
+            <div class="form-group">
+                <label for="s7-remarks">備考</label>
+                <textarea id="s7-remarks">ああああああああ</textarea>
+            </div>
+             <div class="speech-bubble-note" style="font-size:12px; margin-top:5px; margin-left: 20px; margin-right:0; width: 80%; align-self: flex-end;">税率等の理由で１つの領収書から明細を分割する場合はここをクリック</div>
+            <div class="dropdown-arrow">▼</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen10Preview')">この内容でOK ( > プレビューに進みます)</button>
+            <button class="button button-secondary" onclick="showScreen('screen8SplitItems')">明細を分割したい ( > 詳細を伺います)</button>
+        </div>
+
+        <div id="screen8SplitItems" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">明細の分割内容を教えてください</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 50%; align-self: flex-end;">ここはユーザーが入力</div>
+
+            <div id="splitItemsContainer">
+                <div class="split-item-block">
+                    <div class="split-item-header">1つ目</div>
+                    <div class="form-group">
+                        <label>按分金額</label><input type="number" value="5000">
+                    </div>
+                    <div class="form-group">
+                        <label>税率</label><input type="text" value="8%">
+                    </div>
+                    <div class="form-group">
+                        <label>備考</label><input type="text" value="食べ物とソフトドリンク">
+                    </div>
+                </div>
+                <div class="split-item-block">
+                    <div class="split-item-header">2つ目</div>
+                    <div class="form-group">
+                        <label>按分金額</label><input type="number" value="10000">
+                    </div>
+                    <div class="form-group">
+                        <label>税率</label><input type="text" value="10%">
+                    </div>
+                    <div class="form-group">
+                        <label>備考</label><input type="text" value="お酒">
+                    </div>
+                </div>
+            </div>
+            <div class="add-split-button" onclick="addSplitItemEntry()">+</div>
+            <div class="dropdown-arrow">▼</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen9SplitItemView')">この内容でOK ( > 明細項目の入力に進みます)</button>
+            <button class="button button-secondary" onclick="showScreen('screen7LineItemInput')">前の画面に戻る</button>
+        </div>
+
+        <div id="screen9SplitItemView" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">分割後の明細項目を入力しました。必要に応じて修正をお願いします。</div>
+            </div>
+             <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 70%; align-self: flex-end;">分割後の明細の内容を提案してくれる。必要に応じて修正</div>
+            <p style="font-weight:bold; margin-bottom:5px;">カクヤス.pdf <span style="background-color:#007bff; color:white; font-size:10px; padding:2px 4px; border-radius:3px;">分割①</span></p>
+
+            <div class="form-group">
+                <label>日付</label><input type="date" value="2025-01-10" readonly>
+            </div>
+            <div class="form-group">
+                <label>内訳</label><input type="text" value="社内交流費(飲食は税込2,200円以下) /会議費 ((10001))">
+            </div>
+            <div class="form-group">
+                <label>参加人数</label><input type="number" value="8" readonly>
+            </div>
+            <div class="form-group">
+                <label>支払方法</label><input type="text" value="クレジットカード" readonly>
+            </div>
+            <div class="form-group">
+                <label>金額</label><input type="text" value="5000円">
+            </div>
+            <div class="form-group">
+                <label>税率</label><input type="text" value="8%">
+            </div>
+            <div class="form-group">
+                <label>備考</label><input type="text" value="食べ物とソフトドリンク">
+            </div>
+            <p style="text-align:center; font-size:12px; color: #555;">(分割②以降の表示は省略しています)</p>
+            <div class="dropdown-arrow">▼</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="showScreen('screen10Preview')">この内容でOK ( > プレビューに進みます)</button>
+            <button class="button button-secondary" onclick="showScreen('screen8SplitItems')">分割を修正する ( > 詳細を伺います)</button>
+        </div>
+
+        <div id="screen10Preview" class="screen hidden">
+            <div class="agent-message-container">
+                <span class="agent-icon">🤖</span>
+                <div class="agent-message">以下の内容で問題ないか確認してください</div>
+            </div>
+            <div class="speech-bubble-note" style="margin-left: 20px; margin-right:0; width: 80%; align-self: flex-end;">プレビューを見て、問題なければこのまま申請完了！</div>
+
+            <div class="preview-section">
+                <div class="preview-section-title">ヘッダー項目</div>
+                <div class="preview-item"><span class="label">日付:</span> <span class="value">2025/01/10</span></div>
+                <div class="preview-item"><span class="label">概要・目的:</span> <span class="value">営業部で...飲食の購入</span> <button class="modify-button" onclick="showScreen('screen6HeaderInput')">修正</button></div>
+                <div class="preview-item"><span class="label">申請者:</span> <span class="value">宮川拓也 (352)</span></div>
+                <div class="preview-item"><span class="label">負担部門:</span> <span class="value">営業部 (90)</span></div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-section-title">領収書1 (カクヤス.pdf)</div>
+                <div class="preview-item-title" style="font-weight:bold; font-size: 14px; margin-top:10px;">明細1 (分割①) <button class="modify-button" onclick="showScreen('screen9SplitItemView')">修正</button></div>
+                <div class="preview-item"><span class="label">日付:</span> <span class="value">2025/01/10</span></div>
+                <div class="preview-item"><span class="label">内訳:</span> <span class="value">社内交流費...</span></div>
+                <div class="preview-item"><span class="label">参加人数:</span> <span class="value">8</span></div>
+                <div class="preview-item"><span class="label">支払方法:</span> <span class="value">クレジットカード</span></div>
+                <div class="preview-item"><span class="label">金額:</span> <span class="value">5,000円</span></div>
+                <div class="preview-item"><span class="label">税率:</span> <span class="value">8%</span></div>
+                <div class="preview-item"><span class="label">事業者登録番号:</span> <span class="value">T123...</span></div>
+                <div class="preview-item"><span class="label">備考:</span> <span class="value">食べ物とソフトドリンク</span></div>
+
+                <div class="preview-item-title" style="font-weight:bold; font-size: 14px; margin-top:10px;">明細2 (分割②) <button class="modify-button" onclick="showScreen('screen9SplitItemView')">修正</button></div>
+                 <div class="preview-item"><span class="label">金額:</span> <span class="value">10,000円</span></div>
+                 <div class="preview-item"><span class="label">税率:</span> <span class="value">10%</span></div>
+                 <p style="font-size:12px; color: #555;">(その他項目は明細1と同様と仮定)</p>
+            </div>
+             <div class="speech-bubble-note" style="font-size:12px; margin-top:5px; margin-left: 20px; margin-right:0; width: 80%; align-self: flex-end;">一時保存して楽天精算のスマホ版やPC版で修正したかったらこちらをクリック</div>
+            <div style="flex-grow: 1;"></div> <button class="button" onclick="alert('申請完了しました！（未実装）'); showScreen('screen1MainMenu');">このまま申請</button>
+            <button class="button button-secondary" onclick="alert('一時保存しました！（未実装）'); showScreen('screen1MainMenu');">一時保存 ( > 楽天精算へ戻ります)</button>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('screen1MainMenu')">
+                <span class="icon">📄</span> 情報
+            </div>
+            <div class="nav-item" onclick="alert('申請画面へ（未実装）')">
+                <span class="icon">📝</span> 申請
+            </div>
+            <div class="nav-item" onclick="alert('承認画面へ（未実装）')">
+                <span class="icon">✔️</span> 承認
+            </div>
+            <div class="nav-item" onclick="alert('その他画面へ（未実装）')">
+                <span class="icon">•••</span> その他
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'screen1MainMenu';
+        const screens = [
+            'screen1MainMenu', 'screen2AgentWelcome', 'screen3ReceiptSelection',
+            'screen4DataAssociation', 'screen6HeaderInput', 'screen7LineItemInput',
+            'screen8SplitItems', 'screen9SplitItemView', 'screen10Preview'
+        ];
+
+        function showScreen(screenId) {
+            document.getElementById(currentScreen).classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+            currentScreen = screenId;
+            // Update active state for bottom nav if needed
+            updateBottomNav(screenId);
+        }
+        
+        function updateBottomNav(screenId) {
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            if (screenId === 'screen1MainMenu') { // Example: Home is '情報'
+                document.querySelector('.bottom-nav .nav-item:nth-child(1)').classList.add('active');
+            }
+            // Add more conditions for other nav items if they lead to specific screens in this flow
+        }
+
+
+        function removeReceipt(receiptId) {
+            const receiptElement = document.getElementById(receiptId);
+            if (receiptElement) {
+                receiptElement.style.display = 'none'; // Or remove()
+                alert(receiptElement.querySelector('.filename').textContent + ' を削除しました。');
+            }
+        }
+
+        function selectUnappliedReceipt(element) {
+            // Simple visual feedback, could be more complex (e.g., moving to a selected list)
+            document.querySelectorAll('#screen3ReceiptSelection .card').forEach(card => card.style.border = '1px solid #e0e0e0');
+            element.style.border = '2px solid #007bff';
+            alert(element.querySelector('p').textContent + ' を選択しました。');
+        }
+
+        function removeAssociation(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.opacity = '0.5';
+                element.style.pointerEvents = 'none';
+                const xIcon = element.querySelector('.x-icon');
+                if(xIcon) xIcon.style.display = 'none';
+                alert('関連付けを解除しました。');
+            }
+        }
+        
+        function showCreditCardAlternatives() {
+            // This simulates the behavior from image 5
+            // "間違ってた場合、クリックすると、下のようにその他の候補を提案してくれる"
+            const alternativesDiv = document.getElementById('creditCardAlternatives');
+            alternativesDiv.classList.toggle('hidden');
+            alert('クレジットカードの他の候補を表示/非表示します。');
+        }
+
+        function selectAlternativeCreditCard(data) {
+            const mainCard = document.getElementById('linkedCreditCard');
+            mainCard.querySelector('p:nth-of-type(1)').innerHTML = `<strong>利用明細ID:</strong> ${data.id}`;
+            mainCard.querySelector('p:nth-of-type(2)').innerHTML = `<strong>会社:</strong> ${data.company}`;
+            mainCard.querySelectorAll('p')[2].innerHTML = `<strong>受領日:</strong> (更新された日付) <strong>金額:</strong> ${data.amount}`;
+            mainCard.querySelectorAll('p')[3].innerHTML = `<strong>利用日:</strong> ${data.date}`;
+            document.getElementById('creditCardAlternatives').classList.add('hidden');
+            alert(data.company + ' の明細を選択しました。');
+        }
+
+        let splitItemCounter = 2; // Starts after the initial 2 items
+        function addSplitItemEntry() {
+            splitItemCounter++;
+            const container = document.getElementById('splitItemsContainer');
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('split-item-block');
+            newEntry.innerHTML = `
+                <div class="split-item-header">${splitItemCounter}つ目</div>
+                <div class="form-group">
+                    <label>按分金額</label><input type="number">
+                </div>
+                <div class="form-group">
+                    <label>税率</label><input type="text">
+                </div>
+                <div class="form-group">
+                    <label>備考</label><input type="text">
+                </div>
+            `;
+            container.appendChild(newEntry);
+        }
+
+        // Initialize first screen
+        document.addEventListener('DOMContentLoaded', () => {
+             screens.forEach(s => {
+                if (s !== currentScreen) document.getElementById(s).classList.add('hidden');
+             });
+             document.getElementById(currentScreen).classList.remove('hidden');
+             updateBottomNav(currentScreen);
+        });
+
+    </script>
+</body>
+</html>
