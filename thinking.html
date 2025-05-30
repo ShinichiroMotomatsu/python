@@ -9,22 +9,22 @@
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #20c997; /* 明るいティールグリーン */
-            --secondary-color: #ffc107; /* 明るいイエロー/オレンジ系 */
-            --accent-color: #fd7e14; /* オレンジ */
-            --text-color: #495057; /* やや柔らかい黒 */
-            --bg-color: #fdfdfe; /* ほぼ白、少しオフホワイト */
-            --light-bg-color: #f1f3f5; /* 薄いグレー */
+            --primary-color: #20c997; 
+            --secondary-color: #ffc107; 
+            --accent-color: #fd7e14; 
+            --text-color: #343a40; /* 少し濃いめに */
+            --bg-color: #fdfdfe; 
+            --light-bg-color: #f1f3f5; 
             --card-bg-color: #ffffff;
-            --border-radius-lg: 20px; /* 大きめの角丸 */
-            --border-radius-md: 12px;
+            --border-radius-lg: 18px; /* 少しシャープに */
+            --border-radius-md: 10px;
         }
 
         body {
             font-family: 'M PLUS Rounded 1c', 'Poppins', sans-serif;
-            line-height: 1.7; /* 少し広め */
+            line-height: 1.45; /* フォーマル向けに少し調整 */
             color: var(--text-color);
-            background-color: var(--light-bg-color); /* 全体の背景 */
+            background-color: var(--light-bg-color); 
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -43,14 +43,14 @@
         section {
             background-color: var(--card-bg-color);
             width: 90%;
-            max-width: 960px; /* 少しコンパクトに */
-            height: 88vh; /* スライドの高さをビューポートに合わせる */
-            max-height: 580px;
-            padding: 25px 40px; /* パディング調整 */
-            margin: 4vh auto; /* 上下マージン */
-            border: none; /* ボーダーなし */
+            max-width: 960px;
+            height: 88vh; 
+            max-height: 580px; 
+            padding: 20px 35px; 
+            margin: 4vh auto;
+            border: none;
             border-radius: var(--border-radius-lg);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* 柔らかい影 */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12); /* 影調整 */
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -60,7 +60,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            transition: opacity 0.4s ease-in-out, transform 0.3s ease-in-out; /* 効果変更 */
+            transition: opacity 0.4s ease-in-out, transform 0.3s ease-in-out;
             opacity: 0;
         }
         section.active {
@@ -73,52 +73,55 @@
         }
 
         section.title-slide {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #00509e 0%, var(--primary-color) 100%); /* 青系を少し混ぜてフォーマルに */
             color: #fff;
         }
         section.title-slide h1, section.title-slide h2, section.title-slide p, section.title-slide .note {
             color: #fff;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.15);
         }
-        h1 { font-size: 2.4em; margin-bottom: 0.5em; color: var(--primary-color); font-weight: 700; }
-        h2 { font-size: 1.8em; margin-bottom: 0.6em; color: var(--primary-color); font-weight: 700;}
-        h3 { font-size: 1.4em; margin-bottom: 0.5em; color: var(--accent-color); font-weight: 500;}
-        p { font-size: 1.0em; margin-bottom: 0.7em; max-width: 700px; text-align: left; }
-        ul { list-style: none; padding-left: 0; text-align: left; max-width: 680px; margin: 0.7em auto; }
+        h1 { font-size: 2.2em; margin-bottom: 0.4em; color: #00509e; font-weight: 700; } 
+        h2 { font-size: 1.65em; margin-bottom: 0.45em; color: #00509e; font-weight: 700;} 
+        h3 { font-size: 1.3em; margin-bottom: 0.35em; color: var(--accent-color); font-weight: 500;} 
+        p { font-size: 0.92em; margin-bottom: 0.5em; max-width: 700px; text-align: left; } 
+        ul { list-style: none; padding-left: 0; text-align: left; max-width: 680px; margin: 0.5em auto; } 
         ul li {
-            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%2320c997" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>') no-repeat 0 0.35em;
-            padding-left: 2em; /* アイコンスペース */
-            margin-bottom: 0.7em;
-            font-size: 0.95em;
+            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%2300509e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>') no-repeat 0 0.3em; /* アイコン変更 */
+            padding-left: 1.8em; 
+            margin-bottom: 0.5em; 
+            font-size: 0.9em; 
         }
         .left-align { text-align: left; width: 100%; max-width: 700px; }
         .center-text { text-align: center; }
-        .small-text { font-size: 0.85em; }
-        .note { font-size: 0.8em; color: #6c757d; margin-top: 15px; font-style: italic; }
-        .accent { color: var(--accent-color); font-weight: 700; }
+        .small-text { font-size: 0.8em; } 
+        .note { font-size: 0.75em; color: #555; margin-top: 10px; font-style: italic; } 
+        .accent { color: var(--accent-color); font-weight: 600; } /* 少しウェイト落とす */
         .case-study-box {
-            border: none; /* ボーダーなし */
-            padding: 18px 22px;
-            margin: 15px 0; /* 上下マージンのみ */
+            border: 1px solid #e0e0e0; /* 細いボーダー追加 */
+            padding: 12px 18px; 
+            margin: 8px 0; 
             border-radius: var(--border-radius-md);
-            background-color: var(--light-bg-color);
-            width: 90%;
-            max-width: 680px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background-color: #f9f9f9; /* 背景少し変更 */
+            width: 95%;
+            max-width: 720px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.07);
         }
-        .case-study-box h3 { color: var(--primary-color); margin-top:0; font-weight: 500;}
+        .case-study-box h3 { color: #00509e; margin-top:0; margin-bottom: 5px; font-weight: 500; font-size: 1.15em;} 
+        .case-study-box p.small-text { margin-bottom: 5px; } 
+        
         .prompt-example {
-            background-color: #e9ecef;
-            border-left: 5px solid var(--secondary-color);
-            padding: 12px 18px;
-            margin: 12px 0;
+            background-color: #eef2f7; /* 背景変更 */
+            border-left: 4px solid var(--secondary-color); /* ボーダー調整 */
+            padding: 10px 15px; 
+            margin: 8px 0; 
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-            font-size: 0.85em;
+            font-size: 0.8em; 
             white-space: pre-wrap;
             text-align: left;
             border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+            line-height: 1.35; 
         }
-        .svg-diagram { margin: 15px auto; display: block; max-width:100%; height:auto; }
+        .svg-diagram { margin: 10px auto; display: block; max-width:100%; height:auto; } 
 
         /* ナビゲーションコントロール */
         .slide-nav {
@@ -128,43 +131,50 @@
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.97); /* 透明度調整 */
             padding: 10px 18px;
-            border-radius: var(--border-radius-lg); /* ボタンに合わせた角丸 */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-radius: 25px; /* より丸く */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 1000;
         }
         .slide-nav button {
-            background-color: var(--primary-color);
+            background-color: #00509e; /* メインカラーに寄せる */
             color: white;
             border: none;
-            padding: 10px 20px; /* 少し大きめ */
+            padding: 9px 18px; /* パディング調整 */
             margin: 0 10px;
-            border-radius: var(--border-radius-md);
+            border-radius: 20px; /* より丸く */
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em; /* サイズ調整 */
             font-weight: 500;
             font-family: 'M PLUS Rounded 1c', sans-serif;
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
         .slide-nav button:hover:not(:disabled) {
-            background-color: #1baa80; /* 少し濃い色 */
+            background-color: #003b75; /* ホバー色調整 */
             transform: translateY(-1px);
         }
         .slide-nav button:active:not(:disabled) {
             transform: translateY(0px);
         }
         .slide-nav button:disabled {
-            background-color: #adb5bd; /* グレーアウト */
+            background-color: #adb5bd;
             cursor: not-allowed;
         }
         #slide-counter {
-            font-size: 0.9em;
+            font-size: 0.85em; /* サイズ調整 */
             color: var(--text-color);
-            min-width: 60px; /* スペース確保 */
+            min-width: 60px;
             text-align: center;
             font-weight: 500;
         }
+
+        /* Tips集専用スタイル */
+        .tips-list li {
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23fd7e14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 11l4-2.5"></path><path d="M12 11v6.5"></path><path d="M12 11L8 8.5"></path><path d="M12 5.5V2.5"></path><path d="M16 4.5l4 2.5"></path><path d="M8 4.5l-4 2.5"></path></svg>'); /* Tips用アイコン */
+            margin-bottom: 0.8em; /* Tipsリストのマージン */
+        }
+        .tips-list li strong { color: var(--accent-color); }
     </style>
 </head>
 <body>
@@ -172,171 +182,170 @@
 <div class="reveal">
 <div class="slides">
 
-<section class="title-slide active">
-    <h1>管理職のための<br><span style="font-size:1.1em; color:var(--secondary-color);">生成AI</span>を活用した<br>論理的思考力<span style="font-size:1.1em;">強化</span>講座</h1>
-    <p style="font-size: 1.1em; margin-top: 15px;">～思考の質を高め、より良い意思決定を実現する～</p>
-    <p class="note">SaaSビジネスをドライブする皆様へ</p>
+<section class="title-slide active"> <h1>管理職のための<br><span style="font-size:1.1em; color:var(--secondary-color);">生成AI</span>を活用した<br>論理的思考力<span style="font-size:1.1em;">強化</span>講座</h1>
+    <p style="font-size: 1.05em; margin-top: 15px;">思考の質を高め、より良い意思決定を実現するために</p>
+    <p class="note">SaaSビジネスを推進する皆様へ</p>
 </section>
 
-<section>
-    <h2>本日の講師</h2>
-    <p class="center-text">（ここに講師名・所属・簡単なプロフィールを記載）</p>
-    <p class="center-text">皆様のプロダクト改善やチーム運営に「明日から使える！」ヒントを提供できるよう努めます。</p>
+<section> <h2><span style="font-size:0.8em; color:#777;">0. はじめに</span><br>その判断、本当に適切ですか？<br>～思考の落とし穴と本日の進め方～</h2>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">0. プロローグ</span><br>その判断、本当に大丈夫？<br>～思考の落とし穴と本日の羅針盤～</h2>
+<section> <h3>論理的思考の欠如が招く意思決定の誤り</h3>
+    <p>私たちは日々、多くの意思決定を行っています。特に変化の速いSaaS業界では、その質が事業の成長を大きく左右します。</p>
+    <p>まず、管理職が陥りやすい<span class="accent">10の典型的な誤り</span>を、私たちのビジネスシーンに即して確認しましょう。</p>
 </section>
 
-<section>
-    <h3>「良かれと思って」が招く…<br>論理的思考の弱さが引き起こす意思決定の誤り</h3>
-    <p>私たちは日々、多くの意思決定を行っています。特に変化の速いSaaS業界では、その質が事業の成長を左右します。</p>
-    <p>まずは、管理職が陥りやすい<span class="accent">10個の典型的な誤り</span>を、私たちのビジネスシーンに置き換えて見ていきましょう。</p>
-</section>
-
-<section>
-    <h3>SaaSビジネスあるある？ 意思決定の誤り①②</h3>
+<section> <h3>SaaSビジネスにおける意思決定の誤り (1/5)</h3>
     <ul style="max-width: 720px;">
         <li><strong>1. 相関関係と因果関係の混同</strong><br>
-            例：「最近、ブログ記事を増やしたら<span class="accent">MRR</span>も伸びた。記事数を増やせばもっとMRRは上がるはずだ！」<br>→ 本当に記事だけが要因？市場の追い風や、他の施策の効果は？</li>
+            例：「最近、ブログ記事を増やしたら<span class="accent">MRR</span>も伸びた。記事数を増やせばMRRはさらに向上するはずだ」<br>→ 本当に記事のみが要因でしょうか。市場の好転や他の施策効果も考慮すべきです。</li>
         <li><strong>2. 早まった一般化（結論の飛躍）</strong><br>
-            例：「大手顧客A社が『この機能は使いにくい』と言っていた。だから他の顧客も全員そう思っているに違いない」<br>→ 特定の顧客セグメントの声だけで、全体像を判断していませんか？</li>
+            例：「大手顧客A社から『この機能は使いにくい』との指摘があった。よって他の顧客も同様に感じているだろう」<br>→ 特定顧客セグメントの意見だけで、全体の評価を判断していませんか。</li>
     </ul>
 </section>
 
-<section>
-    <h3>SaaSビジネスあるある？ 意思決定の誤り③④</h3>
+<section> <h3>SaaSビジネスにおける意思決定の誤り (2/5)</h3>
     <ul style="max-width: 720px;">
         <li><strong>3. 木を見て森を見ず（部分最適の追求）</strong><br>
-            例：「開発チームは新機能を最速でリリース！でも、その結果サポートチームへの問い合わせが急増し、<span class="accent">顧客満足度が低下</span>…」<br>→ 部門最適が、プロダクト全体の価値を損ねていませんか？</li>
+            例：「開発チームは新機能を最速でリリース。しかし、その結果サポートチームへの問い合わせが急増し、<span class="accent">顧客満足度が低下</span>した…」<br>→ 部門最適化が、プロダクト全体の価値を損ねていませんか。</li>
         <li><strong>4. 前提条件の見落とし・誤認</strong><br>
-            例：「このUIは過去の製品で好評だったから、今回の新機能でも同じデザインでいこう！」<br>→ ターゲットユーザー層や利用シーンは本当に同じですか？<span class="accent">競合のUIトレンド</span>は変わっていませんか？</li>
+            例：「このUIは過去の製品で好評だったため、今回の新機能でも同じデザインを採用する」<br>→ ターゲットユーザー層や利用シーンは当時と同じですか。<span class="accent">競合のUIトレンド</span>の変化は考慮しましたか。</li>
     </ul>
 </section>
 
-<section>
-    <h3>SaaSビジネスあるある？ 意思決定の誤り⑤⑥</h3>
+<section> <h3>SaaSビジネスにおける意思決定の誤り (3/5)</h3>
     <ul style="max-width: 720px;">
         <li><strong>5. 感情論や印象による判断</strong><br>
-            例：「あのエンジニアの意見はいつも技術的に深掘りされていて説得力がある。彼の提案するアーキテクチャを採用しよう！」<br>→ ビジネス要件や運用コストとのバランスは十分に議論しましたか？</li>
-        <li><strong>6. 「みんながやっているから」という同調圧力</strong><br>
-            例：「競合のX社がAI機能を搭載した。うちも急いでAI関連機能を開発しないとまずい！」<br>→ 本当に自社の顧客はそのAI機能を求めていますか？<span class="accent">プロダクト戦略</span>と整合性は取れていますか？</li>
+            例：「あのエンジニアの意見は技術的に詳細で説得力がある。彼の提案するアーキテクチャを採用しよう」<br>→ ビジネス要件や運用コストとのバランスは十分に議論されましたか。</li>
+        <li><strong>6. 「他社もやっているから」という同調</strong><br>
+            例：「競合のX社がAI機能を搭載した。自社も急いでAI関連機能を開発すべきだ」<br>→ 本当に自社の顧客はそのAI機能を求めていますか。<span class="accent">プロダクト戦略</span>との整合性は取れていますか。</li>
     </ul>
 </section>
 
-<section>
-    <h3>SaaSビジネスあるある？ 意思決定の誤り⑦⑧</h3>
+<section> <h3>SaaSビジネスにおける意思決定の誤り (4/5)</h3>
     <ul style="max-width: 720px;">
         <li><strong>7. サンクコスト（埋没費用）への固執</strong><br>
-            例：「この機能モジュール、開発に半年もかけたんだ。今さら<span class="accent">仕様変更や中止</span>なんてできない…」<br>→ 市場のニーズが変わってしまったなら、損失を最小限に抑える勇気も必要では？</li>
+            例：「この機能モジュール開発に半年も費やした。今さら<span class="accent">仕様変更や中止</span>はできない…」<br>→ 市場ニーズが変化したなら、損失を最小限に抑える判断も必要ではないでしょうか。</li>
         <li><strong>8. 問題の表面的な対処（対症療法の繰り返し）</strong><br>
-            例：「また<span class="accent">チャーン（解約）</span>が出た。営業が個別に対応して引き留めよう」<br>→ なぜチャーンが続くのか、プロダクトの根本的な課題やオンボーディングプロセスの問題は分析しましたか？</li>
+            例：「また<span class="accent">チャーン（解約）</span>が発生した。営業が個別に対応し引き留めよう」<br>→ なぜチャーンが継続するのか。プロダクトの根本課題やオンボーディングプロセスの問題分析は十分ですか。</li>
     </ul>
 </section>
 
-<section>
-    <h3>SaaSビジネスあるある？ 意思決定の誤り⑨⑩</h3>
+<section> <h3>SaaSビジネスにおける意思決定の誤り (5/5)</h3>
     <ul style="max-width: 720px;">
         <li><strong>9. 目的と手段のすり替え</strong><br>
-            例：「<span class="accent">アジャイル開発</span>の手法を導入することが目的になってしまい、スプリントの消化ばかり気にしている…」<br>→ 本来、アジャイルで「顧客価値を迅速に届ける」という目的は達成できていますか？</li>
+            例：「<span class="accent">アジャイル開発</span>手法の導入自体が目的化し、スプリント消化のみを気にしている…」<br>→ 本来、アジャイルで目指した「顧客価値の迅速な提供」は達成できていますか。</li>
         <li><strong>10. 選択肢の検討不足（MECEでない検討）</strong><br>
-            例：「<span class="accent">リード獲得数</span>を増やす施策として、Web広告の予算増額しか議論していない…」<br>→ SEO強化、ウェビナー開催、コンテンツマーケティングなど、他の有効な選択肢を網羅的に比較検討しましたか？</li>
+            例：「<span class="accent">リード獲得数</span>を増やす施策として、Web広告の予算増額しか議論されていない…」<br>→ SEO強化、ウェビナー開催、コンテンツマーケティング等、他の有効な選択肢を網羅的に比較検討しましたか。</li>
     </ul>
-    <p class="note center-text">これらの「誤り」、自社の会議やプロジェクトで心当たりはありませんでしたか？</p>
+    <p class="note center-text">これらの「誤り」に心当たりはありませんでしたでしょうか。</p>
 </section>
 
-<section>
-    <h3>本日の講義で私たちが目指す場所</h3>
-    <p class="left-align" style="margin-bottom:1em;">これらの<span class="accent">「思考の落とし穴」</span>を認識し、それらを乗り越えるための<span class="accent">「思考の武器」</span>を身につけます。</p>
+<section> <h3>本日の研修で目指すこと</h3>
+    <p class="left-align" style="margin-bottom:0.8em;">これらの<span class="accent">「思考の落とし穴」</span>を認識し、それらを乗り越えるための<span class="accent">「思考の武器」</span>を習得します。</p>
     <p class="left-align">そして、その強力なサポーターとして<span class="accent">「生成AI」</span>をどう活用できるか、SaaSビジネスに役立つ具体的なヒントを得ることを目指します。</p>
-    <h3 style="margin-top:1.2em;">本日のワクワク・アジェンダ！</h3>
-    <ul style="font-size:0.95em;">
-        <li>論理的思考の基本と、SaaSビジネスでの課題</li>
-        <li>生成AIで思考をブーストする方法（プロンプト例も！）</li>
-        <li>実践演習：AIと一緒にSaaSの課題解決に挑戦</li>
-        <li>明日から使えるアクションプラン</li>
+    <h3 style="margin-top:1em;">本日の内容</h3>
+    <ul style="font-size:0.9em;">
+        <li>論理的思考の基本と、SaaSビジネスにおける課題</li>
+        <li>生成AIによる思考プロセスの強化（プロンプト例を含む）</li>
+        <li>実践演習：AIを活用したSaaS課題解決（個人ワーク）</li>
+        <li>明日から活用できる実践的ヒント</li>
     </ul>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">1. オープニング</span><br>なぜ今、SaaS企業の管理職に<br>「思考のアップデート」が求められるのか</h2>
+<section> <h2><span style="font-size:0.8em; color:#777;">1. 論理的思考の重要性</span><br>なぜ今、SaaS企業の管理職に<br>「思考のアップデート」が求められるのか</h2>
 </section>
 
-<section>
-    <h3>変化の激しいSaaS市場と管理職の役割</h3>
-    <p>SaaS業界は技術革新が速く、顧客ニーズも多様化し、競争も激化しています。<br>まさにVUCA（変動性、不確実性、複雑性、曖昧性）の最前線！</p>
-    <p>このような環境で、管理職の皆様には…</p>
+<section> <h3>変化の激しいSaaS市場と管理職の役割</h3>
+    <p>SaaS業界は技術革新が速く、顧客ニーズも多様化し、競争も激化しています。<br>まさにVUCA（変動性、不確実性、複雑性、曖昧性）の最前線です。</p>
+    <p>このような環境で、管理職の皆様には次の点がますます強く求められています。</p>
     <ul>
         <li>データに基づいた迅速な<span class="accent">市場・プロダクト分析</span></li>
         <li>複雑な課題から<span class="accent">本質的な改善点</span>を見抜く洞察力</li>
         <li>限られたリソースで最大の成果を出すための<span class="accent">質の高い意思決定</span></li>
         <li>開発・営業・サポートなど多様なチームをまとめ、<span class="accent">顧客価値を最大化</span>するリーダーシップ</li>
     </ul>
-    <p>…が、ますます強く求められています。その土台となるのが<span class="accent">「論理的思考力」</span>です。</p>
+    <p>その土台となるのが<span class="accent">「論理的思考力」</span>です。</p>
 </section>
 
-<section>
-    <h3>あなたのチームの「思考力ポテンシャル」診断</h3>
+<section> <h3>チームの思考力チェック</h3>
     <p>少し立ち止まって、ご自身のチームやプロダクト開発の進め方を振り返ってみましょう。</p>
     <ul style="max-width: 720px;">
-        <li>プロダクト会議でなかなか仕様が決まらない、議論が発散しがち…</li>
-        <li>エンジニアへの指示や営業からのフィードバックが曖昧で、手戻りが多い…</li>
-        <li>リリースした機能が期待したほど使われない、<span class="accent">KPIが改善しない</span>…</li>
-        <li>「なぜこの機能が響かなかったのか？」の深掘りが浅く、次の施策に活かせていない…</li>
-        <li>メンバーが既存のやり方にとらわれ、新しい改善提案が出にくい…</li>
+        <li>プロダクト会議で仕様決定に時間がかかる、議論が発散しがちである。</li>
+        <li>エンジニアへの指示や営業からのフィードバックが曖昧で、手戻りが多い。</li>
+        <li>リリースした機能が期待したほど利用されず、<span class="accent">KPIが改善しない</span>。</li>
+        <li>「なぜこの機能が響かなかったのか」の深掘りが浅く、次の施策に活かせていない。</li>
+        <li>メンバーが既存のやり方にとらわれ、新しい改善提案が出にくい傾向がある。</li>
     </ul>
-    <p class="center-text note">もし一つでも「うちもかも…」と感じたら、チームの「思考力」に大きな成長ポテンシャルがある証拠です！</p>
+    <p class="center-text note">もし一つでも当てはまる場合、チームの「思考力」に大きな成長の可能性があることを示しています。</p>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">2. 「思考のOS」を理解する</span><br>論理的思考の基本と課題</h2>
+<section> <h2><span style="font-size:0.8em; color:#777;">2. 思考の基盤を理解する</span><br>論理的思考の基本と課題</h2>
 </section>
 
-<section>
-    <h3>ロジカルシンキングとクリティカルシンキング：最強のタッグ！</h3>
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; width: 100%; max-width: 800px; margin-top:15px;">
-        <div style="width: 46%; min-width:280px; border: 2px solid var(--primary-color); padding: 18px; border-radius: var(--border-radius-md); background-color: #f0fffacc; margin-bottom:15px;">
-            <h4 style="margin-top:0; color:var(--primary-color);">ロジカルシンキング</h4>
-            <p class="small-text" style="text-align:center;">情報を整理し、筋道を立てて<span class="accent">スッキリ分かりやすく</span>考える技術。</p>
-            <p class="small-text" style="text-align:center;">例：MECE、ロジックツリー、仮説検証</p>
-            <p class="small-text" style="text-align:center;"><strong>→ 施策の「納得感」と「実行力」を高める</strong></p>
+<section> <h3>ロジカルシンキングとクリティカルシンキング：重要な両輪</h3>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; width: 100%; max-width: 800px; margin-top:12px;">
+        <div style="width: 46%; min-width:280px; border: 1.5px solid var(--primary-color); padding: 15px; border-radius: var(--border-radius-md); background-color: #f3fcf9cc; margin-bottom:12px;">
+            <h4 style="margin-top:0; color:var(--primary-color); font-size:1.05em;">ロジカルシンキング</h4>
+            <p class="small-text" style="text-align:center; margin-bottom:3px;">情報を整理し、筋道を立てて<span class="accent">分かりやすく</span>考える技術。</p>
+            <p class="small-text" style="text-align:center; margin-bottom:3px;">例：MECE、ロジックツリー、仮説検証</p>
+            <p class="small-text" style="text-align:center;"><strong>→ 施策の「納得感」と「実行力」を向上</strong></p>
         </div>
-        <div style="width: 46%; min-width:280px; border: 2px solid var(--accent-color); padding: 18px; border-radius: var(--border-radius-md); background-color: #fff8f0cc; margin-bottom:15px;">
-            <h4 style="margin-top:0; color:var(--accent-color);">クリティカルシンキング</h4>
-            <p class="small-text" style="text-align:center;">「本当にそう？」と前提を問い、<span class="accent">本質を見抜く</span>思考態度。</p>
-            <p class="small-text" style="text-align:center;">例：前提の確認、バイアスの排除、多角的な視点</p>
-            <p class="small-text" style="text-align:center;"><strong>→ プロダクト戦略の「質」と「独自性」を深める</strong></p>
+        <div style="width: 46%; min-width:280px; border: 1.5px solid var(--accent-color); padding: 15px; border-radius: var(--border-radius-md); background-color: #fffaf3cc; margin-bottom:12px;">
+            <h4 style="margin-top:0; color:var(--accent-color); font-size:1.05em;">クリティカルシンキング</h4>
+            <p class="small-text" style="text-align:center; margin-bottom:3px;">「本当にそうか？」と前提を問い、<span class="accent">本質を見抜く</span>思考態度。</p>
+            <p class="small-text" style="text-align:center; margin-bottom:3px;">例：前提の確認、バイアスの排除、多角的な視点</p>
+            <p class="small-text" style="text-align:center;"><strong>→ 戦略の「質」と「独自性」を深化</strong></p>
         </div>
     </div>
-    <p style="margin-top: 15px;">この<span class="accent">最強タッグ</span>を使いこなすことが、SaaSビジネスの成長エンジンになります。</p>
+    <p style="margin-top: 12px;">この<span class="accent">両輪</span>をバランス良く活用することが、質の高い思考には不可欠です。</p>
 </section>
 
-<section>
-    <h3>成功へのナビゲーション：「SMART」なゴール設定</h3>
-    <p>「どこに向かうのか」が曖昧では、どんな優秀なチームも迷走してしまいます。<br>SaaSのKPI設定にも通じる、<span class="accent">SMART</span>原則が重要です。</p>
-    <svg class="svg-diagram" width="680" height="280" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg">
+<section> <h3>成功への指針：「SMART」なゴール設定</h3>
+    <p style="text-align:center; margin-bottom: 3px;">「どこへ向かうのか」が曖昧では、どんな優秀なチームも成果を上げられません。<br>SaaSのKPI設定にも通じる、<span class="accent">SMART</span>原則の徹底が重要です。</p>
+    <svg class="svg-diagram" width="420" height="370" viewBox="0 0 420 370" xmlns="http://www.w3.org/2000/svg">
         <style>
-            .smart-text-svg { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 15px; fill: var(--text-color); }
-            .smart-char-svg { font-size: 22px; font-weight: 700; fill: #fff; }
-            .smart-desc-svg { font-size: 12.5px; fill: #555; }
+            .smart-text-svg { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 14px; fill: var(--text-color); }
+            .smart-char-svg { font-size: 18px; font-weight: 700; fill: #fff; }
+            .smart-desc-svg-title { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 12px; fill: #555; font-style: italic; }
+            .smart-desc-svg-example { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 12px; fill: var(--primary-color); font-weight:bold; }
             .circle-svg { fill: var(--primary-color); transition: transform 0.2s ease-out, filter 0.2s ease; }
-            .circle-svg:hover { transform: scale(1.1); filter: brightness(1.1); }
+            .circle-svg:hover { transform: scale(1.05); filter: brightness(1.1); }
         </style>
-        <g transform="translate(60, 70)"> <circle class="circle-svg" cx="0" cy="0" r="38"/> <text class="smart-char-svg" x="0" y="8" text-anchor="middle">S</text> <text class="smart-text-svg" x="0" y="60" text-anchor="middle">Specific (具体的に)</text> </g>
-        <g transform="translate(190, 70)"> <circle class="circle-svg" cx="0" cy="0" r="38"/> <text class="smart-char-svg" x="0" y="8" text-anchor="middle">M</text> <text class="smart-text-svg" x="0" y="60" text-anchor="middle">Measurable (測定可能)</text> </g>
-        <g transform="translate(320, 70)"> <circle class="circle-svg" cx="0" cy="0" r="38"/> <text class="smart-char-svg" x="0" y="8" text-anchor="middle">A</text> <text class="smart-text-svg" x="0" y="60" text-anchor="middle">Achievable (達成可能)</text> </g>
-        <g transform="translate(450, 70)"> <circle class="circle-svg" cx="0" cy="0" r="38"/> <text class="smart-char-svg" x="0" y="8" text-anchor="middle">R</text> <text class="smart-text-svg" x="0" y="60" text-anchor="middle">Relevant (関連性高く)</text> </g>
-        <g transform="translate(580, 70)"> <circle class="circle-svg" cx="0" cy="0" r="38"/> <text class="smart-char-svg" x="0" y="8" text-anchor="middle">T</text> <text class="smart-text-svg" x="0" y="60" text-anchor="middle">Time-bound (期限明確)</text> </g>
+        <g transform="translate(70, 40)"> 
+            <circle class="circle-svg" cx="0" cy="0" r="28"/> 
+            <text class="smart-char-svg" x="0" y="6" text-anchor="middle">S</text> 
+            <text class="smart-text-svg" x="45" y="5" text-anchor="start">Specific (具体的に)</text> 
+        </g>
+        <g transform="translate(70, 95)"> 
+            <circle class="circle-svg" cx="0" cy="0" r="28"/> 
+            <text class="smart-char-svg" x="0" y="6" text-anchor="middle">M</text> 
+            <text class="smart-text-svg" x="45" y="5" text-anchor="start">Measurable (測定可能)</text> 
+        </g>
+        <g transform="translate(70, 150)"> 
+            <circle class="circle-svg" cx="0" cy="0" r="28"/> 
+            <text class="smart-char-svg" x="0" y="6" text-anchor="middle">A</text> 
+            <text class="smart-text-svg" x="45" y="5" text-anchor="start">Achievable (達成可能)</text> 
+        </g>
+        <g transform="translate(70, 205)"> 
+            <circle class="circle-svg" cx="0" cy="0" r="28"/> 
+            <text class="smart-char-svg" x="0" y="6" text-anchor="middle">R</text> 
+            <text class="smart-text-svg" x="45" y="5" text-anchor="start">Relevant (関連性高く)</text> 
+        </g>
+        <g transform="translate(70, 260)"> 
+            <circle class="circle-svg" cx="0" cy="0" r="28"/> 
+            <text class="smart-char-svg" x="0" y="6" text-anchor="middle">T</text> 
+            <text class="smart-text-svg" x="45" y="5" text-anchor="start">Time-bound (期限明確)</text> 
+        </g>
 
-        <text class="smart-desc-svg" x="340" y="190" text-anchor="middle" font-style="italic">例：「<span class="accent">ユーザーエンゲージメント</span>を高める」 (これだとフワフワ...)</text>
-        <text class="smart-desc-svg" x="340" y="220" text-anchor="middle" style="fill:var(--primary-color); font-weight:bold;">SMARTな例：「<span style="text-decoration:underline;">次の四半期末まで</span>に、<span style="text-decoration:underline;">主要機能Xのアクティブ利用率</span>を<span style="text-decoration:underline;">現在の15%から25%に向上</span>させる」</text>
+        <text class="smart-desc-svg-title" x="210" y="320" text-anchor="middle">例：「ユーザーエンゲージメントを高める」(具体性に欠ける例)</text>
+        <text class="smart-desc-svg-example" x="210" y="340" text-anchor="middle">SMARTな例：「次四半期末迄に機能XのAU率25%向上」</text>
     </svg>
-    <p class="note">あなたのチームの目標、ちゃんとSMARTですか？<br>プロダクトロードマップの目標もSMARTに！</p>
+    <p class="note" style="margin-top:-10px;">貴社のチーム目標やプロダクト目標は、SMART原則を満たしていますか。</p>
 </section>
 
-<section>
-    <h3>未来から逆算！「バックキャスティング思考」</h3>
-    <p>明確なゴールが決まったら、そこへの道のりを逆から考えてみましょう。<br>現状から積み上げるだけでは、大きな変化は生まれません。</p>
+<section> <h3>未来から逆算する「バックキャスティング思考」</h3>
+    <p>明確なゴールが設定できたら、そこへ至る道筋を逆から考察します。<br>現状の積み上げだけでは、大きな変化は生まれにくいものです。</p>
     <svg class="svg-diagram" width="650" height="180" viewBox="0 0 650 180" xmlns="http://www.w3.org/2000/svg">
          <style>
             .arrow-line-svg { stroke: var(--secondary-color); stroke-width: 5; fill: none; stroke-dasharray: 8, 4; animation: dash 1s linear infinite;}
@@ -366,135 +375,127 @@
         <circle class="milestone-circle-svg" cx="80" cy="90"/>
         <text class="label-text-svg" x="80" y="135">今日の行動</text>
     </svg>
-    <p style="margin-top:5px;"><strong>「理想の未来（ゴール）」から「今、何をすべきか？」を考える</strong>ことで、<br>SaaSプロダクトの革新的な機能や、大胆な<span class="accent">グロース戦略</span>が見えてきます。</p>
+    <p style="margin-top:5px;"><strong>「理想の未来（ゴール）」から「今、何をすべきか」を考える</strong>ことで、<br>SaaSプロダクトの革新的な機能や、大胆な<span class="accent">グロース戦略</span>の立案に繋がります。</p>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">3. 生成AI：思考をブーストする</span><br>あなたの「戦略的パートナー」</h2>
+<section> <h2><span style="font-size:0.8em; color:#777;">3. 生成AIによる思考プロセスの強化</span><br>「戦略的パートナー」としての活用</h2>
 </section>
 
-<section>
-    <h3>生成AIは「魔法のランプ」？ それとも「賢いアシスタント」？</h3>
-    <p>話題の「生成AI」（ChatGPTなど）、SaaS業界でも活用が始まっていますね！</p>
-    <p class="left-align">生成AIは、<span class="accent">大量のテキストやコードを学習</span>し、人間と自然に対話したり、新しいアイデアをくれたりするAIです。</p>
-    <div style="display: flex; flex-wrap:wrap; justify-content: space-around; width: 100%; max-width: 800px; margin-top:10px;">
-        <div style="width: 46%; min-width:280px; background-color:#fff0f0cc; padding:15px; border-radius:var(--border-radius-md); border:1px solid #f5c6cb; margin-bottom:15px;">
-            <h4 style="color:#dc3545; margin-top:0; font-size:1.1em;">注意！ (魔法ではない)</h4>
+<section> <h3>生成AIとは何か：可能性と留意点</h3>
+    <p>近年注目される「生成AI」（例：ChatGPT）。SaaS業界でもその活用が期待されています。</p>
+    <p class="left-align">生成AIは、<span class="accent">大量のデータを学習</span>し、人間のように自然な文章を生成したり、アイデア創出を支援するAIです。</p>
+    <div style="display: flex; flex-wrap:wrap; justify-content: space-around; width: 100%; max-width: 800px; margin-top:8px;">
+        <div style="width: 46%; min-width:280px; background-color:#fff3f3cc; padding:12px; border-radius:var(--border-radius-md); border:1px solid #f5c6cb; margin-bottom:12px;">
+            <h4 style="color:#dc3545; margin-top:0; font-size:1.05em;">留意点</h4>
             <ul class="small-text">
-                <li>たまに自信満々に間違えます (ハルシネーション)</li>
-                <li>機密情報（顧客データ等）の扱いは超慎重に！</li>
-                <li>最終判断は必ず人間（あなた）が！</li>
+                <li>誤情報生成の可能性(ハルシネーション)</li>
+                <li>機密情報・個人情報の慎重な取り扱い</li>
+                <li>最終的な判断と責任は人間が担う</li>
             </ul>
         </div>
-        <div style="width: 46%; min-width:280px; background-color:#e7f3ffcc; padding:15px; border-radius:var(--border-radius-md); border:1px solid #b8daff; margin-bottom:15px;">
-            <h4 style="color:#007bff; margin-top:0; font-size:1.1em;">得意なこと (賢い相棒)</h4>
+        <div style="width: 46%; min-width:280px; background-color:#f0f7ffcc; padding:12px; border-radius:var(--border-radius-md); border:1px solid #b8daff; margin-bottom:12px;">
+            <h4 style="color:#007bff; margin-top:0; font-size:1.05em;">主な活用領域</h4>
             <ul class="small-text">
-                <li>市場調査レポートの要約</li>
-                <li>新機能のアイデア出し（壁打ち）</li>
-                <li>ユーザーインタビューの質問案作成</li>
-                <li>開発ドキュメントの草案作成</li>
+                <li>市場調査レポートの要約・分析</li>
+                <li>新機能アイデア創出の支援（壁打ち）</li>
+                <li>ユーザーインタビュー質問案の作成</li>
+                <li>開発ドキュメント・報告書等の草案作成</li>
             </ul>
         </div>
     </div>
-    <p style="margin-top:10px;">AIを<span class="accent">「指示待ちくん」ではなく「頼れる相談相手」</span>として、<br><span class="accent">「上手な質問（プロンプト）」</span>でポテンシャルを引き出しましょう！</p>
+    <p style="margin-top:8px;">AIを<span class="accent">「受動的なツール」ではなく「協働パートナー」</span>と捉え、<br><span class="accent">「的確な指示（プロンプト）」</span>でその能力を引き出すことが重要です。</p>
 </section>
 
-<section>
-    <h3>AIを使いこなす！効果的な「プロンプト」のコツ</h3>
-    <p>生成AIから期待以上のアウトプットを引き出すには、<span class="accent">「聞き方」「頼み方」</span>がカギ！</p>
-    <ul style="max-width: 720px; font-size:0.9em;">
-        <li><strong>具体的に！ (Clear):</strong> 「SaaSの解約率を下げる方法」より「中小企業向け会計SaaSの初期オンボーディングにおける解約率を下げるための具体的な施策アイデアを3つ、それぞれの期待効果と実現難易度を添えて教えて」</li>
-        <li><strong>背景を伝える (Context):</strong> あなたの会社の状況、プロダクトの特徴、課題などを共有する。</li>
-        <li><strong>役割を与える (Persona):</strong> 「あなたは経験豊富なSaaSプロダクトマネージャーです」と役割設定。</li>
-        <li><strong>お手本を見せる (Few-shot):</strong> 期待するアウトプットの例をいくつか示す。</li>
-        <li><strong>深掘りする (Iterate):</strong> 最初の回答に満足せず、追加質問でブラッシュアップ！</li>
+<section> <h3>AIへの効果的な指示（プロンプト）の基本</h3>
+    <p>生成AIから期待するアウトプットを得るには、<span class="accent">「問いかけ方」「依頼方法」</span>が鍵となります。</p>
+    <ul style="max-width: 720px; font-size:0.85em;">
+        <li><strong>明確性 (Clear):</strong> 何をしてほしいか、具体的に伝えます。曖昧な指示は曖昧な結果に繋がります。</li>
+        <li><strong>文脈 (Context):</strong> 背景情報や目的、制約条件を共有することで、AIの理解が深まります。</li>
+        <li><strong>役割設定 (Persona):</strong> 「あなたは経験豊富なSaaSプロダクトマネージャーです」のように役割を与えることで、回答の質や視点が変わることがあります。</li>
+        <li><strong>出力形式の指定 (Format):</strong> 「箇条書きで」「表形式で」「300字以内で」など、期待する出力形式を指定します。</li>
+        <li><strong>段階的指示と深掘り (Iterate):</strong> 複雑な場合は一度に全てを求めず、段階的に指示し、対話を通じて回答をブラッシュアップします。</li>
     </ul>
-    <p class="note center-text">AIとの<span class="accent">「対話」</span>を楽しむのが上達の近道です！</p>
+    <p class="note center-text">良質なプロンプトは、<span class="accent">効果的なコミュニケーション</span>の基本と同じです。</p>
 </section>
 
-<section>
-    <h3>生成AIで加速する！SaaSのロジカルシンキング</h3>
-    <p>AIは、プロダクト改善や戦略策定の思考プロセスを強力にサポートします。</p>
-    <div class="case-study-box" style="width:90%; max-width:750px;">
-        <h4 style="margin-top:0;">顧客フィードバックの構造化</h4>
-        <p class="small-text left-align">カスタマーサポートへの問い合わせログやレビューサイトのコメントから、<span class="accent">共通の不満点や要望</span>を抽出し、優先順位付けの参考にできます。</p>
+<section> <h3>生成AIで加速するSaaSのロジカルシンキング</h3>
+    <p style="margin-bottom: 3px;">AIは、プロダクト改善や戦略策定における論理的な思考プロセスを強力に支援します。</p>
+    <div class="case-study-box" style="width:95%; max-width:750px;">
+        <h4 style="margin-top:0;">顧客フィードバックの構造化・分析</h4>
+        <p class="small-text left-align" style="margin-bottom:2px;">サポート問合せログやレビューから<span class="accent">共通の不満点や要望</span>を抽出し、優先順位付けの参考に。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「以下のユーザーインタビューの書き起こしから、当社の業務改善SaaS『X』に対する主な改善要望を3点抽出し、それぞれに対する具体的な機能改善案を提案してください。[インタビューログを貼り付け]」
+            **プロンプト例:**<br>
+            「以下のユーザーインタビュー書き起こしから、当社業務改善SaaS『X』への主な改善要望3点と、それぞれに対する具体的な機能改善案を提案してください。[インタビューログを添付/入力]」
         </p>
     </div>
-    <div class="case-study-box" style="width:90%; max-width:750px; margin-top:10px;">
+    <div class="case-study-box" style="width:95%; max-width:750px; margin-top:5px;">
         <h4 style="margin-top:0;">競合分析の効率化</h4>
-        <p class="small-text left-align">競合SaaSプロダクトの機能、価格、ユーザーレビューなどを<span class="accent">短時間でリサーチ・要約</span>させ、自社の強み・弱みを分析する材料にします。</p>
+        <p class="small-text left-align" style="margin-bottom:2px;">競合SaaSの機能・価格・レビュー等を<span class="accent">短時間で調査・要約</span>し、自社の強み・弱みを分析。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「法人向け業務改善SaaSの主要競合であるA社、B社の最新の料金プランと主な機能、ユーザーレビューの傾向を比較し、当社のポジショニング戦略における示唆を教えてください。」
+            **プロンプト例:**<br>
+            「法人向け業務改善SaaSの主要競合A社,B社の最新料金プラン,主要機能,ユーザーレビュー傾向を比較し、当社のポジショニング戦略への示唆を提示してください。」
         </p>
     </div>
 </section>
 
-<section>
-    <h3>生成AIで磨く！SaaSのクリティカルシンキング</h3>
-    <p>あなたのアイデアや既存の戦略、AIに「ちょっと待った！」をかけてもらいましょう。</p>
-    <div class="case-study-box" style="width:90%; max-width:750px;">
+<section> <h3>生成AIで磨くSaaSのクリティカルシンキング</h3>
+    <p style="margin-bottom: 3px;">自身のアイデアや既存戦略に対し、AIを「壁打ち相手」として活用し、多角的に検証します。</p>
+    <div class="case-study-box" style="width:95%; max-width:750px;">
         <h4 style="margin-top:0;">新機能アイデアの多角的な検証</h4>
-        <p class="small-text left-align">新しい機能案に対して、「開発コスト」「既存機能との整合性」「ユーザーへの提供価値」「マネタイズの可能性」など、<span class="accent">様々な角度からAIに質問</span>を投げかけ、検討漏れを防ぎます。</p>
+        <p class="small-text left-align" style="margin-bottom:2px;">新機能案に対し「開発コスト」「既存機能との整合性」「提供価値」「収益性」等、<span class="accent">様々な角度からAIに問い</span>、検討漏れを防止。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「当社のSaaSに『プロジェクト自動進捗レポート機能』を追加する案があります。この機能の潜在的なリスク、開発上の課題、そしてターゲット顧客（例：中小企業のプロジェクトマネージャー）が本当に価値を感じるかについて、批判的な視点から意見をください。」
+            **プロンプト例:**<br>
+            「当社SaaSに『プロジェクト自動進捗レポート機能』追加案があります。この機能の潜在リスク、開発課題、ターゲット顧客（例：中小企業のPM）が本当に価値を感じるか、批判的視点で意見をください。」
         </p>
     </div>
-    <div class="case-study-box" style="width:90%; max-width:750px; margin-top:10px;">
+    <div class="case-study-box" style="width:95%; max-width:750px; margin-top:5px;">
         <h4 style="margin-top:0;">KPI設定の妥当性チェック</h4>
-        <p class="small-text left-align">設定しようとしているKPI（重要業績評価指標）が、本当に事業目標達成に貢献するのか、<span class="accent">他の指標との関連性や測定の実現可能性</span>などをAIに壁打ち相手になってもらい検証します。</p>
+        <p class="small-text left-align" style="margin-bottom:2px;">設定予定のKPIが事業目標達成に貢献するか、<span class="accent">他指標との関連性や測定実現性</span>をAIと検証。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「営業チームの新しいKPIとして『提案資料の作成数』を考えています。このKPIのメリットとデメリット、そしてより本質的な成果（例：受注率向上）に繋がる代替KPI案があれば教えてください。」
+            **プロンプト例:**<br>
+            「営業チームの新KPI『提案資料作成数』を検討中。このKPIの利点と欠点、より本質的な成果（例：受注率向上）に繋がる代替KPI案があればご教示ください。」
         </p>
     </div>
+    <p class="note center-text" style="margin-top:3px;">ただし、AIの回答も鵜呑みにせず、<span class="accent">批判的に吟味する姿勢</span>が重要です。</p>
 </section>
 
-<section>
-    <h3>AIと共創！SMARTなKPI設定と逆算ロードマップ</h3>
-    <p>「なんとなく売上アップ」ではダメ！AIと一緒に、具体的で達成可能な目標とそこへの道筋を描きましょう。</p>
-    <div class="case-study-box" style="width:90%; max-width:750px;">
-        <h4 style="margin-top:0;">KPIのSMART化支援</h4>
-        <p class="small-text left-align">「チャーンレートを改善したい」といった目標を、AIにSMART原則（具体的、測定可能、達成可能、関連性、期限）に基づいてブラッシュアップしてもらいます。</p>
+<section> <h3>AIと共創するSMARTなKPI設定と逆算計画</h3>
+    <p style="margin-bottom: 3px;">曖昧な目標ではなく、AIと共に具体的で達成可能な目標とそこへの道筋を明確化します。</p>
+    <div class="case-study-box" style="width:95%; max-width:750px;">
+        <h4 style="margin-top:0;">KPIのSMART原則に基づく具体化支援</h4>
+        <p class="small-text left-align" style="margin-bottom:2px;">「チャーンレートを改善したい」等の目標を、AIにSMART原則に沿ってブラッシュアップさせます。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「『<span class="accent">月次解約率を現状の3%から改善する</span>』という目標をSMARTにしたい。具体的な目標値、測定方法、達成に向けた施策例、現実的な期限設定についてアイデアを出して。」
+            **プロンプト例:**<br>
+            「『<span class="accent">月次解約率を現状3%から改善する</span>』という目標をSMART原則に基づき具体化したい。目標値、測定方法、施策例、現実的な期限設定についてアイデアを提案してください。」
         </p>
     </div>
-    <div class="case-study-box" style="width:90%; max-width:750px; margin-top:10px;">
+    <div class="case-study-box" style="width:95%; max-width:750px; margin-top:5px;">
         <h4 style="margin-top:0;">プロダクトロードマップ作成支援</h4>
-        <p class="small-text left-align">設定した事業目標から逆算して、主要なプロダクトマイルストーン、必要な機能開発、各スプリントでの優先タスクなどをAIとブレインストーミングします。</p>
+        <p class="small-text left-align" style="margin-bottom:2px;">事業目標から逆算し、主要マイルストーン、必要機能開発、スプリント優先タスク等をAIと検討。</p>
         <p class="prompt-example">
-            **あなた (ユーザー):**<br>
-            「目標：『<span class="accent">6ヶ月後にエンタープライズ向け新プランをリリース</span>する』。この目標達成のための主要マイルストーン、必要な機能群、開発チームの役割分担案を提案してください。」
+            **プロンプト例:**<br>
+            「目標：『<span class="accent">6ヶ月後にエンタープライズ向け新プランをリリース</span>』。この目標達成のための主要マイルストーン、必要機能群、開発チーム役割分担案を提案してください。」
         </p>
     </div>
 </section>
 
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">4. 実践演習</span><br>生成AIと共にSaaSの「意思決定の誤り」を乗り越えよう！</h2>
-    <p>さあ、ここからは実際にSaaSビジネスで起こりがちな課題を題材に、<br>生成AIをどう活用できるか、一緒に考えてみましょう！（デモ／グループワーク）</p>
+<section> <h2><span style="font-size:0.8em; color:#777;">4. 実践演習（個人ワーク）</span><br>生成AIと共にSaaSの「意思決定の誤り」を乗り越える</h2>
+    <p style="margin-top: 12px;">ここからは、SaaSビジネスで実際に起こりうる課題を題材に、<br>生成AIをどのように活用できるか、デモンストレーションと個人ワークで考察します。</p>
 </section>
 
-<section>
-    <h3>演習テーマ１：「サンクコストの罠」がちらつく機能開発プロジェクト</h3>
+<section> <h3>演習テーマ１：「サンクコストの罠」が疑われる機能開発プロジェクト</h3>
     <div class="case-study-box">
         <h3>状況設定 (SaaS企業A社)</h3>
-        <p class="small-text left-align">A社では、法人向け業務改善SaaSの新機能モジュール「スマート分析β」を開発中。開発開始から9ヶ月、<span class="accent">予定工数の8割を投入</span>済み。しかし、最近リリースされた<span class="accent">競合B社の類似機能が非常に高評価</span>で、A社の「スマート分析β」の独自性が薄れてしまった。さらに、主要ターゲット顧客層からも「それより既存機能の改善を…」という声が聞こえ始めている。開発リーダーは「ここまでリソースを投下したんだ、β版だけでもリリースしたい」と主張。</p>
-        <h4 style="margin-top:15px;">あなたなら、この状況で生成AIにどう相談しますか？</h4>
+        <p class="small-text left-align">A社では、法人向け業務改善SaaSの新機能モジュール「スマート分析β」を開発中。開発開始から9ヶ月、<span class="accent">予定工数の8割を投入</span>済み。しかし、最近リリースされた<span class="accent">競合B社の類似機能が非常に高評価</span>で、A社の「スマート分析β」の独自性が薄れてしまった。さらに、主要ターゲット顧客層からも「それより既存機能の改善を…」という声が聞こえ始めている。開発リーダーは「ここまでリソースを投下したのだから、β版だけでもリリースしたい」と主張している。</p>
+        <h4 style="margin-top:12px; font-size:1.05em;">個人ワーク：この状況で生成AIにどう相談しますか？（5分）</h4>
     </div>
-    <p class="note center-text">（グループワーク：どんなプロンプトでAIに客観的な意見を求めるか、アイデアを出してみましょう！）</p>
+    <p class="note center-text">（どのようなプロンプトでAIに客観的な意見を求めるか、各自で考えてみましょう）</p>
 </section>
 
-<section>
-    <h3>演習テーマ１：AI活用ポイントとプロンプト例</h3>
+<section> <h3>演習テーマ１：AI活用ポイントとプロンプト例</h3>
     <p class="left-align">このケースでは、客観的な状況分析と、感情論を排した合理的な判断が求められます。</p>
-    <h4 class="left-align" style="margin-top:1em;">AIへの相談の仕方（例）：</h4>
+    <h4 class="left-align" style="margin-top:0.8em; font-size:1.05em;">AIへの相談の仕方（プロンプト例）：</h4>
     <p class="prompt-example">
         **役割設定:** 「あなたは経験豊富なSaaSプロダクト戦略アドバイザーです。」
 
@@ -504,23 +505,21 @@
 
         **依頼3 (ピボット案の模索):** 「もし開発リソースを別の方向に振り向けるとしたら、これまでに開発した技術や知見を活かせる、より市場価値の高い代替機能や改善テーマについて、具体的なアイデアを3つ提案してください。」
     </p>
-    <p class="left-align small-text">AIは、これらの問いに対し、判断材料の整理、多様な視点、新たな選択肢の提示などでサポートしてくれます。</p>
+    <p class="left-align small-text">AIは、これらの問いに対し、判断材料の整理、多様な視点、新たな選択肢の提示などで支援します。</p>
 </section>
 
-<section>
-    <h3>演習テーマ２：「対症療法から抜け出せない」頻発するユーザー問い合わせ</h3>
+<section> <h3>演習テーマ２：「対症療法に終始」しがちな頻発するユーザー問い合わせ</h3>
      <div class="case-study-box">
         <h3>状況設定 (SaaS企業B社)</h3>
         <p class="small-text left-align">B社の主力業務改善SaaS「効率MAX」。最近、特定機能X（例：データ連携機能）に関する<span class="accent">ユーザーからの操作方法やエラーについての問い合わせがサポートデスクに頻発</span>。FAQページを更新し、サポート担当も個別対応に追われているが、問い合わせ件数は一向に減らない。社内ミーティングでは「サポート体制を強化しよう」「もっと丁寧なマニュアルを」という意見が出るものの、根本的な解決には至っていない。</p>
-        <h4 style="margin-top:15px;">あなたなら、生成AIを活用して、この問題の根本原因をどう探りますか？</h4>
+        <h4 style="margin-top:12px; font-size:1.05em;">個人ワーク：生成AIを活用し、この問題の根本原因をどう探りますか？（5分）</h4>
     </div>
-    <p class="note center-text">（グループワーク：AIと一緒に「なぜなぜ分析」を進めるプロンプトなどを考えてみましょう！）</p>
+    <p class="note center-text">（AIと共に「なぜなぜ分析」を進めるプロンプトなどを各自で考えてみましょう）</p>
 </section>
 
-<section>
-    <h3>演習テーマ２：AI活用ポイントとプロンプト例</h3>
+<section> <h3>演習テーマ２：AI活用ポイントとプロンプト例</h3>
     <p class="left-align">このケースでは、表面的な対応ではなく、問題の根本原因を特定し、恒久的な対策を打つことが重要です。</p>
-    <h4 class="left-align" style="margin-top:1em;">AIへの相談の仕方（例）：</h4>
+    <h4 class="left-align" style="margin-top:0.8em; font-size:1.05em;">AIへの相談の仕方（プロンプト例）：</h4>
     <p class="prompt-example">
         **役割設定:** 「あなたはUXリサーチとSaaSプロダクト改善の専門家です。」
 
@@ -530,126 +529,154 @@
 
         **依頼3 (根本対策のアイデア):** 「もし根本原因が『機能XのUIが直感的でない』ことだと仮定した場合、UI改善の具体的なアイデアを3つ、それぞれの期待効果と実現の容易度を添えて提案してください。」
     </p>
-    <p class="left-align small-text">AIは、原因分析のフレームワーク提供、多角的な仮説出し、具体的な改善策の提案などで思考をサポートします。</p>
+    <p class="left-align small-text">AIは、原因分析のフレームワーク提供、多角的な仮説出し、具体的な改善策の提案などで思考を支援します。</p>
 </section>
 
-<section>
-    <h3>演習の振り返り：AIは思考のパートナー！</h3>
-    <p>いかがでしたか？ 生成AIは…</p>
+<section> <h3>演習の振り返り：AIは思考のパートナー</h3>
+    <p>いかがでしたでしょうか。生成AIは、</p>
     <ul style="max-width:650px;">
-        <li><span class="accent">客観的</span>に情報を整理し、論点を明確にする</li>
-        <li>多様な<span class="accent">視点や選択肢</span>を提示し、視野を広げる</li>
-        <li>思考の<span class="accent">フレームワーク</span>や分析手法を教えてくれる</li>
-        <li><span class="accent">アイデアの壁打ち相手</span>になり、発想を豊かにする</li>
+        <li><span class="accent">客観的</span>に情報を整理し、論点を明確化する</li>
+        <li>多様な<span class="accent">視点や選択肢</span>を提示し、視野を拡大する</li>
+        <li>思考の<span class="accent">フレームワーク</span>や分析手法を提供する</li>
+        <li><span class="accent">アイデアの壁打ち相手</span>となり、発想を豊かにする</li>
     </ul>
-    <p>このように、私たちの論理的思考やクリティカルシンキングを強力にサポートしてくれます。</p>
-    <p class="note">ただし、AIの提案はあくまで「材料」。<br>それをどう料理し、最終的な意思決定を下すかは、私たち<span class="accent">人間の役割</span>です！</p>
+    <p>このように、私たちの論理的思考やクリティカルシンキングを強力に支援します。</p>
+    <p class="note">ただし、AIの提案はあくまで「判断材料」です。<br>それをどう活用し、最終的な意思決定を下すかは、私たち<span class="accent">人間の重要な役割</span>です。</p>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">5. 【お持ち帰り課題】</span><br>思考力をさらに磨くために<br>（セルフワークで挑戦！）</h2>
-    <p>本日の研修だけでは物足りない、もっとAIと思考訓練したい！というあなたへ。</p>
-    <p>ぜひ、研修後に以下の追加演習に取り組んでみてください。</p>
+<section> <h2><span style="font-size:0.8em; color:#777;">5. 【推奨】追加演習</span><br>思考力をさらに磨くために<br>（各自での実践）</h2>
+    <p>本日の研修内容を踏まえ、さらなるスキルアップのために、<br>ぜひ、研修後に以下の追加演習に各自で取り組んでみてください。</p>
 </section>
 
-<section>
-    <h3>追加演習１：他のSaaS「意思決定の誤り」ケーススタディ</h3>
-    <p class="left-align">以下の「誤り」がSaaSビジネスで起こりやすい状況を想定し、あなたが管理職としてどのように生成AIを活用してより良い意思決定をするか、具体的なプロンプトと共に考えてみましょう。</p>
-    <ul style="max-width: 720px; font-size:0.9em;">
-        <li><strong>テーマ例A：「早まった一般化」に注意！</strong><br>
-            ある大手顧客向けのカスタマイズ機能が高評価。この機能を標準機能として全顧客に展開すべきか？
-            <br><small class="note">→ AIにどんな市場調査をさせ、どんなセグメント分析をさせますか？</small></li>
-        <li><strong>テーマ例B：「目的と手段のすり替え」をチェック！</strong><br>
-            「毎日スタンドアップミーティングをすること」が目的化し、形骸化している開発チーム。どう改善する？
-            <br><small class="note">→ AIにアジャイルの本質や効果的なミーティング運営法を尋ね、改善案を作らせますか？</small></li>
-        <li><strong>テーマ例C：「選択肢の検討不足」を回避！</strong><br>
+<section> <h3>追加演習１：他のSaaS「意思決定の誤り」ケーススタディ</h3>
+    <p class="left-align">以下の「誤り」がSaaSビジネスで起こりやすい状況を想定し、管理職としてどのように生成AIを活用し、より良い意思決定を行うか、具体的なプロンプトと共に考察しましょう。</p>
+    <ul style="max-width: 720px; font-size:0.85em;">
+        <li><strong>テーマ例A：「早まった一般化」への注意</strong><br>
+            ある大手顧客向けのカスタマイズ機能が高評価。この機能を標準機能として全顧客に展開すべきか。
+            <br><small class="note">→ AIにどのような市場調査をさせ、セグメント分析をさせますか。</small></li>
+        <li><strong>テーマ例B：「目的と手段のすり替え」のチェック</strong><br>
+            「毎日スタンドアップミーティングを実施すること」が目的化し、形骸化している開発チーム。どう改善すべきか。
+            <br><small class="note">→ AIにアジャイルの本質や効果的なミーティング運営法を問い、改善案を作成させますか。</small></li>
+        <li><strong>テーマ例C：「選択肢の検討不足」の回避</strong><br>
             新プロダクトの<span class="accent">初期ユーザー獲得戦略</span>として、Web広告だけに注力しようとしている。
-            <br><small class="note">→ AIに他のユーザー獲得チャネル（コンテンツマーケ、紹介プログラム等）をMECEに洗い出させ、比較検討させるには？</small></li>
+            <br><small class="note">→ AIに他のユーザー獲得チャネルをMECEに洗い出させ、比較検討させるには。</small></li>
     </ul>
 </section>
 
-<section>
-    <h3>追加演習２：あなたのSaaSの「あの課題」をAIと深掘り！</h3>
-    <p>最も実践的なのは、<span class="accent">ご自身の業務やプロダクトで実際に抱えている課題</span>をテーマにすることです！</p>
-    <p>例えば…</p>
+<section> <h3>追加演習２：貴社のSaaS課題をAIと深掘り</h3>
+    <p>最も実践的な演習は、<span class="accent">ご自身の業務やプロダクトで実際に抱えている課題</span>をテーマにすることです。</p>
+    <p>例えば、</p>
     <ul style="max-width: 600px;">
-        <li>なかなか<span class="accent">KPIが改善しない</span>あの機能…</li>
-        <li>次期バージョンで搭載すべき<span class="accent">目玉機能のアイデア</span>…</li>
-        <li><span class="accent">開発チームの生産性向上</span>に関する悩み…</li>
-        <li><span class="accent">競合との差別化戦略</span>のブラッシュアップ…</li>
+        <li>なかなか<span class="accent">KPIが改善しない</span>既存機能</li>
+        <li>次期バージョンで搭載すべき<span class="accent">革新的な機能のアイデア</span></li>
+        <li><span class="accent">開発チームの生産性向上</span>に関する具体的施策</li>
+        <li><span class="accent">競合との差別化戦略</span>の再構築</li>
     </ul>
-    <p>本日の内容を参考に、生成AIに「賢い相談相手」になってもらい、課題整理、原因分析、解決策のアイデア出しなどを試してみてください。</p>
-    <p class="prompt-example left-align" style="width:85%; max-width:680px; margin:10px auto; font-size:0.8em;">
-    **試してみるプロンプトのヒント：**<br>
-    「当社のSaaSプロダクトの[特定機能]の<span class="accent">利用率が低い</span>です。考えられる原因をユーザー視点、UI/UX視点、マーケティング視点からそれぞれ挙げてください。」<br>
+    <p>本日の内容を参考に、生成AIを「賢い相談相手」として、課題整理、原因分析、解決策のアイデア出し等に活用してみてください。</p>
+    <p class="prompt-example left-align" style="width:85%; max-width:680px; margin:8px auto; font-size:0.78em;">
+    **試行プロンプト例：**<br>
+    「当社のSaaSプロダクトの[特定機能]の<span class="accent">利用率が低い</span>。考えられる原因をユーザー視点、UI/UX視点、マーケティング視点からそれぞれ挙げてください。」<br>
     「法人向け業務改善SaaSの<span class="accent">新しい収益モデル</span>として、ユニークなアイデアを3つ、それぞれのメリット・デメリットと共に提案してください。」<br>
-    「開発チームの<span class="accent">技術的負債を解消</span>しつつ、新機能開発も進めるための現実的な戦略についてアドバイスをください。」
+    「開発チームの<span class="accent">技術的負債を解消</span>しつつ、新機能開発も進めるための現実的な戦略について助言をください。」
     </p>
 </section>
 
-<section>
-    <h3>生成AI活用Tips集（お持ち帰り資料）</h3>
-    <p>本日の研修内容のまとめや、さらに学びを深めるための参考情報、SaaSビジネスで役立つプロンプト例などを別途お渡しします。</p>
-    <p style="font-size:1.4em; color: var(--primary-color); margin-top:25px;">ぜひ、日々の業務で<span class="accent">「まずAIに聞いてみる」</span>習慣を！</p>
-    <div style="margin-top:25px;">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="svg-diagram">
-            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="var(--primary-color)"/>
-            <path d="M16.5 8H7.5V6H16.5V8ZM16.5 12H7.5V10H16.5V12Z" fill="var(--secondary-color)" style="opacity:0.7;"/>
-        </svg>
-    </div>
+<section> <h2><span style="font-size:0.8em; color:#777;">巻末資料</span><br>生成AI活用Tips集</h2>
+    <p>日々の業務で生成AIをさらに効果的に活用するためのヒントとプロンプト例です。<br>ぜひ参考に、様々な場面で試してみてください。</p>
 </section>
 
-<section>
-    <h2><span style="font-size:0.8em; color:#777;">6. まとめとQ&A</span><br>明日からのアクションに向けて</h2>
-</section>
-
-<section>
-    <h3>本日の学び凝縮！明日から使えるキーポイント</h3>
-    <ul style="max-width: 750px;">
-        <li>論理的思考・クリティカルシンキングは<span class="accent">訓練で伸びる</span>！SaaSの高速なPDCAサイクルで実践しよう。</li>
-        <li>ゴールは常に<span class="accent">SMART</span>に。そこから<span class="accent">逆算</span>してプロダクト戦略・開発計画を。</li>
-        <li>生成AIは<span class="accent">思考の壁打ち相手</span>であり、<span class="accent">アイデアの泉</span>。的確な<span class="accent">プロンプト</span>が命！</li>
-        <li>AIの回答は<span class="accent">鵜呑みにしない</span>！必ず自分の頭で吟味し、<span class="accent">最終判断は人間（あなた）</span>が下す。</li>
-        <li>まずは<span class="accent">小さな課題</span>からでもOK！生成AIを<span class="accent">日常の業務ツール</span>として使ってみよう。</li>
+<section> <h3>Tips 1：基本姿勢とプロンプトの型</h3>
+    <ul class="tips-list">
+        <li><strong>基本姿勢:</strong>
+            <ul>
+                <li style="background-image:none;padding-left:1em;">AIはあくまで「副操縦士」。最終判断と責任は人間が持ちましょう。</li>
+                <li style="background-image:none;padding-left:1em;">機密情報や個人情報の入力は避け、取り扱いに十分注意してください。</li>
+                <li style="background-image:none;padding-left:1em;">一度で完璧な回答を求めず、対話を通じて精度を高めましょう。</li>
+            </ul>
+        </li>
+        <li><strong>効果的なプロンプトの型（例）:</strong>
+            <ul>
+                <li style="background-image:none;padding-left:1em;"><strong>役割設定:</strong> 「あなたは[役割]です。 [文脈]を踏まえ、[指示]をしてください。」</li>
+                <li style="background-image:none;padding-left:1em;"><strong>深掘り:</strong> 「その根拠は何ですか？」「他の選択肢は？」「具体例を3つ教えて。」</li>
+                <li style="background-image:none;padding-left:1em;"><strong>比較検討:</strong> 「A案とB案のメリット・デメリットを比較し、推奨案とその理由を。」</li>
+                <li style="background-image:none;padding-left:1em;"><strong>要約・抽出:</strong> 「以下の文章から重要なポイントを3点抽出して。」</li>
+                <li style="background-image:none;padding-left:1em;"><strong>アイデア発想:</strong> 「[課題]を解決する斬新なアイデアを5つ提案して。」</li>
+            </ul>
+        </li>
     </ul>
-    <p class="note center-text">これらのポイントを意識して、SaaSビジネスの「思考の質」を爆上げしましょう！</p>
 </section>
 
-<section>
-    <h3>AI時代のSaaS管理職に求められる心構え</h3>
-    <p class="left-align" style="max-width:750px;">テクノロジーが進化するほど、私たち人間ならではの価値が輝きます。</p>
+<section> <h3>Tips 2：SaaSプロダクト企画での活用例</h3>
+    <ul class="tips-list">
+        <li><strong>新機能のアイデア出し:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「当社の[種別]SaaS（例：営業支援SaaS）のメインターゲットである[顧客層]（例：中小企業の営業マネージャー）が抱える[具体的な課題]（例：営業報告の作成に時間がかかる）を解決するための新しい機能を3つ、それぞれの提供価値と競合優位性を含めて提案してください。」</li>
+        <li><strong>市場・顧客ニーズ調査の補助:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「[特定市場]（例：建設業界）における業務改善SaaSの最新トレンドと、まだ十分に満たされていない顧客ニーズについて、公開情報に基づいて分析・要約してください。」</li>
+        <li><strong>ペルソナ（顧客像）作成の支援:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「当社のSaaSプロダクト『[製品名]』の理想的な顧客ペルソナを3パターン作成してください。各ペルソナについて、業種、役職、抱える課題、情報収集方法、SaaS導入の決め手となる要素を含めてください。」</li>
+    </ul>
+</section>
+
+<section> <h3>Tips 3：SaaS開発・マーケティングでの活用例</h3>
+    <ul class="tips-list">
+        <li><strong>仕様検討の壁打ち相手として:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「現在開発中の新機能『[機能名]』の仕様について、ユーザーが直面しうる問題点や、より使いやすくするための改善提案があれば指摘してください。現在の仕様は[仕様概要]です。」</li>
+        <li><strong>マーケティングキャッチコピー作成:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「当社のSaaSプロダクト『[製品名]』の新機能『[機能概要]』の魅力を[ターゲット顧客]に伝えるためのキャッチコピー案を5つ提案してください。キーワードは[キーワード1], [キーワード2]です。」</li>
+        <li><strong>ブログ記事・メルマガの構成案作成:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「[テーマ]（例：SaaS導入による中小企業のDX推進）に関するブログ記事の構成案を作成してください。導入、主要論点3つ、まとめ、CTA（行動喚起）を含めてください。」</li>
+    </ul>
+</section>
+
+<section> <h3>Tips 4：SaaS営業・カスタマーサクセスでの活用例</h3>
+    <ul class="tips-list">
+        <li><strong>提案資料の骨子作成:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「[顧客の業界]の[顧客企業名]（または顧客タイプ）に対して、当社のSaaS『[製品名]』を提案します。その際に盛り込むべき、顧客の課題解決に繋がる主要な導入メリット3点と、それを裏付ける事例の骨子を作成してください。」</li>
+        <li><strong>FAQ・サポートドキュメント作成支援:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「当社のSaaS機能『[機能名]』について、ユーザーからよく寄せられる質問とその回答をFAQ形式で5つ作成してください。平易な言葉で、初心者にも分かりやすく記述してください。」</li>
+        <li><strong>顧客向け活用事例のストーリー作成:</strong><br>
+            <strong class="small-text">プロンプト例:</strong> 「当社のSaaS『[製品名]』を導入した[顧客タイプ]が、[導入前の課題]をどのように解決し、[具体的な成果]を達成したかという成功事例のストーリー構成案を作成してください。課題、解決策、成果、今後の展望を含めてください。」</li>
+    </ul>
+    <p class="note center-text" style="margin-top:10px;">これらはあくまで一例です。自社の業務に合わせてプロンプトを工夫してみてください。</p>
+</section>
+
+<section> <h2><span style="font-size:0.8em; color:#777;">6. まとめ</span><br>明日からのアクションに向けて</h2>
+</section>
+
+<section> <h3>本日の要点：明日から活用できるキーポイント</h3>
+    <ul style="max-width: 750px;">
+        <li>論理的思考・クリティカルシンキングは<span class="accent">訓練可能なスキル</span>です。SaaSの高速なPDCAサイクルで実践しましょう。</li>
+        <li>ゴールは常に<span class="accent">SMART</span>に設定し、そこから<span class="accent">逆算</span>してプロダクト戦略・開発計画を立案します。</li>
+        <li>生成AIは<span class="accent">思考の壁打ち相手</span>であり、<span class="accent">アイデアの源泉</span>となり得ます。的確な<span class="accent">プロンプト</span>が鍵です。</li>
+        <li>AIの回答は<span class="accent">鵜呑みにせず</span>、必ず自身の頭で吟味し、<span class="accent">最終判断は人間</span>が行います。</li>
+        <li>まずは<span class="accent">小さな課題</span>からでも結構です。生成AIを<span class="accent">日常の業務ツール</span>として試してみましょう。</li>
+    </ul>
+    <p class="note center-text">これらのポイントを意識し、SaaSビジネスにおける「思考の質」を向上させましょう。</p>
+</section>
+
+<section> <h3>AI時代のSaaS管理職に求められる心構え</h3>
+    <p class="left-align" style="max-width:750px;">テクノロジーが進化するほど、私たち人間ならではの価値がより重要になります。</p>
     <ul style="max-width: 750px;">
         <li><strong>AIリテラシーの向上：</strong><br>
             AIの特性を理解し、業務改善SaaSの提供者として、効果的かつ倫理的に活用する能力。</li>
         <li><strong>ビジネスと技術のバランス感覚：</strong><br>
-            AIの提案を吟味し、技術的な面白さだけでなく、顧客価値と事業収益に繋がる判断力。</li>
+            AIの提案を吟味し、技術的な視点だけでなく、顧客価値と事業収益に繋がる判断力。</li>
         <li><strong>共感力とコミュニケーション：</strong><br>
-            AIには難しい、顧客の真の痛みへの共感や、多様なチームメンバーとの円滑な協働。</li>
-        <li><strong>変化を楽しむ学習意欲：</strong><br>
-            新しい技術や市場トレンドを積極的に学び、プロダクトも自分自身も進化し続ける柔軟性。</li>
+            AIには難しい、顧客の真の課題への共感や、多様なチームメンバーとの円滑な協働。</li>
+        <li><strong>変化への適応と学習意欲：</strong><br>
+            新しい技術や市場トレンドを積極的に学び、プロダクトも自身も進化し続ける柔軟性。</li>
     </ul>
-    <p class="center-text" style="margin-top:15px;">AIを<span class="accent">賢く使いこなし、自社の業務改善サービスをさらに進化させる</span>！<br>そんなスタンスが、これからのSaaSリーダーには不可欠です。</p>
+    <p class="center-text" style="margin-top:12px;">AIを<span class="accent">賢く使いこなし、自社の業務改善サービスをさらに進化させる</span>という姿勢が、<br>これからのSaaSリーダーには不可欠です。</p>
 </section>
 
-<section>
-    <h2>Q&A タイム！</h2>
-    <p>本日の内容に関するご質問、<br>生成AIの業務活用で「こんな時どうする？」など、<br>何でもお気軽にお寄せください！</p>
-    <svg class="svg-diagram" width="100" height="100" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--primary-color)" stroke-width="1.5"  fill="rgba(32,201,151,0.1)"/>
-        <path d="M9.08984 9.00002C9.32498 8.01391 10.0804 7.20347 11.0276 6.99985C11.9748 6.79623 12.9603 7.22079 13.5552 7.99985C14.1502 8.77892 14.1502 9.99985 13.5552 10.7789C13.1956 11.2444 12.6647 11.7018 12.33 12M12 15H12.01" stroke="var(--primary-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-</section>
-
-<section class="title-slide">
-    <h2 style="font-size:2.2em;">ご清聴ありがとうございました！</h2>
-    <p style="font-size: 1.1em; margin-top: 20px;">本日の研修が、皆様のSaaSビジネスとチームの成長の一助となれば幸いです。</p>
-    <p class="note" style="color:#f0f0f0;">ぜひアンケートにもご協力ください！</p>
+<section class="title-slide"> <h2 style="font-size:2.2em;">ご清聴ありがとうございました</h2>
+    <p style="font-size: 1.05em; margin-top: 20px;">本日の研修が、皆様のSaaSビジネスとチームの成長の一助となれば幸いです。</p>
+    <p class="note" style="color:#f0f0f0;">アンケートへのご協力をお願いいたします。</p>
 </section>
 
 </div> </div> <div class="slide-nav">
     <button id="prev-slide" title="前のスライド (←キー)">＜ Prev</button>
-    <span id="slide-counter">1 / 38</span>
-    <button id="next-slide" title="次のスライド (→キー)">Next ＞</button>
+    <span id="slide-counter">1 / 40</span> <button id="next-slide" title="次のスライド (→キー)">Next ＞</button>
 </div>
 
 <script>
@@ -659,7 +686,7 @@
         const nextButton = document.getElementById('next-slide');
         const slideCounter = document.getElementById('slide-counter');
         let currentSlideIndex = 0;
-        const totalSlides = slides.length;
+        const totalSlides = slides.length; // スライド数を動的に取得
 
         function showSlide(index) {
             slides.forEach((slide, i) => {
@@ -700,7 +727,7 @@
                 if (currentSlideIndex > 0) {
                     showSlide(currentSlideIndex - 1);
                 }
-            } else if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { //スペースキーでも次へ
+            } else if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { 
                 if (currentSlideIndex < totalSlides - 1) {
                     showSlide(currentSlideIndex + 1);
                 }
@@ -708,7 +735,14 @@
         });
 
         // 初期表示
-        showSlide(0);
+        if (slides.length > 0) { // スライドが存在する場合のみ初期化
+             showSlide(0);
+        } else {
+            // スライドがない場合の処理（例：カウンターを0/0にするなど）
+            slideCounter.textContent = `0 / 0`;
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+        }
     });
 </script>
 
