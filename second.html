@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成AIで実現！業務プロセス自動化のためのプログラミング思考入門</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; justify-content: center; }
+        .slide-container { width: 90%; max-width: 900px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; margin-bottom: 20px;}
+        .slide { padding: 30px 40px; border-bottom: 1px solid #ddd; min-height: 520px; display: none; flex-direction: column; justify-content: center; }
+        .slide.active { display: flex; }
+        .slide:last-child { border-bottom: none; }
+        h1, h2, h3, h4 { color: #333; }
+        h1 { font-size: 2.0em; text-align: center; color: #005f73; margin-bottom: 15px; }
+        h2 { font-size: 1.7em; color: #0077b6; border-bottom: 2px solid #0077b6; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px;}
+        h3 { font-size: 1.3em; color: #028090; margin-top: 20px; margin-bottom: 10px;}
+        h4 { font-size: 1.1em; color: #555; margin-top: 15px; margin-bottom: 5px; font-weight: bold;}
+        p, li { font-size: 1.0em; line-height: 1.7; color: #444; }
+        ul, ol { margin-left: 20px; padding-left: 10px;}
+        .code-block { background-color: #2d2d2d; color: #f0f0f0; padding: 12px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; font-size: 0.9em; margin-top: 8px; margin-bottom: 8px; }
+        .prompt-example { background-color: #e0f7fa; color: #00796b; padding: 10px; border-radius: 5px; font-family: 'Arial', sans-serif; white-space: pre-wrap; font-size: 0.9em; margin-top: 8px; margin-bottom: 8px; border-left: 4px solid #00796b;}
+        .note { background-color: #fff3e0; border-left: 5px solid #ff9800; padding: 12px; margin-top: 12px; font-size: 0.9em; }
+        .highlight { color: #d9534f; font-weight: bold; }
+        .center-text { text-align: center; }
+        .slide-image-svg { /* Unified class for SVG placeholders */
+            display: block;
+            margin: 15px auto;
+            max-width: 90%;
+            height: auto;
+            max-height: 220px; /* Maintain height for placeholders */
+            background-color: #e0e0e0; /* Placeholder background */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-style: italic;
+            text-align: center; /* For text within SVG if not centered by SVG's own attributes */
+            color: #555; /* For text within SVG */
+        }
+        .tool-icon { width: 40px; height: 40px; margin:0 5px; vertical-align: middle;}
+        .process-step {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: .25rem;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .process-step strong { color: #0077b6; }
+
+        .flex-container { display: flex; align-items: flex-start; justify-content: space-around; margin: 20px 0; }
+        .flex-item { text-align: center; margin: 0 10px; flex-basis: 45%; }
+        .flex-item p {font-size: 0.9em; margin-top: 5px;}
+
+        .navigation-buttons { text-align: center; margin-top: 10px; margin-bottom: 30px; }
+        .nav-button { background-color: #0077b6; color: white; border: none; padding: 10px 20px; font-size: 1em; border-radius: 5px; cursor: pointer; margin: 0 10px; transition: background-color 0.2s ease; }
+        .nav-button:hover:not(:disabled) { background-color: #005f73; }
+        .nav-button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .page-number { font-size: 0.95em; color: #555; margin: 0 15px; display: inline-block; min-width: 50px; text-align: center;}
+        .emphasize { color: #0077b6; font-weight: bold;}
+        kbd {
+            background-color: #eee;
+            border-radius: 3px;
+            border: 1px solid #b4b4b4;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+            color: #333;
+            display: inline-block;
+            font-size: .85em;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 4px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <div class="slide">
+            <h1>生成AIで実現！<br>業務プロセス自動化のための<br>プログラミング思考入門</h1>
+            <p class="center-text" style="font-size: 0.9em; margin-top: 60px;">講師： 本松慎一郎</p>
+            <p class="center-text" style="font-size: 0.9em;">日付： [講義実施日]</p>
+        </div>
+
+        <div class="slide">
+            <h2>1. はじめに：繰り返される「あの業務」、AIで自動化しませんか？</h2>
+            <p>皆さんの周りにも、毎月・毎週のように繰り返される、時間のかかる定型業務はありませんか？</p>
+            <h4>例えばこんな業務… 「月次営業レポート作成・配信プロセス」</h4>
+            <div class="process-step">
+                <strong>ステップ1：データ収集</strong><br>
+                各支店からメール添付で送られてくる複数のExcel売上報告書を、共有フォルダの特定月フォルダ（例: `//Share/SalesReports/2025年/05月/`）に集約・保存する。
+            </div>
+            <div class="process-step">
+                <strong>ステップ2：データ集約・計算</strong><br>
+                保存された全支店のExcelファイルを開き、それぞれの「売上実績」シートから「商品名」「数量」「単価」「売上金額」を抽出し、一つの集計用Excelファイルにまとめる。全社総売上、商品別売上ランキングを計算する。
+            </div>
+            <div class="process-step">
+                <strong>ステップ3：レポート作成</strong><br>
+                集計結果と計算結果を基に、A4一枚のサマリーレポート（Word形式）を作成する。レポートには、総売上、ランキング、前月比のグラフも挿入する。
+            </div>
+            <div class="process-step">
+                <strong>ステップ4：配信</strong><br>
+                完成したレポート（Word）をPDF化し、関係部署のメーリングリストに「〇月度 営業実績レポート」という件名でメール自動送信する。
+            </div>
+            <p style="margin-top:15px;">このような複数のステップから成る業務、手作業では時間もかかり、ミスも起こりがちです。</p>
+            <p class="note">もし、この一連のプロセスを<span class="gemini-style">AI</span>に指示して自動化プログラムを作ってもらうとしたら、<span class="highlight">どのように伝えれば良いでしょうか？</span></p>
+        </div>
+
+        <div class="slide">
+            <h2>1. はじめに：AIへの「伝え方」が変わるプログラミング思考</h2>
+            <p>先ほどの「月次営業レポート作成・配信プロセス」をAIに自動化してもらうには、AIが理解できる<span class="highlight">明確で具体的な指示（プロンプト）</span>が必要です。</p>
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>曖昧な指示の例</h4>
+                    <div class="prompt-example" style="background-color: #ffebee; border-left-color: #d32f2f; text-align:left;">
+                    「毎月の営業レポート作成を自動化して。データは共有フォルダにあるExcelファイルから。結果はメールで送って。」
+                    </div>
+                    <p style="text-align:left; margin-top:10px;">これではAIは…<br>
+                    ❓ どのフォルダ？ファイル名の規則は？<br>
+                    ❓ Excelのどのシートのどのデータを使う？<br>
+                    ❓ レポートの形式は？計算内容は？<br>
+                    ❓ メールは誰に？件名は？</p>
+                </div>
+                <div class="flex-item">
+                    <h4>具体的な指示に必要な要素 (一部)</h4>
+                    <div class="prompt-example" style="text-align:left;">
+                    ✅ 処理対象フォルダの<span class="emphasize">パス</span><br>
+                    ✅ 対象ファイルの<span class="emphasize">命名規則</span><br>
+                    ✅ 各Excelの<span class="emphasize">シート名</span>と必要な<span class="emphasize">セル範囲</span><br>
+                    ✅ 計算方法（合計、平均など）<br>
+                    ✅ レポートの<span class="emphasize">出力形式</span>（Word, PDF）<br>
+                    ✅ メールの<span class="emphasize">宛先リスト</span>、件名、本文<br>
+                    ✅ <span class="emphasize">エラーが起きた場合</span>の対処…など
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-top:15px;">このように、業務プロセスを<span class="highlight">プログラムに落とし込む（AIに指示する）</span>ためには、そのプロセスを<span class="emphasize">論理的な手順やデータの流れとして整理・分解</span>する必要があります。これが「プログラミング思考」の基本です。</p>
+            <p class="note">本日のゴール：この「プログラミング思考」の道具を学び、AIに<span class="highlight">意図した業務自動化プログラム</span>を効率的に生成させる力を身につけましょう！</p>
+        </div>
+
+
+        <div class="slide">
+            <h2>2. 業務自動化の指示をAIに正確に伝えるための7つの道具</h2>
+            <p>これから、AIに業務自動化の指示（プロンプト）を出す際に役立つ、プログラミングの基本的な「考え方」を7つの道具として紹介します。</p>
+            <ol style="font-size:1.1em; line-height: 1.9;">
+                <li>扱うデータは「<span class="emphasize">種類</span>」を明確に (データ型)</li>
+                <li>データやファイルには「<span class="emphasize">名前</span>」を付けて管理 (変数)</li>
+                <li>数値計算やファイル名生成は「<span class="emphasize">どう計算・加工するか</span>」を指示 (演算子)</li>
+                <li>業務プロセスの「<span class="emphasize">分岐点</span>」をAIに伝える (条件分岐)</li>
+                <li>「<span class="emphasize">繰り返し行う定型作業</span>」をまとめて指示 (繰り返し)</li>
+                <li>一連の業務ステップは「<span class="emphasize">処理のまとまり</span>」として定義 (関数)</li>
+                <li>AIの特性を理解し「<span class="emphasize">伝わる指示</span>」を出す (プロンプトのコツ)</li>
+            </ol>
+            <p class="note">これらの「道具」を使って、日々の業務を自動化するプログラムをAIと一緒に作り上げましょう！</p>
+        </div>
+
+        <div class="slide">
+            <h3>2.1 道具①：扱うデータは「種類」を明確に (データ型という考え方)</h3>
+            <p>自動化したい業務で扱う情報の「種類」をAIに伝えることで、誤解を防ぎ、正確な処理を促します。</p>
+            <ul>
+                <li><strong>文字列:</strong> ファイル名、フォルダパス、メールの件名・本文、顧客名など。</li>
+                <li><strong>数値:</strong> ファイル数、売上金額、処理件数、日付の年・月・日など。</li>
+                <li><strong>リスト:</strong> 処理対象のファイルリスト、メールアドレス一覧、抽出データの一覧など。</li>
+            </ul>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「フォルダ <span class="code-block" style="display:inline; padding:2px 5px;">"daily_reports"</span>（文字列）内にある全Excelファイル（ファイル名の<span class="highlight">リスト</span>）から、各ファイルの `売上` シートのセル `B2`（<span class="highlight">数値</span>）を読み取り、その合計を計算してください。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="データ型を意識した業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「フォルダパス(文字列)内のExcelファイル(リスト)から、</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">セルB2(数値)を読み取り合計...」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIがデータ型を理解し、適切なコードを生成するイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">os.listdir(folder_path) ... df['売上'].sum() ...</text>
+                <title>データ型を意識した業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.2 道具②：データやファイルには「名前」を付けて管理 (変数という考え方)</h3>
+            <p>自動化プロセスで何度も使う情報（フォルダパス、設定値、処理途中のデータなど）には「名前（変数名）」を付けてAIと共有しましょう。</p>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「定型報告書のテンプレートファイルは <span class="code-block" style="display:inline; padding:2px 5px;">"template.docx"</span> です。これを <span class="highlight">template_doc</span> という名前で参照します。<br>
+            顧客リスト（Excelファイル <span class="code-block" style="display:inline; padding:2px 5px;">"customers.xlsx"</span>）を読み込み、各顧客に対して <span class="highlight">template_doc</span> を複製し、顧客名を差し込んで個別の報告書を作成してください。作成したファイルは <span class="code-block" style="display:inline; padding:2px 5px;">"output_reports"</span> フォルダに保存します。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="変数を使った業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「template_doc = "template.docx" ...</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">output_folder = "output_reports" ...」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIが変数を使って処理を組み立てるイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">template_doc = "template.docx" ... shutil.copy(template_doc, ...)</text>
+                <title>変数を使った業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.3 道具③：数値計算やファイル名生成は「どう計算・加工するか」を指示 (演算子という考え方)</h3>
+            <p>業務自動化では、数値の集計や、日付・連番を使ったファイル名の自動生成などがよく発生します。</p>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「処理対象フォルダ内のCSVファイル数をカウントし、その数値を<span class="highlight">変数 `file_count`</span> とします。<br>
+            出力ファイル名を <span class="code-block" style="display:inline; padding:2px 5px;">"summary_"</span> + 今日の日付（YYYYMMDD形式の文字列） + <span class="code-block" style="display:inline; padding:2px 5px;">"_total_"</span> + <span class="highlight">`file_count`</span>（文字列に変換） + <span class="code-block" style="display:inline; padding:2px 5px;">".xlsx"</span> のように生成してください。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="演算子を意識した業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「... file_count (数値) ...</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">出力ファイル名 = "summary_" + 今日の日付 + "_" + str(file_count) + ".xlsx"」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIが文字列連結や型変換を行うコードを生成するイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">filename = "summary_" + date_str + "_total_" + str(file_count) + ".xlsx"</text>
+                <title>演算子を意識した業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.4 道具④：業務プロセスの「分岐点」をAIに伝える (条件分岐 `if` の考え方)</h3>
+            <p>自動化したい業務プロセスには、「もしAならBの処理、もしCならDの処理」といった判断の分岐点が存在します。</p>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「指定したフォルダ内の全Excelファイルを確認します。<br>
+            <span class="highlight">もし</span>ファイル名に <span class="code-block" style="display:inline; padding:2px 5px;">"月次報告"</span> という文字列が含まれてい<span class="highlight">れば</span>、そのファイルを `月次報告書フォルダ` に移動してください。<br>
+            <span class="highlight">そうでなく、もし</span>ファイル名に <span class="code-block" style="display:inline; padding:2px 5px;">"週次報告"</span> が含まれてい<span class="highlight">れば</span>、`週次報告書フォルダ` に移動してください。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="条件分岐を指示する業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「もしファイル名に "月次報告" が含まれれば...</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">そうでなくもし "週次報告" が含まれれば...」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIがif/elif/elseを使ったコードを生成するイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">if "月次報告" in filename: ... elif "週次報告" in filename: ...</text>
+                <title>条件分岐を指示する業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.5 道具⑤：「繰り返し行う定型作業」をまとめて指示 (繰り返し `for` の考え方)</h3>
+            <p>多くの業務自動化は、複数のファイルやデータ項目に対して同じ処理を繰り返すことで実現されます。</p>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「フォルダ <span class="code-block" style="display:inline; padding:2px 5px;">"input_csvs"</span> の中にある<span class="highlight">全てのCSVファイルに対して</span>、以下の処理を行うPythonコードを<span class="library-name">pandas</span>を使って作成してください：<br>
+            1. 各CSVファイルを読み込む。<br>
+            2. `売上金額` 列と `経費` 列の差額を計算し、`利益` という新しい列を追加する。<br>
+            3. 変更後のデータを、元のファイル名に <span class="code-block" style="display:inline; padding:2px 5px;">"_processed"</span> を付けた新しいCSVファイルとして `output_csvs` フォルダに保存する。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="繰り返し処理を指示する業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「全てのCSVファイルに対して...</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">1. 読み込み 2. 利益計算 3. 保存」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIがforループでファイルリストを処理するコードを生成するイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">for csv_file in csv_files: ... df['利益'] = ...</text>
+                <title>繰り返し処理を指示する業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.6 道具⑥：一連の業務ステップは「処理のまとまり」として定義 (関数という考え方)</h3>
+            <p>定型的な一連の業務ステップは、一つの「機能（関数）」としてAIに定義させると、プロンプトが整理され、同じ処理を何度も頼む場合に便利です。</p>
+            <p class="prompt-example"><strong>業務自動化プロンプト例：</strong><br>
+            「以下の3つのステップから成る<span class="highlight">`generate_and_send_report` という名前のPython関数</span>を作成してください。<br>
+            この関数は、引数として `report_month`（文字列）を取ります。<br>
+            1.  該当月の売上データを取得。<br>
+            2.  サマリーレポート（文字列）を作成。<br>
+            3.  レポートをメール送信。<br>
+            その後、この関数を `report_month` を "2025-04" として呼び出すサンプルも示して。」</p>
+            <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="関数化を指示する業務自動化プロンプトとAIの応答例">
+                <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                <text x="50%" y="30%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">プロンプト例：「`generate_and_send_report(report_month)` 関数を作成。</text>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">内容はデータ取得、レポート作成、メール送信。」</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIが関数定義と呼び出しを含むコードを生成するイメージ）</text>
+                <rect x="10%" y="75%" width="80%" height="15%" fill="#f0f0f0" rx="2" ry="2" />
+                <text x="50%" y="83%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10px" fill="#333">def generate_and_send_report(report_month): ...</text>
+                <title>関数化を指示する業務自動化プロンプトとAIの応答例</title>
+            </svg>
+        </div>
+
+        <div class="slide">
+            <h3>2.7 道具⑦：AIの特性を理解し「伝わる指示」を出す (プロンプトのコツ)</h3>
+            <p>業務自動化プログラムをAIに作らせる際も、AIの特性を理解することが成功の鍵です。</p>
+            <ul>
+                <li><span class="highlight">具体的な業務フローを伝える：</span>業務の手順を明確にしましょう。</li>
+                <li><span class="highlight">エラー処理も考慮に入れる（徐々に）：</span>起こりうる例外を想定し、対処法も指示できるとより堅牢になります。</li>
+                <li><span class="highlight">少しずつ作って、テストする：</span>小さな部品からAIに作らせてテストし、徐々に組み合わせましょう。</li>
+            </ul>
+            <p class="note">AIはあなたの指示に基づいてコードを生成します。指示が具体的で明確であるほど、期待する自動化が実現しやすくなります。</p>
+        </div>
+
+        <div class="slide">
+            <h2>3. 実践ワークショップ：業務自動化の「魔法の呪文（プロンプト）」を磨こう</h2>
+            <p>今日学んだ「7つの道具」を意識して、実際の業務自動化シナリオに基づいたプロンプトを改善してみましょう。</p>
+            <h3>お題</h3>
+            <p class="center-text emphasize" style="font-size:1.0em; line-height:1.6;">「毎週末に、各担当者が個別に作成・保存している週次報告書<br>（Excel形式、ファイル名は『週報_担当者名_YYYYMMDD.xlsx』、<br>保存フォルダは『//共有サーバ/週報提出用/YYYY年/MM月/』）を<br>全て集約し、一つのサマリーExcelファイル<br>（『全社週報まとめ_YYYYMMDD.xlsx』）として<br>『//共有サーバ/経営会議資料/』フォルダに保存したい。<br>サマリーには各報告書から『重要トピック』と『来週の予定』の項目を<br>担当者名と共に転記する」</p>
+        </div>
+
+        <div class="slide">
+            <h2>3. 実践ワークショップ：業務自動化の「魔法の呪文（プロンプト）」を磨こう</h2>
+            <h3>お題 (再掲)</h3>
+            <p class="center-text emphasize" style="font-size:1.0em; line-height: 1.5;">「毎週末に、各担当者が個別に作成・保存している週次報告書（Excel形式、ファイル名は『週報_担当者名_YYYYMMDD.xlsx』、保存フォルダは『//共有サーバ/週報提出用/YYYY年/MM月/』）を全て集約し、一つのサマリーExcelファイル（『全社週報まとめ_YYYYMMDD.xlsx』）として『//共有サーバ/経営会議資料/』フォルダに保存したい。サマリーには各報告書から『重要トピック』と『来週の予定』の項目を担当者名と共に転記する」</p>
+
+            <h4>悪いプロンプト例（Before）</h4>
+            <div class="prompt-example" style="background-color: #ffebee; border-left-color: #d32f2f;">
+            「週報をまとめてほしい。Excelで。」
+            </div>
+            <p>これではAIに全く伝わりません…</p>
+        </div>
+
+        <div class="slide">
+            <h2>3. 実践ワークショップ：業務自動化の「魔法の呪文（プロンプト）」を磨こう</h2>
+            <h3>改善のポイント：「7つの道具」で業務プロセスを分解・具体化</h3>
+             <h4>良いプロンプト例（After）の骨子</h4>
+            <div class="prompt-example" style="font-size:0.85em; max-height: 380px; overflow-y: auto;">
+「Pythonで、以下の業務を自動化するプログラムを作成してください。ライブラリは<span class="library-name">os</span>, <span class="library-name">datetime</span>, <span class="library-name">glob</span>, <span class="library-name">pandas</span>を使用してください。
+
+1.  **処理対象フォルダの特定**:
+    * プログラム実行日の週末（金曜日を基準とする）の日付を取得します。
+    * その日付から年と月を取得し、入力元フォルダパスを <span class="code-block" style="display:inline; padding:2px 5px;">"//共有サーバ/週報提出用/{YYYY}年/{MM}月/"</span> の形式で特定します（<span class="highlight">変数 `input_folder`</span>）。
+
+2.  **入力ファイルの収集**:
+    * <span class="highlight">`input_folder`</span> 内から、ファイル名が <span class="code-block" style="display:inline; padding:2px 5px;">"週報_*.xlsx"</span> のパターンに一致するExcelファイルの一覧（<span class="highlight">リスト `report_files`</span>）を取得します。
+
+3.  **データ抽出と集約**:
+    * 空のDataFrame（<span class="highlight">変数 `summary_df`</span>、列は `担当者名`, `重要トピック`, `来週の予定`）を準備します。
+    * <span class="highlight">`report_files` の各ファイルに対して繰り返し処理</span>を行います：
+        * ファイル名から担当者名を抽出します（例: "週報_山田太郎_20250509.xlsx" → "山田太郎"）。
+        * Excelファイルを読み込みます。各報告書には `報告シート` という名前のシートがあり、`B2`セルに「重要トピック」、`B3`セルに「来週の予定」が記載されているとします。
+        * 抽出した担当者名、重要トピック、来週の予定を `summary_df` に新しい行として追加します。
+
+4.  **出力ファイル作成**:
+    * 出力ファイル名を <span class="code-block" style="display:inline; padding:2px 5px;">"全社週報まとめ_{YYYYMMDD}.xlsx"</span> の形式で生成します（YYYYMMDDは処理実行日の週末金曜日の日付）。
+    * 出力先フォルダパスは <span class="code-block" style="display:inline; padding:2px 5px;">"//共有サーバ/経営会議資料/"</span> とします（<span class="highlight">変数 `output_folder`</span>）。
+    * <span class="highlight">`summary_df`</span> を、生成したファイル名で <span class="highlight">`output_folder`</span> にExcelファイルとして保存します。」
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>3. 実践ワークショップ：業務自動化の「魔法の呪文（プロンプト）」を磨こう</h2>
+            <h3>AI (<span class="gemini-style">Gemini</span>) によるデモンストレーション</h3>
+            <p>実際に「悪いプロンプト例」と「改善されたプロンプト例」を<span class="gemini-style">Gemini</span>に入力し、業務自動化プログラムの生成結果がどう変わるか見てみましょう。</p>
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Beforeのプロンプト結果 (イメージ)</h4>
+                    <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="曖昧な業務自動化プロンプトによるAIの応答例">
+                        <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                        <text x="50%" y="35%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">AI応答：「どのような週報ですか？</text>
+                        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">もっと詳しく教えてください。」</text>
+                        <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12px" fill="#666" style="font-style: italic;">（AIが困惑し、汎用的なコードや質問を返すイメージ）</text>
+                        <title>曖昧な業務自動化プロンプトによるAIの応答例</title>
+                    </svg>
+                </div>
+                <div class="flex-item">
+                    <h4>Afterのプロンプト結果 (イメージ)</h4>
+                     <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" class="slide-image-svg" aria-label="具体的な業務自動化プロンプトによるAIの応答例">
+                        <rect width="100%" height="100%" fill="#e0e0e0" rx="4" ry="4"/>
+                        <text x="50%" y="25%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">AI応答：「承知しました。以下のPythonコードで</text>
+                        <text x="50%" y="40%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13px" fill="#555" style="white-space: pre-wrap;">週報集約処理を実行します...」</text>
+                        <rect x="10%" y="55%" width="80%" height="35%" fill="#f0f0f0" rx="2" ry="2" />
+                        <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="9px" fill="#333" style="white-space: pre-wrap;">import os, datetime, glob, pandas as pd&#x0A;def collect_reports():&#x0A;  # ... (具体的な処理コードの断片) ...&#x0A;  summary_df.to_excel(output_path)</text>
+                        <title>具体的な業務自動化プロンプトによるAIの応答例</title>
+                    </svg>
+                </div>
+            </div>
+            <p class="note">業務プロセスを分解し、具体的に指示することで、AIはより的確な自動化コードを生成してくれます。</p>
+        </div>
+
+
+        <div class="slide">
+            <h2>4. まとめ：AIを最強の業務自動化パートナーにするために</h2>
+            <ul>
+                <li>「プログラミング思考」を身につけることで、AIに<span class="highlight">複雑な業務自動化の指示</span>を明確に伝えられるようになります。</li>
+                <li>重要なのは、自動化したい業務の<span class="highlight">手順、条件、扱うデータを細かく分解・整理</span>し、それをAIが理解できる言葉で伝えることです。</li>
+                <li>今日学んだ「7つの道具」は、そのための強力な武器となります。</li>
+                <li>完璧なプロンプトを一度に書こうとせず、AIと<span class="emphasize">対話しながら少しずつ改善</span>していくことが、業務自動化プログラム作成の近道です。</li>
+                <li>まずは<span class="highlight">身の回りの小さな定型業務</span>から、AIと一緒に自動化に挑戦してみましょう！</li>
+            </ul>
+            <p class="center-text" style="font-size: 1.2em; margin-top: 30px;">AIを活用して、日々の業務をもっと効率的に、もっと創造的に！</p>
+             <div class="flex-container" style="margin-top:20px;">
+                 <div class="flex-item">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="業務効率化を示すアイコン"><title>業務効率化</title><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z" fill="#4CAF50"/><path d="M13 7h-2v5L15.25 14.25l.75-1.23-2-1.22V7z" fill="#4CAF50"/><path d="m16.431 9.397-2.07-3.586A.5.5 0 0 0 13.931 5H10.07a.5.5 0 0 0-.43.789l-2.07 3.586a.5.5 0 0 0 .431.711h7a.5.5 0 0 0 .43-.711zM12 8.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z" fill="#0077b6"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h1>質疑応答</h1>
+            <div class="flex-container" style="margin-top: 30px; margin-bottom: 30px;">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Q&Aを示す吹き出しのアイコン">
+                    <title>Q&A アイコン</title>
+                    <path d="M19 3H5C3.89543 3 3 3.89543 3 5V15C3 16.1046 3.89543 17 5 17H8V20.5L12.5 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3Z" stroke="#0077b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-size="3.5px" fill="#0077b6" font-family="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" font-weight="bold">Q&A</text>
+                </svg>
+            </div>
+            <p class="center-text" style="margin-top: 30px;">ご清聴ありがとうございました。</p>
+        </div>
+
+    </div>
+
+    <div class="navigation-buttons">
+        <button id="prevButton" class="nav-button">前へ</button>
+        <span id="pageInfo" class="page-number"></span>
+        <button id="nextButton" class="nav-button">次へ</button>
+    </div>
+
+    <script>
+        const slideContainer = document.querySelector('.slide-container');
+        const slides = slideContainer.querySelectorAll('.slide');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const pageInfo = document.getElementById('pageInfo');
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                }
+            });
+            updateNavigation();
+            window.scrollTo(0, 0);
+        }
+
+        function updateNavigation() {
+            if (slides.length > 0) {
+                pageInfo.textContent = `${currentSlide + 1} / ${slides.length}`;
+            } else {
+                pageInfo.textContent = `0 / 0`;
+            }
+            if (prevButton) prevButton.disabled = currentSlide === 0;
+            if (nextButton) nextButton.disabled = currentSlide === slides.length - 1;
+        }
+        
+        if (slides.length > 0) {
+            showSlide(currentSlide);
+        }
+
+        if(prevButton) {
+            prevButton.addEventListener('click', () => {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    showSlide(currentSlide);
+                }
+            });
+        }
+
+        if(nextButton) {
+            nextButton.addEventListener('click', () => {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    showSlide(currentSlide);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
