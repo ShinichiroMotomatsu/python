@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaSプラットフォーム再構築構想 インフォグラフィック</title>
+    <title>SaaS 新プラットフォーム追加構想 インフォグラフィック</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <!-- 
-    Narrative & Structure Plan (v2):
-    1.  Title & Introduction: Introduce the purpose of the re-architecture.
-    2.  The Challenge (現状の課題): Visualize the three main problems (Performance, Flexibility, Efficiency).
-    3.  The Vision (新構想): A side-by-side flowchart comparing the current (As-Is) and future (To-Be) architectures, explicitly showing the shared database to highlight coexistence.
-    4.  The Engine - Definition Files (コアコンセプト): Explain the "Definition File" concept with a code example and a process flow diagram.
-    5.  The Future - AI-Powered Development (将来展望): Illustrate the flow of generating applications from natural language using AI.
-    6.  The Benefits (期待される効果): Use charts to quantify the expected improvements.
+    Narrative & Structure Plan (v4):
+    1.  Title & Introduction: Introduce the concept of adding a new platform.
+    2.  The Challenge (現状の課題): Visualize the three main problems that necessitate a new offering.
+    3.  The Vision (新構想): A side-by-side flowchart comparing the existing plan and the new high-performance plan, showing them as coexisting choices on a shared database.
+    4.  The Engine - Definition Files (コアコンセプト): Explain the "Definition File" concept, which powers the new platform.
+    5.  The Future - AI-Powered Development (将来展望): Illustrate the flow of generating applications, a key feature of the new platform.
+    6.  The Benefits (期待される効果): Use charts to quantify the value brought by the new platform option.
     7.  Conclusion: A final, strong statement about the strategic investment.
     
-    Visualization Selection (v2 Update):
-    -   As-Is vs To-Be Architecture: Goal: Organize/Compare. Chosen Viz: Modified Flowchart using styled divs. Justification: Updated to clearly show a single, shared database resource, emphasizing coexistence and phased migration. This is the most effective non-SVG/Mermaid method for this concept. NO SVG/Mermaid JS.
-    -   (Other selections remain the same)
+    Visualization Selection (v4 Update):
+    -   Framing Shift: All text updated to reflect "addition" not "replacement". Titles changed from "Re-architecture" to "New Platform Addition". Diagram labels changed from "As-Is/To-Be" to "Standard Plan/High-Performance Plan".
+    -   (Visual structures remain the same as they effectively represent the concepts.)
 
     Constraint Confirmation:
     -   Mermaid JS was NOT used. All flowcharts are built with HTML and Tailwind CSS.
@@ -104,50 +104,50 @@
     <div class="container mx-auto p-4 md:p-8">
 
         <header class="text-center mb-12 md:mb-16">
-            <h1 class="text-4xl md:text-5xl font-bold gradient-text mb-4">SaaSプラットフォーム再構築構想</h1>
-            <p class="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto">ビジネスの成長を加速させるための、次世代アーキテクチャへの戦略的転換</p>
+            <h1 class="text-4xl md:text-5xl font-bold gradient-text mb-4">SaaS 新世代プラットフォーム追加構想</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto">多様なニーズに応えるための、新たなハイパフォーマンス・プラットフォームの追加</p>
         </header>
 
         <main>
             <section id="challenge" class="mb-16">
-                <h2 class="text-3xl font-bold text-center mb-4 text-[#005f73]">ビジネス成長を阻む３つの壁</h2>
-                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">現在のPHPによるモノリシックなシステムは、柔軟性とパフォーマンスの限界に直面しており、将来のビジネス展開における大きなボトルネックとなっています。</p>
+                <h2 class="text-3xl font-bold text-center mb-4 text-[#005f73]">より高度なニーズに応えるための新たな挑戦</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">既存システムは安定稼働を続けますが、一部のお客様からより高いパフォーマンスや柔軟性を求める声が上がっており、新たな選択肢が必要となっています。</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="bg-white rounded-lg shadow-xl p-8 text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-6xl mb-4">🐌</div>
-                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">パフォーマンスの限界</h3>
-                        <p class="text-gray-600">大規模利用時の処理速度がボトルネックとなり、ユーザー体験を損なうリスクが増大しています。</p>
+                        <div class="text-6xl mb-4">🚀</div>
+                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">超高速処理への要求</h3>
+                        <p class="text-gray-600">大規模なデータ処理や複雑な自動処理を、より高速に実行したいというニーズ。</p>
                     </div>
                     <div class="bg-white rounded-lg shadow-xl p-8 text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-6xl mb-4">🔗</div>
-                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">柔軟性の欠如</h3>
-                        <p class="text-gray-600">UIとバックエンドの密結合により、新技術の導入や外部システム連携が困難になっています。</p>
+                        <div class="text-6xl mb-4">🧩</div>
+                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">高度な連携と拡張性</h3>
+                        <p class="text-gray-600">最新技術を用いた外部システムとの連携や、より自由なフロントエンド開発への期待。</p>
                     </div>
                     <div class="bg-white rounded-lg shadow-xl p-8 text-center transform hover:scale-105 transition-transform duration-300">
-                        <div class="text-6xl mb-4">⏳</div>
-                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">開発効率の低下</h3>
-                        <p class="text-gray-600">複雑化したコードベースが、機能追加や改修のスピードを著しく低下させています。</p>
+                        <div class="text-6xl mb-4">🤖</div>
+                        <h3 class="text-2xl font-bold text-[#005f73] mb-2">AIを活用した開発</h3>
+                        <p class="text-gray-600">AIによるアプリケーション自動生成など、次世代の開発体験への関心。</p>
                     </div>
                 </div>
             </section>
 
             <section id="vision" class="mb-16 bg-white rounded-lg shadow-lg p-6 md:p-10">
-                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">解決策：新旧システム共存による段階的進化</h2>
-                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">既存のデータベース資産はそのまま活用し、新旧システムが共存しながら段階的に移行を進めることが可能です。これにより、リスクを最小限に抑えつつ、スムーズなアーキテクチャ刷新を実現します。</p>
+                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">解決策：新たな選択肢「新プラットフォーム」の追加</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">既存の安定したシステムはそのまま提供を継続し、新たにハイパフォーマンスなプラットフォームを追加。共通のデータベース上で両システムが共存するため、お客様はニーズに応じて最適なプランを選択できます。</p>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
                     <div>
-                        <h3 class="text-2xl font-bold text-center mb-4 text-red-600">As-Is: 既存システム</h3>
-                        <div class="p-4 border-2 border-red-200 rounded-lg bg-red-50 h-full">
-                             <div class="flow-card bg-red-100 border-red-300">ユーザー</div>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-blue-600">既存スタンダードプラン (安定稼働)</h3>
+                        <div class="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 h-full">
+                             <div class="flow-card bg-blue-100 border-blue-300">ユーザー</div>
                              <div class="flow-arrow"></div>
-                             <div class="p-4 border-2 border-dashed border-red-400 rounded-lg">
-                                <h4 class="font-bold text-center mb-2 text-red-700">一体型PHPアプリケーション</h4>
+                             <div class="p-4 border-2 border-dashed border-blue-400 rounded-lg">
+                                <h4 class="font-bold text-center mb-2 text-blue-700">一体型PHPアプリケーション</h4>
                                 <div class="flow-card">UI / ビジネスロジック / データアクセス</div>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-bold text-center mb-4 text-green-600">To-Be: 新プラットフォーム</h3>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-green-600">新ハイパフォーマンスプラン (高性能)</h3>
                         <div class="p-4 border-2 border-green-200 rounded-lg bg-green-50 h-full">
                             <div class="grid grid-cols-2 gap-2 mb-4">
                                 <div class="flow-card">Web UI</div>
@@ -168,14 +168,14 @@
                      <div class="w-1/2 pr-6"><div class="shared-db-arrow"></div></div>
                      <div class="w-1/2 pl-6"><div class="shared-db-arrow"></div></div>
                 </div>
-                <div class="flow-card bg-blue-50 border-blue-200 mt-4 max-w-md mx-auto">
-                    <h4 class="font-bold text-blue-800">共通リレーショナルデータベース (既存資産)</h4>
-                    <p class="text-sm text-blue-600">データベースはそのままに、新旧両方のシステムからアクセスします。</p>
+                <div class="flow-card bg-purple-50 border-purple-200 mt-4 max-w-md mx-auto">
+                    <h4 class="font-bold text-purple-800">共通リレーショナルデータベース (既存資産)</h4>
+                    <p class="text-sm text-purple-600">データベースはそのままに、両方のプランからアクセス・共用します。</p>
                 </div>
             </section>
 
             <section id="engine" class="mb-16">
-                <h2 class="text-3xl font-bold text-center mb-4 text-[#005f73]">新開発の核：定義ファイル</h2>
+                <h2 class="text-3xl font-bold text-center mb-4 text-[#005f73]">新プラットフォームの核：定義ファイル</h2>
                 <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">GUIに代わり、アプリケーションの構造やロジックをテキストで記述。これにより、Gitでのバージョン管理や、設定の再利用、そして自動化が容易になります。</p>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                     <div class="bg-gray-800 rounded-lg shadow-lg p-4 font-mono text-sm text-white">
@@ -252,11 +252,11 @@ automation:
             </section>
 
             <section id="benefits" class="mb-8">
-                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">再構築がもたらす絶大な効果</h2>
+                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">新プラットフォームがもたらす新たな価値</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="bg-white rounded-lg shadow-lg p-6">
                         <h3 class="text-xl font-bold text-center mb-4 text-[#005f73]">圧倒的なパフォーマンス向上</h3>
-                        <p class="text-center text-gray-600 mb-4">モダンな言語とアーキテクチャにより、処理速度が劇的に向上。大規模なワークフローも瞬時に実行します。</p>
+                        <p class="text-center text-gray-600 mb-4">PHPからGoやRustなどマルチコア性能を最大限に活かせるモダンな言語へ刷新。これにより処理速度が劇的に向上し、大規模なワークフローも瞬時に実行します。</p>
                         <div class="chart-container">
                             <canvas id="performanceChart"></canvas>
                         </div>
@@ -333,18 +333,19 @@ automation:
             mint: '#94d2bd',
             lightGray: '#e9ecef',
             red: '#ae2012',
+            blue: '#4299e1'
         };
 
         const performanceCtx = document.getElementById('performanceChart').getContext('2d');
         new Chart(performanceCtx, {
             type: 'bar',
             data: {
-                labels: ['従来(PHP)', '新プラットフォーム'],
+                labels: ['既存プラン(PHP)', '新プラン(Go等)'],
                 datasets: [{
                     label: '相対的処理性能',
                     data: [1, 15],
-                    backgroundColor: [colors.red, colors.teal],
-                    borderColor: [colors.red, colors.teal],
+                    backgroundColor: [colors.blue, colors.teal],
+                    borderColor: [colors.blue, colors.teal],
                     borderWidth: 1
                 }]
             },
