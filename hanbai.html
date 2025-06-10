@@ -10,22 +10,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <!-- 
-    Narrative & Structure Plan:
+    Narrative & Structure Plan (v2):
     1.  Title & Introduction: Introduce the purpose of the re-architecture.
     2.  The Challenge (現状の課題): Visualize the three main problems (Performance, Flexibility, Efficiency).
-    3.  The Vision (新構想): A side-by-side flowchart comparing the current (As-Is) and future (To-Be) architectures. This is the core of the infographic.
+    3.  The Vision (新構想): A side-by-side flowchart comparing the current (As-Is) and future (To-Be) architectures, explicitly showing the shared database to highlight coexistence.
     4.  The Engine - Definition Files (コアコンセプト): Explain the "Definition File" concept with a code example and a process flow diagram.
     5.  The Future - AI-Powered Development (将来展望): Illustrate the flow of generating applications from natural language using AI.
     6.  The Benefits (期待される効果): Use charts to quantify the expected improvements.
     7.  Conclusion: A final, strong statement about the strategic investment.
     
-    Visualization Selection:
-    -   Challenges: Goal: Inform. Chosen Viz: Icon + Text Cards (HTML/CSS/Unicode). Justification: Quickly conveys the core issues without complex charts. NO SVG.
-    -   As-Is vs To-Be Architecture: Goal: Organize/Compare. Chosen Viz: Flowchart using styled divs. Justification: Clearly illustrates the structural shift from monolithic to headless. Best non-SVG/Mermaid method. NO SVG/Mermaid JS.
-    -   Definition File Flow: Goal: Organize. Chosen Viz: Flowchart using styled divs. Justification: Shows the bi-directional nature of the definition files clearly. NO SVG/Mermaid JS.
-    -   AI Development Flow: Goal: Organize. Chosen Viz: Flowchart using styled divs. Justification: Visualizes the simplified development process for the future state. NO SVG/Mermaid JS.
-    -   Benefits - Performance: Goal: Compare. Chosen Viz: Bar Chart (Chart.js/Canvas). Justification: Perfect for a dramatic before-and-after comparison.
-    -   Benefits - Other areas: Goal: Inform. Chosen Viz: Donut Charts (Chart.js/Canvas). Justification: Visually represents the high-impact improvements in key areas.
+    Visualization Selection (v2 Update):
+    -   As-Is vs To-Be Architecture: Goal: Organize/Compare. Chosen Viz: Modified Flowchart using styled divs. Justification: Updated to clearly show a single, shared database resource, emphasizing coexistence and phased migration. This is the most effective non-SVG/Mermaid method for this concept. NO SVG/Mermaid JS.
+    -   (Other selections remain the same)
 
     Constraint Confirmation:
     -   Mermaid JS was NOT used. All flowcharts are built with HTML and Tailwind CSS.
@@ -88,6 +84,19 @@
             content: '▶';
             font-size: 1.5rem;
         }
+        .shared-db-arrow {
+            height: 40px;
+            width: 2px;
+            background-color: #94a3b8;
+            margin: 0 auto;
+        }
+        .shared-db-arrow::after {
+            content: '▼';
+            display: block;
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 35px;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -123,28 +132,22 @@
             </section>
 
             <section id="vision" class="mb-16 bg-white rounded-lg shadow-lg p-6 md:p-10">
-                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">解決策：ヘッドレス・アーキテクチャへの進化</h2>
-                 <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">システムの心臓部である「プラットフォーム」と、ユーザーが触れる「アプリケーション」を完全に分離。これにより、圧倒的な柔軟性とパフォーマンスを手に入れます。</p>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                <h2 class="text-3xl font-bold text-center mb-10 text-[#005f73]">解決策：新旧システム共存による段階的進化</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">既存のデータベース資産はそのまま活用し、新旧システムが共存しながら段階的に移行を進めることが可能です。これにより、リスクを最小限に抑えつつ、スムーズなアーキテクチャ刷新を実現します。</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
                     <div>
-                        <h3 class="text-2xl font-bold text-center mb-4 text-red-600">As-Is: モノリシック構造</h3>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-red-600">As-Is: 既存システム</h3>
                         <div class="p-4 border-2 border-red-200 rounded-lg bg-red-50 h-full">
-                            <div class="flow-card bg-red-100 border-red-300">ユーザー</div>
-                            <div class="flow-arrow"></div>
-                            <div class="p-4 border-2 border-dashed border-red-400 rounded-lg">
+                             <div class="flow-card bg-red-100 border-red-300">ユーザー</div>
+                             <div class="flow-arrow"></div>
+                             <div class="p-4 border-2 border-dashed border-red-400 rounded-lg">
                                 <h4 class="font-bold text-center mb-2 text-red-700">一体型PHPアプリケーション</h4>
-                                <div class="flow-card">UIロジック</div>
-                                <div class="flow-arrow"></div>
-                                <div class="flow-card">ビジネスロジック</div>
-                                <div class="flow-arrow"></div>
-                                <div class="flow-card">データアクセス</div>
+                                <div class="flow-card">UI / ビジネスロジック / データアクセス</div>
                             </div>
-                            <div class="flow-arrow"></div>
-                            <div class="flow-card bg-red-100 border-red-300">リレーショナルデータベース</div>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-bold text-center mb-4 text-green-600">To-Be: ヘッドレス構造</h3>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-green-600">To-Be: 新プラットフォーム</h3>
                         <div class="p-4 border-2 border-green-200 rounded-lg bg-green-50 h-full">
                             <div class="grid grid-cols-2 gap-2 mb-4">
                                 <div class="flow-card">Web UI</div>
@@ -152,20 +155,22 @@
                                 <div class="flow-card">外部システム</div>
                                 <div class="flow-card">生成AI</div>
                             </div>
-                            <div class="text-center font-bold text-green-700">REST API連携</div>
-                            <div class="flow-arrow"></div>
-                            <div class="p-4 border-2 border-dashed border-green-400 rounded-lg">
-                                 <h4 class="font-bold text-center mb-2 text-green-700">ヘッドレス・プラットフォーム</h4>
-                                <div class="flow-card">APIサーバー</div>
-                                <div class="flow-arrow"></div>
-                                <div class="flow-card">アプリケーションエンジン</div>
-                                <div class="flow-arrow"></div>
-                                <div class="flow-card">DBオーケストレーター</div>
-                            </div>
+                             <div class="text-center font-bold text-green-700">REST API連携</div>
                              <div class="flow-arrow"></div>
-                            <div class="flow-card bg-green-100 border-green-300">リレーショナルデータベース</div>
+                             <div class="p-4 border-2 border-dashed border-green-400 rounded-lg">
+                                 <h4 class="font-bold text-center mb-2 text-green-700">ヘッドレス・プラットフォーム</h4>
+                                 <div class="flow-card">API / アプリケーションエンジン</div>
+                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="flex justify-center mt-[-1px]">
+                     <div class="w-1/2 pr-6"><div class="shared-db-arrow"></div></div>
+                     <div class="w-1/2 pl-6"><div class="shared-db-arrow"></div></div>
+                </div>
+                <div class="flow-card bg-blue-50 border-blue-200 mt-4 max-w-md mx-auto">
+                    <h4 class="font-bold text-blue-800">共通リレーショナルデータベース (既存資産)</h4>
+                    <p class="text-sm text-blue-600">データベースはそのままに、新旧両方のシステムからアクセスします。</p>
                 </div>
             </section>
 
