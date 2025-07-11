@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理職への第一歩：チームを成功に導くピープルマネジメント入門</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #00529B;
+            --secondary-color: #00A1E4;
+            --text-color: #333;
+            --bg-color: #f8f9fa;
+            --white: #ffffff;
+            --gray: #777;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .slides-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+        }
+
+        .slide {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--white);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            position: relative;
+            border-bottom: 1px solid #ddd;
+            scroll-snap-align: start;
+        }
+
+        .slide-footer {
+            position: absolute;
+            bottom: 40px;
+            right: 60px;
+            font-size: 18px;
+            color: var(--gray);
+            font-weight: bold;
+        }
+        
+        .slide-content {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        h1, h2, h3, h4, h5 {
+            margin: 0;
+            padding: 0;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        h1 { font-size: 72px; text-align: center; line-height: 1.2; }
+        h2 { font-size: 54px; padding-bottom: 12px; border-bottom: 3px solid var(--secondary-color); margin-bottom: 30px; width: 100%; text-align: left;}
+        h3 { font-size: 36px; margin-bottom: 25px; }
+        h4 { font-size: 28px; margin-top: 20px; margin-bottom: 10px; color: var(--secondary-color); }
+        h5 { font-size: 24px; margin-top: 15px; margin-bottom: 5px; color: var(--primary-color); }
+        
+        p, li {
+            font-size: 24px;
+            line-height: 1.7;
+            margin: 8px 0;
+        }
+        ul, ol { padding-left: 40px; margin: 15px 0; }
+        
+        .text-center { text-align: center; }
+        .font-large { font-size: 32px; }
+        .font-bold { font-weight: 700; }
+
+        /* Title Slide */
+        .title-slide {
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+        }
+        .title-slide h1 { color: var(--white); font-size: 80px; }
+        .title-slide .subtitle { font-size: 36px; margin-top: 25px; opacity: 0.9; }
+        .title-slide .info { margin-top: 70px; font-size: 24px; }
+
+        /* Two Column Layout */
+        .two-columns {
+            display: flex;
+            width: 100%;
+            gap: 40px;
+            align-items: flex-start;
+        }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Nav */
+        .nav-buttons {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-button {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .nav-button:hover { background-color: rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body>
+    <div class="slides-container">
+        <div class="slide title-slide">
+            <div class="slide-content">
+                <h1>管理職への第一歩<br>チームを成功に導く<br>ピープルマネジメント入門</h1>
+                <p class="subtitle">リーダーからマネージャーへ、新たなステージに進むために</p>
+                <div class="info">
+                    <p>2024年9月20日</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>1. はじめに</h2>
+                <p>本講義は、より高い職責を目指す方向けの研修です。</p>
+                <p>今日の研修を受けるにあたり、以下の2つのスタンスが重要になります。</p>
+                <ul>
+                    <li>マネジメントを学び、実践したいという意欲があること。</li>
+                    <li>与えられた目標達成だけでなく、会社のビジョン達成のために自ら仕事を探し、取り組む姿勢があること。</li>
+                </ul>
+                <p class="font-bold">管理職に必要なスキルは、受け身の姿勢では決して身に付きません。</p>
+            </div>
+            <div class="slide-footer">2</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>2. リーダーが陥りがちな「罠」</h2>
+                <ul>
+                    <li><span class="font-bold">再現性の壁：</span><br>自身の成功体験（プレイヤースキル）だけでは、多様なメンバーを持つチームの成果は最大化しない。</li>
+                    <li><span class="font-bold">時間の限界：</span><br>メンバー全員の業務をマイクロマネジメントすることは不可能。自分の仕事も進まなくなる。</li>
+                    <li><span class="font-bold">管理とマネジメントの混同：</span><br>行動の「監視」や「指示」に終始してしまい、メンバーの自発性や成長を妨げてしまう。</li>
+                </ul>
+                <p class="font-large text-center" style="margin-top: 40px;">マネジメントは、経験だけに頼るのではなく、<br><span class="font-bold">主体的に学ぶべき「スキル」</span>です。</p>
+            </div>
+            <div class="slide-footer">3</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>3. 私たちが目指すリーダーシップ</h2>
+                <div class="two-columns">
+                    <div class="column">
+                        <h4>サーバントリーダーシップ</h4>
+                        <p>まずメンバーに奉仕し、彼らの成長を支援するリーダーシップです。</p>
+                        <ul>
+                            <li><span class="font-bold">奉仕：</span>チームのニーズを優先する。</li>
+                            <li><span class="font-bold">共感：</span>メンバーの視点を理解する。</li>
+                            <li><span class="font-bold">説得：</span>権力でなく対話で動かす。</li>
+                        </ul>
+                    </div>
+                     <div class="column">
+                        <h4>取引型リーダーシップ</h4>
+                        <p>目標達成へのコミットメントを重視するリーダーシップです。</p>
+                         <ul>
+                            <li>明確な目標と報酬を提示する。</li>
+                            <li>短期〜中期的な成果創出を重視する。</li>
+                            <li>構造化された管理で効率性を高める。</li>
+                        </ul>
+                    </div>
+                </div>
+                 <p style="margin-top: 30px;">私たちは、メンバーの成長を支援する<span class="font-bold">サーバント型</span>を土台としながら、高い目標達成にコミットする<span class="font-bold">取引型</span>の側面を兼ね備えたリーダーシップを目指します。</p>
+            </div>
+            <div class="slide-footer">4</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>リーダーシッププリンシプル (LP)</h2>
+                <p class="font-large">リーダーシッププリンシプル（LP）は、我々が目指すリーダー像を言語化したものであり、<span class="font-bold">マネジメントの土台となる考え方</span>です。</p>
+                <p class="font-large">特に管理職には、以下の2つのプリンシプルの深い理解と実践が求められます。</p>
+            </div>
+            <div class="slide-footer">5</div>
+        </div>
+        
+        <div class="slide">
+            <div class="slide-content">
+                <h2>LP① 自分自身の会社だと思う</h2>
+                <p>会社のゴールを自分事として捉え、自チームが達成すべきゴールを自ら定義することが求められます。</p>
+                <h4>具体的な行動例</h4>
+                <ul>
+                    <li>会社の目標に対して積極的にコミットする。</li>
+                    <li>短期的な利益よりも、持続可能な会社の長期的成長を最優先する。</li>
+                    <li>会社の成長にマイナスだと判断した場合、上司や役員にも臆せず意見を表明する。</li>
+                </ul>
+            </div>
+            <div class="slide-footer">6</div>
+        </div>
+        
+        <div class="slide">
+            <div class="slide-content">
+                <h2>LP② 全体最適視点をもつ</h2>
+                <p>部署やチームの利害にとらわれず、会社全体の成長にとって何が大切かを常に考え、行動します。</p>
+                <h4>具体的な行動例</h4>
+                <ul>
+                    <li>他部署の情報を積極的に収集し、自チームの活動を最適化するための協力を図る。</li>
+                    <li>他部署のリーダーと定期的に情報交換を行う。</li>
+                    <li>意思決定の際は、各部署の意見を総合的に考慮し、組織全体の利益を優先する。</li>
+                </ul>
+            </div>
+            <div class="slide-footer">7</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>4. ピープルマネジメントとは</h2>
+                <p>従業員の能力を最大限に引き出し、組織全体の目標達成に貢献することを目指す、人材管理のプロセスやスキル全般を指します。</p>
+                <p>効果的なピープルマネジメントは、従業員のモチベーションと満足度を高め、チームのパフォーマンスを最適化し、人材の定着に繋がります。</p>
+            </div>
+            <div class="slide-footer">8</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>ピープルマネジメントの全体像</h2>
+                <p>ピープルマネジメントは、従業員のライフサイクルに伴走する一連の活動で構成されます。</p>
+                <ol>
+                    <li><span class="font-bold">採用とオンボーディング：</span>適切な人材を採用し、組織に馴染むプロセスを支援する。</li>
+                    <li><span class="font-bold">目標設定と評価：</span>具体的な目標を設定し、その達成度を評価する。</li>
+                    <li><span class="font-bold">トレーニングと開発：</span>従業員のスキルと能力向上のための研修や教育を提供する。</li>
+                    <li><span class="font-bold">モチベーションとエンゲージメント：</span>意欲を引き出し、組織への貢献を促す。</li>
+                    <li><span class="font-bold">コミュニケーションとフィードバック：</span>信頼関係を築き、定期的な対話を行う。</li>
+                    <li><span class="font-bold">パフォーマンス管理：</span>業績を評価し、改善が必要な場合は支援・指導する。</li>
+                    <li><span class="font-bold">報酬と認識：</span>優れた業績に対して報酬や承認を与える。</li>
+                </ol>
+            </div>
+            <div class="slide-footer">9</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>明日から実践する基本スキル</h2>
+                <p class="font-large">今回は、ピープルマネジメントのサイクルの中でも特に重要で、<span class="font-bold">全ての土台となる3つの基本スキル</span>に焦点を当てます。</p>
+                <div class="text-center" style="margin-top: 50px;">
+                    <p class="font-large">1. 効果的なコミュニケーション</p>
+                    <p class="font-large">2. コーチングとフィードバック</p>
+                    <p class="font-large">3. コンフリクトマネジメント (信頼関係の構築)</p>
+                </div>
+            </div>
+            <div class="slide-footer">10</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>基本スキル①：効果的なコミュニケーション</h2>
+                <p>明確な指示と期待を伝え、オープンな対話を促進することが目的です。「良い感じに」ではなく、「いつまでに」「何を」「どのレベルまで」を明確に共有します。</p>
+                <h4>SMART目標フレームワークの活用</h4>
+                <ul>
+                    <li><strong>S</strong>pecific (具体的)：誰が、何を、どのように達成するのか。</li>
+                    <li><strong>M</strong>easurable (測定可能)：達成度を測るための定量的な指標があるか。</li>
+                    <li><strong>A</strong>chievable (達成可能)：現実的で達成可能な目標か。</li>
+                    <li><strong>R</strong>elevant (関連性)：組織や個人の長期目標と関連しているか。</li>
+                    <li><strong>T</strong>ime-bound (期限付き)：明確な期限が設定されているか。</li>
+                </ul>
+            </div>
+            <div class="slide-footer">11</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>基本スキル②：コーチングとフィードバック</h2>
+                <p>継続的なスキル開発を支援し、建設的なフィードバックを提供します。一方的に「教える」のではなく、対話を通じて本人の「気づき」を促し、成長を支援することが重要です。
+                </p>
+                <h4>建設的なフィードバックのポイント</h4>
+                <p>特に改善点を伝える際は、相手を追い詰めるのではなく、成長を支援するスタンスが重要です。</p>
+                <ul>
+                    <li>人格ではなく、具体的な「行動」や「事実」に焦点を当てる。</li>
+                    <li>その行動がもたらした「影響」を客観的に伝える。</li>
+                    <li>改善策を一方的に指示するのではなく、一緒に考える。</li>
+                </ul>
+                <h5>会話例：資料のミスを指摘する場合</h5>
+                <p><strong>✕ 悪い例：</strong>「なんでこんな単純なミスをするの？注意力が足りないんじゃない？」</p>
+                <p><strong>○ 良い例：</strong>「この資料の5ページ目の数字、データと違っているみたいだね（事実）。このままだとお客様に誤解を与えかねないから（影響）、次回からは提出前に一緒に確認するプロセスを入れようか？（改善策の提案）」</p>
+            </div>
+            <div class="slide-footer">12</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>基本スキル③：コンフリクトマネジメント (信頼関係の構築)</h2>
+                <p>問題の早期発見と解決に努め、公平な対応を心がけます。<span class="font-bold">心理的安全性</span>のあるチーム、つまりメンバーが安心して意見を言え、失敗を恐れずに挑戦できる環境が、信頼関係の土壌となります。</p>
+                <h4>具体的な行動例</h4>
+                <ul>
+                    <li>チーム内で意見の対立が生じた際に、中立的な立場で調整する。</li>
+                    <li>定期的なチームビルディング活動で信頼関係を構築する。</li>
+                </ul>
+            </div>
+            <div class="slide-footer">13</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>5. まとめ</h2>
+                <ul>
+                    <li class="font-large">マネジメントは、経験則ではなく意識的に学ぶ<span class="font-bold">「スキル」</span>である。</li>
+                    <li class="font-large">リーダーは<span class="font-bold">「サーバント＋取引型」</span>の姿勢を基本とする。</li>
+                    <li class="font-large">リーダーシッププリンシプルは、我々のマネジメントの<span class="font-bold">「羅針盤」</span>であり、特に<span class="font-bold">ゴールオリエンテッド</span>な視点が重要である。</li>
+                    <li class="font-large">ピープルマネジメントは、<span class="font-bold">採用から育成、評価までの一貫した活動</span>である。</li>
+                </ul>
+            </div>
+            <div class="slide-footer">14</div>
+        </div>
+
+        <div class="slide">
+            <div class="slide-content">
+                <h2>宿題：主体的な学びへのアクションプラン</h2>
+                <p>この研修をきっかけに、自らのマネジメントスキル向上のための計画を立ててください。</p>
+                <ol>
+                    <li style="font-size: 28px;"><span class="font-bold">自己スキルの棚卸し:</span><br>今日の研修内容を参考に、自身のマネジメントスキルを客観的に評価する。</li>
+                    <li style="font-size: 28px;"><span class="font-bold">ゴール設定:</span><br>「マネジメントスキルが習得された状態」を定義し、SMART目標の考え方でゴールとサブゴールを設定する。</li>
+                    <li style="font-size: 28px;"><span class="font-bold">アクションプランの立案:</span><br>各サブゴールを達成するための具体的な行動計画を立てる。</li>
+                </ol>
+            </div>
+            <div class="slide-footer">15</div>
+        </div>
+        
+        <div class="slide title-slide">
+            <div class="slide-content">
+                <h1>ご清聴ありがとうございました</h1>
+                <p class="subtitle">Q & A</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <button class="nav-button" id="prevBtn">↑</button>
+        <button class="nav-button" id="nextBtn">↓</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slidesContainer = document.querySelector('.slides-container');
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            let currentSlide = 0;
+
+            function scrollToSlide(index) {
+                if (slides[index]) {
+                    slides[index].scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+
+            function showNextSlide() {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    scrollToSlide(currentSlide);
+                }
+            }
+
+            function showPrevSlide() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    scrollToSlide(currentSlide);
+                }
+            }
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const intersectingSlide = entry.target;
+                        currentSlide = Array.from(slides).indexOf(intersectingSlide);
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            slides.forEach(slide => {
+                observer.observe(slide);
+            });
+
+            nextBtn.addEventListener('click', showNextSlide);
+            prevBtn.addEventListener('click', showPrevSlide);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    showNextSlide();
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    showPrevSlide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
