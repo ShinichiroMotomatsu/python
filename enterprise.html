@@ -78,6 +78,7 @@
         h1 { font-size: 52px; text-align: center; }
         h2 { font-size: 38px; margin-bottom: 30px; border-left: 6px solid var(--accent-color); padding-left: 20px;}
         h3 { font-size: 28px; color: var(--secondary-color); margin-bottom: 20px; }
+        h4 { font-size: 24px; color: var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
 
         p { font-size: 20px; line-height: 1.8; }
         ul { list-style: none; padding-left: 0; }
@@ -90,6 +91,11 @@
             margin-top: 8px;
             fill: var(--accent-color);
         }
+
+        .action-plan ul { margin-top: 0; }
+        .action-plan li { font-size: 18px; line-height: 1.6; margin-bottom: 10px; }
+        .action-plan li strong { color: var(--secondary-color); }
+        
 
         .title-slide {
             justify-content: center;
@@ -360,80 +366,107 @@
                 <text x="75" y="415" class="cat-text">セールス</text>
                 <text x="75" y="525" class="cat-text">カスタマー</text>
                 <text x="75" y="550" class="cat-text">サクセス</text>
-
-                <foreignObject x="155" y="120" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">必須機能開発 (ガバナンス, API)</div>
-                </foreignObject>
-                <foreignObject x="495" y="120" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">機能リリース &amp; ERP連携拡充</div>
-                </foreignObject>
-                <foreignObject x="835" y="120" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">業界特化機能 &amp; プラットフォーム化模索</div>
-                </foreignObject>
-
-                <foreignObject x="155" y="240" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ABM基盤構築 &amp; 「脱Concur」コンテンツ</div>
-                </foreignObject>
-                <foreignObject x="495" y="240" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">リプレイス事例創出 &amp; パートナー連携強化</div>
-                </foreignObject>
-                <foreignObject x="835" y="240" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">CxOイベント開催 &amp; ブランディング強化</div>
-                </foreignObject>
                 
-                <foreignObject x="155" y="360" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">専門チーム組成 &amp; ソリューション営業へ転換</div>
-                </foreignObject>
-                <foreignObject x="495" y="360" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">戦略アカウント攻略 &amp; 案件化前の関係構築</div>
-                </foreignObject>
-                <foreignObject x="835" y="360" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">営業組織の拡大 &amp; 代理店チャネル開拓</div>
-                </foreignObject>
+                <foreignObject x="155" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">エンタープライズ向け機能開発</div></foreignObject>
+                <foreignObject x="495" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">機能リリース &amp; ERP連携拡充</div></foreignObject>
+                <foreignObject x="835" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">業界特化機能 &amp; プラットフォーム化模索</div></foreignObject>
 
-                <foreignObject x="155" y="480" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ハイタッチCSM体制設計 &amp; ROI策定支援</div>
-                </foreignObject>
-                <foreignObject x="495" y="480" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">経営層への定例報告 &amp; アップセル実行</div>
-                </foreignObject>
-                <foreignObject x="835" y="480" width="320" height="100">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">プロアクティブ支援 &amp; コミュニティ主導</div>
-                </foreignObject>
+                <foreignObject x="155" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ターゲット別コンテンツの作成</div></foreignObject>
+                <foreignObject x="495" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">成功事例の創出と横展開</div></foreignObject>
+                <foreignObject x="835" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ブランディング強化 &amp; コミュニティ形成</div></foreignObject>
+                
+                <foreignObject x="155" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">専門チーム組成 &amp; 営業スタイル転換</div></foreignObject>
+                <foreignObject x="495" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">戦略アカウントへの深耕と関係構築</div></foreignObject>
+                <foreignObject x="835" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">営業組織の拡大とチャネル多様化</div></foreignObject>
+
+                <foreignObject x="155" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ハイタッチCSM体制の設計</div></foreignObject>
+                <foreignObject x="495" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">導入成功モデルの確立と実行</div></foreignObject>
+                <foreignObject x="835" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">プロアクティブ支援と顧客エンゲージメント</div></foreignObject>
             </svg>
         </section>
 
         <section class="slide">
             <div class="slide-header">ロードマップ詳細</div>
             <h2>フェーズ1：基盤構築期 (Year 1 / 1H)</h2>
-            <ul>
-                <li><p><strong>製品開発：</strong>エンタープライズの信頼を得るための必須機能（グループ会社管理、ERP連携強化、セキュリティ認証）を開発。</p></li>
-                <li><p><strong>マーケティング：</strong>ABM基盤を構築。「脱Concur」をテーマにしたセミナーやホワイトペーパーでターゲットアカウントの認知を獲得。</p></li>
-                <li><p><strong>セールス：</strong>専門チームを組成。顧客の課題定義やRFP策定を支援するなど、案件化前の関係構築から踏み込む営業スタイルへ転換する。</p></li>
-                <li><p><strong>カスタマーサクセス：</strong>エンタープライズ向け「ビジネス成果貢献型ハイタッチ」体制を設計。専任CSMによるROI策定支援などを行う。</p></li>
-            </ul>
+            <div class="flex-container action-plan">
+                <div class="flex-item">
+                    <h4>対Concurリプレイス戦略</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> Concurの弱点（コスト,UX,サポート）を突く比較コンテンツや「脱Concur」セミナーを企画。</li>
+                        <li><strong>セールス:</strong> Concurからの乗り換えに特化した提案テンプレートとROIシミュレーターを準備。</li>
+                    </ul>
+                </div>
+                <div class="flex-item">
+                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> 「経費精算DXの第一歩」と題し、Excel/紙運用からの脱却メリットを訴求するコンテンツを制作。</li>
+                        <li><strong>セールス:</strong> 内部統制やDX推進に課題を持つ企業をターゲットに、啓蒙活動から開始し、RFP策定を支援。</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top:20px;">
+                <h4>共通基盤</h4>
+                <ul class="action-plan" style="columns: 2;">
+                    <li><strong>製品開発:</strong> エンタープライズ必須機能（ガバナンス, API連携強化, セキュリティ）を開発。</li>
+                    <li><strong>組織:</strong> エンタープライズ専門のセールス/CSチームを組成し、営業スタイルを転換。</li>
+                </ul>
+            </div>
         </section>
 
         <section class="slide">
             <div class="slide-header">ロードマップ詳細</div>
             <h2>フェーズ2：市場浸透期 (Y1/2H ~ Y2/1H)</h2>
-            <ul>
-                <li><p><strong>製品開発：</strong>開発した機能をリリースし、初期顧客の声をスピーディに反映。顧客満足度を向上させる。</p></li>
-                <li><p><strong>マーケティング：</strong>**Concurからのリプレイス成功事例**を創出し、横展開。SIerやコンサルとの連携も強化し、紹介案件を増やす。</p></li>
-                <li><p><strong>セールス：</strong>FS(フィールドセールス)が主体となり、案件化前の顧客へもアプローチし中長期的な関係を構築。IS(インサイドセールス)との連携モデルを最適化する。</p></li>
-                <li><p><strong>カスタマーサクセス：</strong>導入成功モデルを確立し、顧客の経営層へ定例報告会を実施。信頼を勝ち取りアップセルに繋げる。</p></li>
-            </ul>
+            <div class="flex-container action-plan">
+                <div class="flex-item">
+                    <h4>対Concurリプレイス戦略</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> Concurからのリプレイス成功事例を大々的にPR。乗り換え相談会を実施。</li>
+                        <li><strong>セールス:</strong> 成功事例を武器に、同業種のConcurユーザーへ横展開アプローチ。</li>
+                    </ul>
+                </div>
+                <div class="flex-item">
+                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> 業界特化型のDXセミナーを開催（例：製造業向け原価管理連携）。パートナー（SIer等）経由の案件創出を本格化。</li>
+                        <li><strong>セールス:</strong> FSが主体となり、案件化前の顧客への中長期的な関係構築を推進。（IS/FSの連携モデル最適化）</li>
+                    </ul>
+                </div>
+            </div>
+             <div style="margin-top:20px;">
+                <h4>共通基盤</h4>
+                <ul class="action-plan" style="columns: 2;">
+                    <li><strong>製品開発:</strong> 初期顧客の声を反映し、継続的な機能改善を実施。</li>
+                    <li><strong>CS:</strong> 導入成功モデルを確立し、経営層へのROI報告を実践。アップセル/クロスセルを狙う。</li>
+                </ul>
+            </div>
         </section>
         
         <section class="slide">
             <div class="slide-header">ロードマップ詳細</div>
             <h2>フェーズ3：事業拡大期 (Year 2 / 2H)</h2>
-            <ul>
-                <li><p><strong>製品開発：</strong>業界特有のニーズに応える機能開発を検討。経費精算に留まらないプラットフォーム化を模索する。</p></li>
-                <li><p><strong>マーケティング：</strong>CxO向けイベントなどを開催し、「エンタープライズSaaS」としてのブランドを確立する。</p></li>
-                <li><p><strong>セールス：</strong>営業組織を拡大し、より多くの案件に対応。代理店チャネルも開拓し、リーチを最大化する。</p></li>
-                <li><p><strong>カスタマーサクセス：</strong>データを活用して顧客の課題を予見し、プロアクティブに支援。顧客コミュニティを主導し、ファンを増やす。</p></li>
-            </ul>
+            <div class="flex-container action-plan">
+                <div class="flex-item">
+                    <h4>対Concurリプレイス戦略</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> 乗り換え顧客限定のコミュニティイベントを開催し、紹介（リファラル）を促進。</li>
+                        <li><strong>セールス:</strong> Concurユーザーリストに対し、戦略的なアウトバウンドアプローチを強化。</li>
+                    </ul>
+                </div>
+                <div class="flex-item">
+                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
+                    <ul>
+                        <li><strong>マーケティング:</strong> 「経費データ活用による経営改革」など、より上位の価値を訴求するCxO向けイベントを開催。</li>
+                        <li><strong>セールス:</strong> 代理店チャネルを本格稼働させ、より広い市場をカバー。</li>
+                    </ul>
+                </div>
+            </div>
+             <div style="margin-top:20px;">
+                <h4>共通基盤</h4>
+                <ul class="action-plan" style="columns: 2;">
+                     <li><strong>製品開発:</strong> 業界特化機能やプラットフォーム化を推進し、製品優位性を不動のものにする。</li>
+                    <li><strong>組織:</strong> 両戦略を推進するため、営業/CS組織を拡大・最適化。</li>
+                </ul>
+            </div>
         </section>
 
         <section class="slide section-title-slide">
