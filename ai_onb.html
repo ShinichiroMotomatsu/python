@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成AIによる業務自動化 講習会</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* スライドの基本スタイル */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* スクロールバーを隠す */
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 各スライドのコンテナ */
+        .slide {
+            display: none; /* デフォルトでは非表示 */
+            width: 100%;
+            height: 100%;
+            padding: 5%;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            background-color: #ffffff;
+        }
+
+        /* アクティブなスライド */
+        .slide.active {
+            display: flex; /* Flexboxで中央揃え */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+        }
+
+        /* スライドコンテンツのラッパー */
+        .slide-content {
+            width: 100%;
+            max-width: 1024px; /* コンテンツの最大幅 */
+        }
+        
+        /* セクションタイトルスライドのスタイル */
+        .slide.section-title {
+             background-color: #3b82f6; /* 青背景 */
+             color: white;
+        }
+        .slide.section-title h2 {
+            font-size: 3.75rem; /* 6xl */
+            font-weight: 700;
+        }
+
+        /* タイトルスライドのスタイル */
+        .slide.title-slide {
+            background-color: #1f2937; /* ダークグレー背景 */
+            color: white;
+        }
+        .slide.title-slide h1 {
+            font-size: 4.5rem; /* 8xl */
+            font-weight: 800;
+        }
+        .slide.title-slide h2 {
+            font-size: 2.25rem; /* 4xl */
+            font-weight: 300;
+            margin-top: 1rem;
+            color: #d1d5db; /* Gray-300 */
+        }
+
+        /* 箇条書き */
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 2rem;
+        }
+        li {
+            font-size: 1.5rem; /* 2xl (少し小さくして情報量を増やす) */
+            font-weight: 400; /* 少し太く */
+            margin-bottom: 1.25rem; /* 詰め気味に */
+            padding-left: 2.5rem;
+            position: relative;
+        }
+        li::before {
+            content: '✓'; /* チェックマーク */
+            color: #3b82f6; /* 青 */
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            top: 5px;
+        }
+        
+        /* 箇条書き内の補足テキスト */
+        .li-subtext {
+            font-size: 1.25rem; /* xl */
+            font-weight: 300;
+            color: #4b5563; /* Gray-600 */
+            display: block; /* 改行 */
+            margin-top: 0.25rem;
+        }
+        
+        /* 強調テキスト（太字） */
+        strong {
+            font-weight: 600;
+            color: #1e40af; /* 濃い青 */
+        }
+        
+        /* ビフォー・アフターの例 */
+        .before-after {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .before-after div {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+        .before-after .before {
+            background-color: #fde2e2; /* 薄い赤 */
+            border-left: 5px solid #ef4444; /* 赤 */
+        }
+        .before-after .after {
+            background-color: #e0f2fe; /* 薄い青 */
+            border-left: 5px solid #3b82f6; /* 青 */
+        }
+        .before-after h4 {
+            font-size: 1.5rem; /* 2xl */
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .before-after p {
+            font-size: 1.25rem; /* xl */
+        }
+
+        /* 5つの力のレイアウト */
+        .five-powers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* カード幅を少し広く */
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .power-card {
+            background-color: #f9fafb; /* Gray-50 */
+            border: 1px solid #e5e7eb; /* Gray-200 */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .power-card h4 {
+            font-size: 1.25rem; /* xl */
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+        .power-card p {
+            font-size: 1rem; /* base */
+            font-weight: 400;
+        }
+        
+        /* エージェントフロー図（縦一列） */
+        .agent-flow-vertical {
+            display: grid;
+            grid-template-columns: 1fr;
+            /* ★★★ 変更点 ★★★ */
+            gap: 0.15rem; /* 0.25remから0.15remに縮小 */
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 800px; /* 中央に寄せる */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .flow-step-vertical {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            /* ★★★ 変更点 ★★★ */
+            padding: 0.4rem 1.25rem; /* 0.6remから0.4remに縮小 */
+            display: grid;
+            grid-template-columns: 180px 1fr; /* 150pxから180pxに変更 */
+            gap: 1rem;
+            align-items: center;
+            /* ★★★ 変更点 ★★★ */
+            min-height: 50px; /* 60pxから50pxに縮小 */
+        }
+        .flow-step-vertical h4 {
+            /* ★★★ 変更点 ★★★ */
+            font-size: 1.0rem; /* 1.1remから1.0remに小さく変更 */
+            font-weight: 600;
+            color: #3b82f6;
+            text-align: right;
+            padding-right: 1rem;
+            border-right: 2px solid #3b82f6;
+        }
+        .flow-step-vertical ul {
+            margin-top: 0;
+            padding-left: 0.5rem;
+            list-style-type: disc;
+        }
+        .flow-step-vertical li {
+            /* ★★★ 変更点 ★★★ */
+            font-size: 0.9rem; /* 0.95remから0.9remに小さく変更 */
+            /* ★★★ 変更点 ★★★ */
+            line-height: 1.3; /* 1.4から1.3に縮小 */
+            font-weight: 400;
+            color: #374151;
+            /* ★★★ 変更点 ★★★ */
+            margin-bottom: 0.15rem; /* 0.25remから0.15remに縮小 */
+            padding-left: 0;
+        }
+        .flow-step-vertical li::before { display: none; }
+        
+        .flow-arrow-v-only { /* 縦矢印だけ */
+            /* ★★★ 変更点 ★★★ */
+            font-size: 1.1rem; /* 1.25remから1.1remに縮小 */
+            color: #9ca3af;
+            text-align: center;
+            margin: 0; /* 0.1rem 0 から 0 に変更 */
+        }
+        
+        /* ユーザー指示用のスタイル */
+        .flow-step-user {
+            background-color: #fffbeb; /* Yellow-50 */
+            border: 1px solid #fde68a; /* Yellow-200 */
+        }
+        .flow-step-user h4 {
+            color: #d97706; /* Yellow-600 */
+            border-right-color: #d97706;
+        }
+        /* 最終出力用のスタイル */
+        .flow-step-output {
+            background-color: #f0fdf4; /* Green-50 */
+            border: 1px solid #bbf7d0; /* Green-200 */
+        }
+        .flow-step-output h4 {
+            color: #16a34a; /* Green-600 */
+            border-right-color: #16a34a;
+        }
+
+        /* ページネーションコントロール */
+        .slide-nav {
+            position: fixed;
+            bottom: 2rem;
+            z-index: 100;
+            cursor: pointer;
+            padding: 1rem;
+            border-radius: 9999px; /* full */
+            background-color: rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s;
+        }
+        .slide-nav:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .slide-nav.prev {
+            left: 2rem;
+        }
+        .slide-nav.next {
+            right: 2rem;
+        }
+        .slide-nav svg {
+            width: 2rem;
+            height: 2rem;
+            color: white;
+        }
+        
+        /* ページ番号 */
+        #slide-counter {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 90;
+            font-size: 1rem;
+            color: #6b7280;
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+        }
+
+        /* 全画面用 */
+        h1, h2, h3 {
+            margin-bottom: 1rem;
+        }
+        h1 { font-size: 3.5rem; /* 6xl -> 調整 */ font-weight: 700; }
+        h2 { font-size: 2.75rem; /* 5xl -> 調整 */ font-weight: 600; }
+        h3 { font-size: 1.75rem; /* 3xl -> 調整 */ font-weight: 500; color: #4b5563; } /* Gray-600 */
+
+        /* タイトルスライドの調整 */
+        .slide.title-slide h1 { font-size: 4rem; } /* 8xl -> 調整 */
+        .slide.title-slide h2 { font-size: 2rem; } /* 4xl -> 調整 */
+
+        /* セクションタイトルスライドの調整 */
+        .slide.section-title h2 { font-size: 3.5rem; } /* 6xl -> 調整 */
+        .slide.section-title h3 { font-size: 1.75rem; color: #dbeafe; } /* 青背景用の調整 */
+
+
+    </style>
+</head>
+<body class="h-full">
+
+    <!-- スライド 1: タイトル -->
+    <div class="slide title-slide active">
+        <div class="slide-content text-center">
+            <h1>生成AIによる業務自動化 講習会</h1>
+            <h2>〜 AIを「頼れる同僚」に育てるための第一歩 〜</h2>
+        </div>
+    </div>
+
+    <!-- スライド 2: 1. はじめに -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2 class="text-gray-500">1. はじめに (5分)</h2>
+            <ul>
+                <li><strong>今日のゴール:</strong> AI自動化を「自分ごと」として理解する
+                    <span class="li-subtext">「難しそう」から「こう使えそう」へ意識を変える</span>
+                </li>
+                <li>AIは「なんでも屋」ではなく<strong>「育てるパートナー」</strong>である
+                    <span class="li-subtext">魔法の杖ではなく、仕事を覚える新入社員に似ています</span>
+                </li>
+                <li>（アイスブレイク）AI自動化と聞いて、何を思い浮かべますか？
+                    <span class="li-subtext">例: <strong>請求書処理</strong>、<strong>社内ヘルプデスク</strong>、<strong>問い合わせ対応</strong>など</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 3: 2. AIが変える「仕事の流れ」 (タイトル) -->
+    <div class="slide section-title">
+        <div class="slide-content text-center">
+            <h2>2. AIが変える「仕事の流れ」</h2>
+            <h3 class="text-blue-200">(トピック: AIワークフロー)</h3>
+        </div>
+    </div>
+
+    <!-- スライド 4: 2. AIが変える「仕事の流れ」 (内容) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>これまでの自動化 vs AI自動化</h2>
+            <ul>
+                <li><strong>これまでの自動化（RPAなど）:</strong>
+                    <span class="li-subtext">「決まった作業」の繰り返し。指示通りに動く"手"でした。</span>
+                    <span class="li-subtext">例: ExcelのA列をB列に「転記する」</span>
+                </li>
+                <li><strong>AI自動化:</strong>
+                    <span class="li-subtext">「考えて」「判断して」「作業する」。状況を理解する"頭脳"を持ちます。</span>
+                    <span class="li-subtext">例: 届いたメールを「読んで」、内容が「緊急」か「判断」し、作業する</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 5: 2. AIが変える「仕事の流れ」 (例) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>[例] 経費精算の問い合わせ対応</h2>
+            <div class="before-after">
+                <div class="before">
+                    <h4>（旧）ビフォー</h4>
+                    <p>担当者がメールを見て、<strong>経理規程</strong>（PDFや紙）を開いて調べて、返信する</p>
+                </div>
+                <div class="after">
+                    <h4>（新）アフター (AI)</h4>
+                    <p>AIがメールを読み、<strong>経理マニュアル</strong>を「解釈」して、適切な返信案を「作成」する</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スライド 6: 3. AIの「新入社員研修」 (タイトル) -->
+    <div class="slide section-title">
+        <div class="slide-content text-center">
+            <h2>3. AIの「新入社員研修」</h2>
+            <h3 class="text-blue-200">(トピック: AIオンボーディング)</h3>
+        </div>
+    </div>
+
+    <!-- スライド 7: 3. AIの「新入社員研修」 (なぜ必要か) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>なぜ「会社の知識」が必要か？</h2>
+            <ul>
+                <li>AIは賢いが<strong>「あなたの会社の経費精算ルール」</strong>は知らない
+                    <span class="li-subtext">「会議費の上限は5,000円」というルールは、会社独自のものだからです</span>
+                </li>
+                <li>「ローカル知識」がないと、AIは<strong>"的外れな"</strong>答えしか出せない
+                    <span class="li-subtext">例: 一般論として「経費精算は領収書が必要です」と答えるが、本当に知りたいルールは答えてくれない</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 8: 3. AIの「新入社員研修」 (ステップ1) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>AIに「会社の知識」を教える方法</h2>
+            <h3 class="mt-8">ステップ1: 読ませる（知識を与える）</h3>
+            <ul>
+                <li><strong>何を？:</strong> 社内マニュアル、規程集
+                    <span class="li-subtext">例: <strong>経理規程</strong>、<strong>人事ハンドブック</strong>、<strong>就業規則</strong></span>
+                </li>
+                <li><strong>何を？:</strong> 過去の蓄積データ
+                    <span class="li-subtext">例: 過去の問い合わせ履歴（<strong>社内ヘルプデスク</strong>）、Q&A集など</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- スライド 9: 3. AIの「新入社員研修」 (知識の難しさ) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>（追加）知識を与えることの難しさ</h2>
+            <ul>
+                <li>そもそも情報が<strong>デジタル化されていない</strong>
+                    <span class="li-subtext">（例: 個人の頭の中、ベテランの経験知、紙のメモ）</span>
+                </li>
+                <li>データはあるが、<strong>最新ではない・古いままである</strong>
+                    <span class="li-subtext">（例: 5年前に更新が止まった規程、去年の古いフォーマット）</span>
+                </li>
+                <li>知識が<strong>「散らばっている」</strong>
+                    <span class="li-subtext">（例: 人事データはAシステム、経理データはBシステムに分散）</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 10: 3. AIの「新入社員研修」 (ステップ2) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>AIに「会社の知識」を教える方法</h2>
+            <h3 class="mt-8">ステップ2: 実地で教える（望む振る舞いを覚えさせる）</h3>
+            <ul>
+                <li>「良い例（お手本）」と「悪い例（ダメ出し）」を見せる
+                    <span class="li-subtext">これが「<strong>チューニング</strong>」です。AIの回答を「もっと丁寧な言葉遣いで」と修正します</span>
+                </li>
+                <li>最初は簡単な仕事から任せて、少しずつ難易度を上げる
+                    <span class="li-subtext">まずは「よくある質問への回答」から始め、徐々に「申請書の作成」などを任せます</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 11: 4. AIが「自分で考えて動く」仕組み (タイトル) -->
+    <div class="slide section-title">
+        <div class="slide-content text-center">
+            <h2>4. AIが「自分で考えて動く」仕組み</h2>
+            <h3 class="text-blue-200">(トピック: AIエージェント)</h3>
+        </div>
+    </div>
+
+    <!-- スライド 12: 4. AIが「自分で考えて動く」仕組み (5つの力) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>「デジタルな部下」を支える5つの力</h2>
+            <div class="five-powers">
+                <div class="power-card">
+                    <h4>(1) 計画する力 (Planning)</h4>
+                    <p>「経費申請のチェック」指示に対し、「①規程確認 → ②申請額チェック → ③承認ルート確認」と"段取り"を組む</p>
+                </div>
+                <div class="power-card">
+                    <h4>(2) 知識を使う力 (Knowledge)</h4>
+                    <p>教わった「会社の経理規程」から、「会議費の上限は5000円」という必要な情報だけを引き出す</p>
+                </div>
+                <div class="power-card">
+                    <h4>(3) 道具を使う力 (Tool Use)</h4>
+                    <p>「勤怠データを確認して」と言われれば、<strong>勤怠システム</strong>（のAPI）にアクセスし、データを取ってくる</p>
+                </div>
+                <div class="power-card">
+                    <h4>(4) 記憶する力 (Memory)</h4>
+                    <p>「Aさんはいつも交通費申請を間違える」といった過去のやり取りを覚えておき、次回のチェックを強化する</p>
+                </div>
+                <div class="power-card">
+                    <h4>(5) 見直す力 (Evaluate)</h4>
+                    <p>作成した返信案が「規程と照らして正しいか？」「言葉遣いは丁寧か？」を自分でチェックし、ダメならやり直す</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スライド 13: 4. AIが「自分で考えて動く」仕組み (フロー図の例) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>[例] 経費精算AIエージェントの動き</h2>
+            <div class="agent-flow-vertical">
+                <!-- ユーザー指示 -->
+                <div class="flow-step-vertical flow-step-user">
+                    <h4>ユーザー指示</h4>
+                    <ul>
+                        <li>「来週の大阪出張の経費、仮申請しといて」</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+
+                <!-- 1. Planning -->
+                <div class="flow-step-vertical">
+                    <h4>1. Planning (計画)</h4>
+                    <ul>
+                        <li>① 目的「仮申請」を理解</li>
+                        <li>② 必要な情報（日程, 交通, 宿泊）を特定</li>
+                        <li>③ 手順を計画（カレンダー確認 &rarr; 規程確認 &rarr; 宿泊検索 &rarr; システム入力）</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+
+                <!-- 2. Knowledge -->
+                <div class="flow-step-vertical">
+                    <h4>2. Knowledge (知識)</h4>
+                    <ul>
+                        <li>参照：<strong>出張旅費規程.pdf</strong></li>
+                        <li>規程：「宿泊費の上限は1泊12,000円」</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+
+                <!-- 3. Tool Use -->
+                <div class="flow-step-vertical">
+                    <h4>3. Tool Use (道具)</h4>
+                    <ul>
+                        <li><strong>カレンダーAPI</strong>で日程（来週月〜水）を確定</li>
+                        <li><strong>宿泊予約API</strong>でホテルを検索（1泊11,000円を発見）</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+                
+                <!-- 4. Memory -->
+                <div class="flow-step-vertical">
+                    <h4>4. Memory (記憶)</h4>
+                    <ul>
+                        <li>過去の記憶：「この人は前回『窓側の席』を希望していたな」（今回は使わない）</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+
+                <!-- 5. Evaluate -->
+                <div class="flow-step-vertical">
+                    <h4>5. Evaluate (見直し)</h4>
+                    <ul>
+                        <li>チェック：「申請額（11,000円）は規程（12,000円）の範囲内か？ &rarr; OK」</li>
+                    </ul>
+                </div>
+                <div class="flow-arrow-v-only">&darr;</div>
+
+                <!-- 最終出力 -->
+                <div class="flow-step-vertical flow-step-output">
+                    <h4>最終出力</h4>
+                    <ul>
+                        <li>「大阪出張（来週月〜水）の仮申請を経費精算システムに登録しました（宿泊費11,000円）。規程内です。」</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スライド 14: 4. AIが「自分で考えて動く」仕組み (限界: 精度) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>AIの限界（注意点）</h2>
+            <h3 class="mt-8">精度の問題（誤差の蓄積）</h3>
+            <ul>
+                <li>1回の作業精度が完璧（100%）ではない
+                    <span class="li-subtext">AIも人間と同じで、たまに（例: 10%）間違えます（精度90%）</span>
+                </li>
+                <li>作業を繰り返すと、誤差は蓄積（掛け算）される
+                    <span class="li-subtext">精度90%の作業を3回繰り返すと...</span>
+                    <span class="li-subtext text-center text-2xl font-bold text-red-600 mt-4">
+                        0.9 &times; 0.9 &times; 0.9 = 0.729 (約73%)
+                    </span>
+                </li>
+                <li>
+                    小さなミスが積み重なり、実用レベルでなくなることも
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- スライド 15: 4. AIが「自分で考えて動く」仕組み (限界: 苦手なこと) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>AIの限界（注意点）</h2>
+            <h3 class="mt-8">AIにも「苦手なこと」</h3>
+            <ul>
+                <li><strong>感情を汲み取る:</strong>
+                    <span class="li-subtext">「Aさんは怒っている」ことは分かっても、「なぜ怒っているか」の背景までは推し量れない</span>
+                </li>
+                <li><strong>責任を取る:</strong>
+                    <span class="li-subtext">AIは便利な道具ですが、最終的な決定の「責任」は使った人間にあります</span>
+                </li>
+                <li><strong>ゼロから独創的なものを生む:</strong>
+                    <span class="li-subtext">学習したデータに基づいた生成は得意ですが、真の独創性はありません</span>
+                </li>
+                <li class="!before:content-['→'] !before:text-red-500">
+                    <strong>最終的な判断は「人」の仕事</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 16: 5. SaaSベンダーとしての役割 (タイトル) -->
+    <div class="slide section-title">
+        <div class="slide-content text-center">
+            <h2>5. SaaSベンダーとしての役割</h2>
+            <h3 class="text-blue-200">(顧客のAI自動化をどう支えるか)</h3>
+        </div>
+    </div>
+
+    <!-- スライド 17: 5. SaaSベンダーとしての役割 (知識の壁) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>顧客が直面する「知識の壁」（再掲）</h2>
+            <ul>
+                <li><strong>知識が「無い」:</strong>
+                    <span class="li-subtext">デジタル化されていない（個人の経験知、紙の資料）</span>
+                </li>
+                <li><strong>知識が「古い」:</strong>
+                    <span class="li-subtext">メンテナンスされていない（古い規程、過去の事例）</span>
+                </li>
+                <li><strong>知識が「散らばっている」:</strong>
+                    <span class="li-subtext">部署ごと、システムごとにバラバラで、どこに最新情報があるか不明</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 18: 5. SaaSベンダーとしての役割 (サポート 1/2) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>SaaSベンダーに必要な「AIの先生役」サポート</h2>
+            <ul>
+                <li><strong>支援1: 「知識の棚卸し」の手伝い</strong>
+                    <span class="li-subtext">AIに「何を教えるべきか」を顧客と一緒に定義する</span>
+                    <span class="li-subtext">（例: 「経費精算AI」なら、①最新の規程PDF、②過去3年分のQ&A履歴、③会計システムとの連携、が必要、など）</span>
+                </li>
+                <li><strong>支援2: 「お手本（教師データ）」作りの支援</strong>
+                    <span class="li-subtext">AIに望む振る舞いをさせる「良い回答例」「悪い回答例」を顧客と一緒に作成する</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 19: 5. SaaSベンダーとしての役割 (サポート 2/2) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>SaaSベンダーに必要な「AIの先生役」サポート</h2>
+            <ul>
+                <li><strong>支援3: スモールスタート（小さな成功）の提案</strong>
+                    <span class="li-subtext">いきなり全自動を目指さず、効果の出やすい小さな業務から始める</span>
+                    <span class="li-subtext">（例: まずは「よくあるQ&A自動応答」から始め、AIを「育てていく」プロセスを顧客に体験してもらう）</span>
+                </li>
+                <li>
+                    <strong>SaaSは「AIの先生役」を支援する「教育コンサルタント」</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- スライド 20: 6. まとめ (タイトル) -->
+    <div class="slide section-title">
+        <div class="slide-content text-center">
+            <h2>6. まとめ</h2>
+        </div>
+    </div>
+
+    <!-- スライド 21: 6. まとめ (内容) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>まとめ</h2>
+            <ul>
+                <li>AI自動化成功のカギは<strong>「AIを育てる」</strong>意識
+                    <span class="li-subtext">（AIは「導入して終わり」ではなく「育てていく」パートナー）</span>
+                </li>
+                <li>まずは小さな業務から「AIに仕事を教えてみる」
+                    <span class="li-subtext">（「知識の棚卸し」と「スモールスタート」が重要）</span>
+                </li>
+                <li>（ベンダーとして）顧客の「AIの先生役」をどうサポートするかが重要
+                    <span class="li-subtext">（AIの導入がゴールではなく、顧客がAIを使いこなせることがゴール）</span>
+                </li>
+            </ul>
+            <h1 class="text-center text-blue-600 mt-16">ご清聴ありがとうございました</h1>
+            <h2 class="text-center text-gray-700">質疑応答</h2>
+        </div>
+    </div>
+
+
+    <!-- ページネーション (SVG矢印アイコン) -->
+    <div class="slide-nav prev" id="prev-slide">
+        <!-- Heroicon: chevron-left -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+    </div>
+    <div class="slide-nav next" id="next-slide">
+        <!-- Heroicon: chevron-right -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+    </div>
+    
+    <!-- ページ番号 -->
+    <div id="slide-counter">1 / 21</div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const slideCounter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+            const totalSlides = slides.length; // 自動で 21 を取得
+
+            function showSlide(n) {
+                // インデックスの境界チェック
+                if (n >= totalSlides) {
+                    currentSlide = totalSlides - 1;
+                } else if (n < 0) {
+                    currentSlide = 0;
+                } else {
+                    currentSlide = n;
+                }
+
+                // すべてのスライドを非アクティブに
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+
+                // 対象のスライドをアクティブに
+                slides[currentSlide].classList.add('active');
+                
+                // ページカウンターを更新
+                slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+
+            // 次へボタン
+            document.getElementById('next-slide').addEventListener('click', () => {
+                showSlide(currentSlide + 1);
+            });
+
+            // 前へボタン
+            document.getElementById('prev-slide').addEventListener('click', () => {
+                showSlide(currentSlide - 1);
+            });
+
+            // キーボード操作
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+                    // 右矢印、PageDown、スペースで次へ
+                    showSlide(currentSlide + 1);
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    // 左矢印、PageUpで前へ
+                    showSlide(currentSlide - 1);
+                }
+            });
+
+            // 初期スライドを表示
+            showSlide(currentSlide);
+        });
+    </script>
+
+</body>
+</html>
