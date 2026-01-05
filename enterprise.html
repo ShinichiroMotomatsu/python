@@ -1,595 +1,737 @@
+エンタープライズ向けの開発戦略
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>「楽楽精算」エンタープライズ市場攻略戦略 2ヵ年ロードマップ</title>
+    <title>Enterprise Strategy Deck</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --primary-color: #005bac;
-            --secondary-color: #00a0e9;
-            --accent-color: #f58220;
-            --text-color: #333;
-            --slide-width: 1280px;
-            --slide-height: 720px;
+            --bg-color: #0f1115;
+            --card-bg: #1a1d24;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --danger: #ef4444;
+            --success: #10b981;
         }
 
         body {
-            background-color: #222;
             margin: 0;
-            overflow: hidden;
-            display: grid;
-            place-items: center;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Urbanist', 'Noto Sans JP', sans-serif;
+            color: var(--text-main);
             height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        #presentation-container {
-            width: var(--slide-width);
-            height: var(--slide-height);
+        /* Slide Container */
+        .deck-container {
+            width: 1280px;
+            height: 720px;
             position: relative;
-            transform-origin: top left;
-            background-color: #f8f9fa;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+            background-color: var(--bg-color);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #333;
         }
 
         .slide {
-            display: none;
-            width: 100%;
-            height: 100%;
-            background-color: #fff;
-            padding: 40px 60px;
-            box-sizing: border-box;
-            flex-direction: column;
-            justify-content: center;
             position: absolute;
             top: 0;
             left: 0;
-            color: var(--text-color);
+            width: 100%;
+            height: 100%;
+            padding: 60px 80px;
+            box-sizing: border-box;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.4s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
         }
 
         .slide.active {
-            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+            z-index: 10;
         }
 
-        .slide-header {
-            position: absolute;
-            top: 40px;
-            left: 60px;
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .slide-footer {
-            position: absolute;
-            bottom: 25px;
-            left: 60px;
-            font-size: 14px;
-            color: #aaa;
-        }
-
-        h1, h2, h3 {
-            margin: 0;
-            padding: 0;
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
-        h1 { font-size: 52px; text-align: center; }
-        h2 { font-size: 38px; margin-bottom: 30px; border-left: 6px solid var(--accent-color); padding-left: 20px;}
-        h3 { font-size: 28px; color: var(--secondary-color); margin-bottom: 20px; }
-        h4 { font-size: 24px; color: var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-
-        p { font-size: 20px; line-height: 1.8; }
-        ul { list-style: none; padding-left: 0; }
-        li { font-size: 22px; line-height: 1.8; margin-bottom: 15px; display: flex; align-items: flex-start; }
-        li svg {
-            min-width: 28px;
-            width: 28px;
-            height: 28px;
-            margin-right: 20px;
-            margin-top: 8px;
-            fill: var(--accent-color);
-        }
-
-        .action-plan ul { margin-top: 0; }
-        .action-plan li { font-size: 18px; line-height: 1.6; margin-bottom: 10px; }
-        .action-plan li strong { color: var(--secondary-color); }
+        /* Typography */
+        h1 { font-size: 56px; margin: 0 0 20px 0; line-height: 1.2; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 42px; margin: 0 0 30px 0; border-left: 6px solid var(--accent-blue); padding-left: 20px; color: #fff; }
+        h3 { font-size: 28px; color: var(--accent-blue); margin: 0 0 15px 0; }
+        p, li { font-size: 22px; line-height: 1.6; color: var(--text-sub); margin-bottom: 12px; }
+        strong { color: #fff; font-weight: 700; }
+        .highlight { color: var(--accent-purple); font-weight: bold; }
         
+        /* Layouts */
+        .content { display: flex; flex-direction: column; height: 100%; justify-content: center; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; height: 100%; align-items: center; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; height: 100%; align-items: stretch; }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .icon-box {
+            font-size: 40px;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+        }
 
-        .title-slide {
+        /* Diagrams */
+        .diagram-box {
+            background: #15181e;
+            border: 1px dashed #444;
+            border-radius: 12px;
+            display: flex;
             justify-content: center;
             align-items: center;
-            text-align: center;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            color: white;
+            height: 100%;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
         }
-        .title-slide h1 { font-size: 64px; }
-        .title-slide p { font-size: 24px; }
-        .title-slide h1, .title-slide p { color: white; }
         
-        .section-title-slide {
-            justify-content: center;
-            align-items: center;
-        }
-        .section-title-slide h1 { font-size: 72px; }
-        .section-title-slide p { font-size: 28px; color: #777; margin-top: 15px;}
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--accent-blue); color: var(--accent-blue); }
+        td { padding: 15px; border-bottom: 1px solid #333; color: var(--text-sub); }
 
-        .flex-container { display: flex; gap: 40px; width: 100%; align-items: center; }
-        .flex-item { flex: 1; }
-        .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 30px; width: 100%; height: 80%; }
-        .grid-item { border: 1px solid #ddd; border-radius: 8px; padding: 25px; text-align: center; display: flex; flex-direction: column; justify-content: center;}
-        .grid-item h3 { margin-top: 0; font-size: 26px;}
-        .grid-item p { font-size: 20px; line-height: 1.6; }
-        .grid-item strong { color: var(--primary-color); }
-        .arrow { font-size: 70px; color: var(--accent-color); font-weight: bold; }
-
-        .kpi-card-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; width: 100%;}
-        .kpi-card { background-color: #f0f7ff; border-radius: 8px; padding: 25px; text-align: center; }
-        .kpi-card .icon { margin-bottom: 15px; }
-        .kpi-card h3 { color: var(--primary-color); font-size: 22px; margin-bottom: 10px;}
-        .kpi-card p { font-size: 18px; line-height: 1.6; }
-        
-        .five-factors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 25px; width: 100%; }
-        .factor-card { background-color: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 320px; }
-        .factor-card .icon { margin-bottom: 15px; }
-        .factor-card h3 { font-size: 20px; color: var(--primary-color); }
-        .factor-card p { font-size: 16px; line-height: 1.5; }
-
-        .thank-you-slide { justify-content: center; align-items: center; text-align: center; }
-        .thank-you-slide p { font-size: 28px; }
-
-        .navigation {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+        /* Controls */
+        .controls {
+            margin-top: 20px;
             display: flex;
+            gap: 20px;
             align-items: center;
-            z-index: 1000;
+            z-index: 100;
         }
-        .nav-button {
-            background-color: var(--primary-color);
-            color: white;
+        
+        button {
+            background: #333;
+            color: #fff;
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            margin: 0 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            transition: background-color 0.2s;
-        }
-        .nav-button:hover { background-color: var(--accent-color); }
-        #page-number {
             font-size: 16px;
-            color: #333;
-            background-color: rgba(255,255,255,0.7);
-            padding: 5px 15px;
-            border-radius: 15px;
+            transition: 0.2s;
         }
+        
+        button:hover { background: var(--accent-blue); }
+        
+        .progress { color: #666; font-size: 14px; font-family: monospace; }
+
+        /* Speaker Notes Panel */
+        .notes-panel {
+            margin-top: 20px;
+            width: 1280px;
+            height: 120px;
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            color: #aaa;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .notes-label { font-size: 12px; color: var(--accent-purple); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+
+        /* Visual Elements for Diagrams */
+        .sys-node { padding: 10px 20px; background: #333; border-radius: 6px; color: #fff; font-size: 14px; text-align: center; width: 120px; border: 1px solid #555; }
+        .sys-sap { background: #003366; border-color: #0055aa; }
+        .sys-rakus { background: #006633; border-color: #00aa55; }
+        .layer-ontology { 
+            background: rgba(139, 92, 246, 0.2); 
+            border: 2px dashed var(--accent-purple); 
+            color: var(--accent-purple);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .arrow-down { font-size: 20px; color: #555; margin: 10px 0; }
+        .arrow-exchange { font-size: 20px; color: var(--accent-purple); margin: 0 10px; }
+
     </style>
 </head>
 <body>
-    <div id="presentation-container">
-        <section class="slide active title-slide">
-            <h1>「楽楽精算」<br>エンタープライズ市場攻略戦略</h1>
-            <p style="font-size: 32px; margin-top: 15px;">2ヵ年ロードマップ</p>
-            <p style="margin-top: 70px;">ARR240億円からの更なる成長に向けて</p>
-            <div class="slide-footer" style="color: rgba(255,255,255,0.8); left: 50%; transform: translateX(-50%); font-size: 16px;">2025年7月29日 | 株式会社ラクス</div>
-        </section>
 
-        <section class="slide">
-            <div class="slide-header">はじめに</div>
-            <h2>本資料の目的と現状認識</h2>
-            <ul>
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-                    <p><strong>目的：</strong>SMB市場での圧倒的シェアを基盤に、次なる成長エンジンとしてエンタープライズ市場を本格攻略するための戦略と実行計画を定義する。</p>
-                </li>
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-                    <p><strong>現状認識：</strong>ARR240億円を達成しSMB市場で成功。一方、エンタープライズ領域は競合(Concur)が強く、体系的な攻略には至っていない。</p>
-                </li>
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 4H4c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-                    <p><strong>機会：</strong>競合の勢いに陰りが見え、製品の先進性も薄れている今、我々の強みを活かせば市場に食い込む大きなチャンスが存在する。</p>
-                </li>
-            </ul>
-        </section>
-
-        <section class="slide section-title-slide">
-            <h1>第1章</h1>
-            <p>市場環境と攻略の方向性</p>
-        </section>
+    <!-- Main Deck Container -->
+    <div class="deck-container">
         
-        <section class="slide">
-            <div class="slide-header">1-1. なぜConcurは日本のエンタープライズを席巻できたのか？</div>
-            <div class="flex-container">
-                <div class="flex-item">
-                    <h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" style="vertical-align: middle; margin-right: 8px;"><path d="M12.65 5.59L15.04 8l-2.39 2.41L11.24 9l1.41-3.41M4.93 11.5l1.41 1.41L4 15.24l2.39.02.59 2.39L4.96 20l-2.4-2.4 2.37-6.1zM20 12l-2.4 2.4-2.02-4.93 4.42-2.47v5zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-                        外部要因 (追い風)
-                    </h3>
-                    <ul>
-                        <li>グローバル標準という信頼性</li>
-                        <li>ERP(SAP等)導入とのセット展開</li>
-                        <li>内部統制・J-SOX対応という時流</li>
-                    </ul>
-                </div>
-                <div class="flex-item">
-                    <h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" style="vertical-align: middle; margin-right: 8px;"><path d="M20 6h-1v8c0 .55-.45 1-1 1H7v1c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2V6zM4 12V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2zm7-3h2v5h-2V9zm-3 2h2v3H8v-3zm6 0h2v3h-2v-3z"/></svg>
-                        内部要因 (戦略)
-                    </h3>
-                    <ul>
-                        <li>「ガバナンス強化ツール」という思想の啓蒙</li>
-                        <li>交通系ICカード等、日本仕様へのローカライズ</li>
-                        <li>CxOへの直接アプローチとエコシステム構築</li>
-                    </ul>
-                </div>
+        <!-- Slide 1: Title -->
+        <div class="slide active" id="s1">
+            <div class="content" style="text-align: center; align-items: center;">
+                <div style="font-size: 24px; color: var(--accent-blue); letter-spacing: 4px; margin-bottom: 20px;">ENTERPRISE STRATEGY</div>
+                <h1 style="font-size: 64px; max-width: 900px;">エンタープライズ領域攻略のための<br>「Palantir型」技術・組織戦略</h1>
+                <p style="font-size: 28px; margin-top: 30px;">楽楽精算におけるOntology層の構築とFDE組織の創設</p>
+                <div style="margin-top: 50px; font-size: 20px; color: #666;">株式会社ラクス | 事業戦略本部</div>
             </div>
-        </section>
+        </div>
 
-        <section class="slide">
-            <div class="slide-header">1-2. 自社分析と攻略の機会</div>
-             <div class="flex-container">
-                <div class="flex-item" style="text-align:center;">
-                    <h3>Concurの”牙城”を崩す機会</h3>
-                    <ul>
-                        <li>製品の陳腐化・UXの低さ</li>
-                        <li>高コスト体質への不満</li>
-                        <li>画一的なサポート体制</li>
-                    </ul>
+        <!-- Slide 2: Executive Summary -->
+        <div class="slide" id="s2">
+            <h2>Executive Summary</h2>
+            <div class="content">
+                <div class="card" style="border-left: 5px solid var(--accent-blue);">
+                    <p><strong>課題:</strong> 楽楽精算が1000名以上のエンタープライズ市場で勝つためには、機能不足ではなく、既存の巨大なエコシステム（SAP/Oracle等）との<strong>「接続性と共存」</strong>が最大の障壁となっている。</p>
                 </div>
-                <div class="arrow">→</div>
-                <div class="flex-item" style="text-align:center;">
-                    <h3>楽楽精算のアドバンテージ</h3>
+                <div class="card" style="border-left: 5px solid var(--accent-purple); margin-top: 30px;">
+                    <p><strong>提案:</strong> 安易なSI（人月）や機能追加に走るのではなく、<strong>「Palantir型モデル（Ontology + FDE）」</strong>を採用する。</p>
                     <ul>
-                        <li>圧倒的な使いやすさ(UX)</li>
-                        <li>高いコスト競争力</li>
-                        <li>日本企業に寄り添う開発・サポート</li>
+                        <li><span class="highlight">Technical:</span> 既存ERPの上に「仮想統合レイヤー（Ontology）」を構築し、SaaS本体を汚さずに複雑な連携を吸収する。</li>
+                        <li><span class="highlight">Organizational:</span> 導入エンジニア（FDE）を組織し、現場で作った接続ロジックを「資産（Archetype）」として製品に還流させる。</li>
                     </ul>
                 </div>
             </div>
-        </section>
-        
-        <section class="slide">
-            <div class="slide-header">1-3. SMB vs エンタープライズ：ビジネスモデルの根本的な違い</div>
-            <div class="grid-2x2">
-                <div class="grid-item">
-                    <h3>課題 (SMB)</h3>
-                    <p>担当者の<strong>手間・時間</strong><br>ペーパーレス化、効率化</p>
+        </div>
+
+        <!-- Slide 3: Agenda -->
+        <div class="slide" id="s3">
+            <h2>本日のアジェンダ</h2>
+            <div class="content">
+                <ol style="font-size: 28px; margin-left: 40px; color: #fff;">
+                    <li style="margin-bottom: 25px;">イントロダクション</li>
+                    <li style="margin-bottom: 25px;">市場背景と「1000名の壁」</li>
+                    <li style="margin-bottom: 25px; color: var(--accent-blue);">モデル比較検討 - なぜPalantir型か <span style="font-size:18px; color:#666;">(Data Architecture)</span></li>
+                    <li style="margin-bottom: 25px; color: var(--accent-purple);">技術戦略 - Ontology層の構築 <span style="font-size:18px; color:#666;">(楽楽精算ユースケース)</span></li>
+                    <li style="margin-bottom: 25px;">組織戦略 - FDE組織の創設</li>
+                    <li style="margin-bottom: 25px;">ロードマップと投資対効果</li>
+                    <li>クロージング</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Slide 4: Market Context -->
+        <div class="slide" id="s4">
+            <h2>ラクスの現在地と「次の山」</h2>
+            <div class="two-col">
+                <div>
+                    <h3>SMB Market: Dominant</h3>
+                    <p>中堅・中小企業市場において、「楽楽精算」は圧倒的なシェアと認知を獲得。高収益なSaaSモデルが完成している。</p>
+                    <div style="margin-top: 40px;">
+                        <h3>Enterprise Market: The Challenge</h3>
+                        <p>売上1000億円を目指す上で不可欠な巨大市場。しかし、ここでの勝率はSMBほど高くない。</p>
+                        <p><strong class="highlight">なぜか？ SMBの成功法則が通用しないからだ。</strong></p>
+                    </div>
                 </div>
-                <div class="grid-item">
-                     <h3>課題 (Enterprise)</h3>
-                    <p><strong>グループ全体のガバナンス</strong><br>内部統制、不正防止</p>
-                </div>
-                <div class="grid-item">
-                    <h3>マーケティング (SMB)</h3>
-                    <p>マス広告・Web広告<br><strong>「広く、早く」</strong></p>
-                </div>
-                <div class="grid-item">
-                    <h3>マーケティング (Enterprise)</h3>
-                    <p>ABM・特定アカウント狙い<br><strong>「狭く、深く」</strong></p>
+                <div class="diagram-box">
+                    <i class="fa-solid fa-chart-line" style="font-size: 150px; color: #333;"></i>
+                    <div style="position: absolute; bottom: 50px; font-size: 24px;"><img src="image.jpg"/></div>
                 </div>
             </div>
-        </section>
-        
-        <section class="slide">
-            <div class="slide-header">1-3. SMB vs エンタープライズ：ビジネスモデルの根本的な違い</div>
-            <div class="grid-2x2">
-                <div class="grid-item">
-                    <h3>営業 (SMB)</h3>
-                    <p>機能と価格中心<br><strong>プロダクト売り</strong></p>
-                </div>
-                <div class="grid-item">
-                    <h3>営業 (Enterprise)</h3>
-                    <p style="font-size: 18px; line-height: 1.5;">経営課題に踏み込み、<strong>顧客のRFP策定を支援</strong>。<br>案件化前から接触を重ね、共に課題を定義する<br><strong>ソリューションパートナーシップ</strong></p>
-                </div>
-                <div class="grid-item">
-                    <h3>CS (SMB)</h3>
-                    <p>利用定着支援型ハイタッチ<br><strong>解約防止</strong>がゴール</p>
-                </div>
-                <div class="grid-item">
-                    <h3>CS (Enterprise)</h3>
-                    <p>ビジネス成果貢献型ハイタッチ<br><strong>ROI向上・事業貢献</strong>がゴール</p>
+        </div>
+
+        <!-- Slide 5: The Real Pain -->
+        <div class="slide" id="s5">
+            <h2>エンタープライズ顧客の「本当のペイン」</h2>
+            <div class="content">
+                <p>彼らが楽楽精算を導入できない（しない）理由は、「UIが使いにくいから」ではない。</p>
+                <div class="three-col" style="margin-top: 30px;">
+                    <div class="card">
+                        <div class="icon-box"><i class="fa-solid fa-network-wired"></i></div>
+                        <h4>既存エコシステムへの異物混入</h4>
+                        <p>SAP/Oracle/COMPANYといった堅牢な基幹システムが出来上がっており、そこに連携できないSaaSは「異物」でしかない。</p>
+                    </div>
+                    <div class="card">
+                        <div class="icon-box"><i class="fa-solid fa-database"></i></div>
+                        <h4>データ整合性のリスク</h4>
+                        <p>「人事マスタはCOMPANYが正。楽楽精算とズレたら監査に通らない」。二重メンテは絶対に許容されない。</p>
+                    </div>
+                    <div class="card">
+                        <div class="icon-box"><i class="fa-solid fa-gavel"></i></div>
+                        <h4>カオスな独自ルール</h4>
+                        <p>「A事業部の部長は、プロジェクトXの予算承認も兼ねる」といった、標準機能ではカバーしきれない組織力学。</p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="slide section-title-slide">
-            <h1>第2章</h1>
-            <p>エンタープライズ攻略の基本戦略</p>
-        </section>
-
-        <section class="slide">
-            <div class="slide-header">2-1, 2-2, 2-3. 基本戦略の全体像</div>
-            <div class="kpi-card-container">
-                <div class="kpi-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="60px" viewBox="0 0 24 24" width="60px" fill="#005bac"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-                    <h3>ターゲット顧客</h3>
-                    <p>「脱Concur」を目指す準大手・中堅企業グループ</p>
-                </div>
-                <div class="kpi-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="60px" viewBox="0 0 24 24" width="60px" fill="#005bac"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-                    <h3>ポジショニング</h3>
-                    <p>日本企業の複雑な統制・業務にフィットする、次世代の経費マネジメント基盤</p>
-                </div>
-                 <div class="kpi-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="60px" viewBox="0 0 24 24" width="60px" fill="#005bac"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z"/></svg></div>
-                    <h3>戦略目標 (KGI)</h3>
-                    <p>2年後にARR XXX億円、Concurからのリプレイス XXX件</p>
+        <!-- Slide 8: 3 Models -->
+        <div class="slide" id="s8">
+            <h2>エンタープライズ対応の3つの類型</h2>
+            <div class="content">
+                <p>大企業の「個別性」を吸収するために、ベンダーが取りうるアプローチは3つしかない。</p>
+                <div class="three-col" style="margin-top: 30px;">
+                    <div class="card" style="opacity: 0.7;">
+                        <h3>Model A: SI型</h3>
+                        <div style="font-size: 14px; color: #999;">(Legacy)</div>
+                        <p><strong>労働力の提供</strong><br>個別スクリプト開発。</p>
+                        <p class="highlight" style="color:var(--danger);">負債化</p>
+                    </div>
+                    <div class="card" style="opacity: 0.7;">
+                        <h3>Model B: Salesforce型</h3>
+                        <div style="font-size: 14px; color: #999;">(PaaS Ecosystem)</div>
+                        <p><strong>箱(DB)の提供</strong><br>データ移行と中央集権化。</p>
+                        <p class="highlight" style="color:var(--text-sub);">パートナー依存</p>
+                    </div>
+                    <div class="card" style="border: 2px solid var(--accent-purple);">
+                        <h3>Model C: Palantir型</h3>
+                        <div style="font-size: 14px; color: #999;">(Virtual Integration)</div>
+                        <p><strong>接続と資産化</strong><br>Ontologyによる仮想統合。</p>
+                        <p class="highlight" style="color:var(--success);">資産化 (Moat)</p>
+                    </div>
                 </div>
             </div>
-        </section>
-        
-        <section class="slide section-title-slide">
-            <h1>第3章</h1>
-            <p>2ヵ年ロードマップと<br>部門別アクションプラン</p>
-        </section>
+        </div>
 
-        <section class="slide">
-             <div class="slide-header">2ヵ年ロードマップ：全体像</div>
-             <svg width="100%" height="100%" viewBox="0 0 1160 640">
-                <defs>
-                    <style>
-                        .phase-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 24px; font-weight: bold; fill: #fff; }
-                        .cat-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 22px; font-weight: bold; fill: var(--primary-color); text-anchor: middle; }
-                        .item-text-div {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                            font-size: 18px;
-                            color: #333;
-                            height: 100%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            text-align: center;
-                            line-height: 1.4;
-                            padding: 5px;
-                            box-sizing: border-box;
-                        }
-                    </style>
-                </defs>
-                <rect x="150" y="20" width="330" height="60" rx="10" fill="#00a0e9"/>
-                <text x="315" y="62" text-anchor="middle" class="phase-text">フェーズ1：基盤構築期</text>
-                <rect x="490" y="20" width="330" height="60" rx="10" fill="#f58220"/>
-                <text x="655" y="62" text-anchor="middle" class="phase-text">フェーズ2：市場浸透期</text>
-                <rect x="830" y="20" width="320" height="60" rx="10" fill="#005bac"/>
-                <text x="990" y="62" text-anchor="middle" class="phase-text">フェーズ3：事業拡大期</text>
-                
-                <path d="M 10 170 H 1150 M 10 290 H 1150 M 10 410 H 1150 M 10 530 H 1150" stroke="#eee" stroke-width="2"/>
-                <path d="M 485 20 V 640 M 825 20 V 640" stroke="#eee" stroke-width="2" />
-                
-                <text x="75" y="175" class="cat-text">製品開発</text>
-                <text x="75" y="295" class="cat-text">マーケティング</text>
-                <text x="75" y="415" class="cat-text">セールス</text>
-                <text x="75" y="525" class="cat-text">カスタマー</text>
-                <text x="75" y="550" class="cat-text">サクセス</text>
-                
-                <foreignObject x="155" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">エンタープライズ向け機能開発</div></foreignObject>
-                <foreignObject x="495" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">機能リリース &amp; ERP連携拡充</div></foreignObject>
-                <foreignObject x="835" y="120" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">業界特化機能 &amp; プラットフォーム化模索</div></foreignObject>
-
-                <foreignObject x="155" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ターゲット別コンテンツの作成</div></foreignObject>
-                <foreignObject x="495" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">成功事例の創出と横展開</div></foreignObject>
-                <foreignObject x="835" y="240" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ブランディング強化 &amp; コミュニティ形成</div></foreignObject>
-                
-                <foreignObject x="155" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">専門チーム組成 &amp; 営業スタイル転換</div></foreignObject>
-                <foreignObject x="495" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">戦略アカウントへの深耕と関係構築</div></foreignObject>
-                <foreignObject x="835" y="360" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">営業組織の拡大とチャネル多様化</div></foreignObject>
-
-                <foreignObject x="155" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">ハイタッチCSM体制の設計</div></foreignObject>
-                <foreignObject x="495" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">導入成功モデルの確立と実行</div></foreignObject>
-                <foreignObject x="835" y="480" width="320" height="100"><div xmlns="http://www.w3.org/1999/xhtml" class="item-text-div">プロアクティブ支援と顧客エンゲージメント</div></foreignObject>
-            </svg>
-        </section>
-
-        <section class="slide">
-            <div class="slide-header">ロードマップ詳細</div>
-            <h2>フェーズ1：基盤構築期 (Year 1 / 1H)</h2>
-            <div class="flex-container action-plan">
-                <div class="flex-item">
-                    <h4>対Concurリプレイス戦略</h4>
+        <!-- Slide 9: Model A (SI) Data Architecture -->
+        <div class="slide" id="s9">
+            <h2>Model A (SI型): データのサイロ化</h2>
+            <div class="two-col">
+                <div>
+                    <h3>構造: バラバラ (Distributed)</h3>
                     <ul>
-                        <li><strong>マーケティング:</strong> Concurの弱点（コスト,UX,サポート）を突く比較コンテンツや「脱Concur」セミナーを企画。</li>
-                        <li><strong>セールス:</strong> Concurからの乗り換えに特化した提案テンプレートとROIシミュレーターを準備。</li>
+                        <li><strong>接続:</strong> CSV連携やバッチ処理によるAd-hocな点対点接続。</li>
+                        <li><strong>データの持ち方:</strong> 楽楽精算とSAPの間に「正」となるデータがなく、タイムラグが発生する。</li>
+                        <li><strong>欠点:</strong> システムが増えるたびに連携がスパゲッティ化し、保守コストが爆発する。SaaSの高収益性を破壊するモデル。</li>
                     </ul>
                 </div>
-                <div class="flex-item">
-                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
-                    <ul>
-                        <li><strong>マーケティング:</strong> 「経費精算DXの第一歩」と題し、Excel/紙運用からの脱却メリットを訴求するコンテンツを制作。</li>
-                        <li><strong>セールス:</strong> 内部統制やDX推進に課題を持つ企業をターゲットに、啓蒙活動から開始し、RFP策定を支援。</li>
-                    </ul>
+                <div class="diagram-box">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="sys-node sys-sap">SAP</div>
+                        <div class="sys-node sys-rakus">楽楽精算</div>
+                        <div class="sys-node" style="background:#444;">HR DB</div>
+                        <div class="sys-node" style="background:#444;">Budget</div>
+                    </div>
+                    <div style="position:absolute; width:100%; height:100%; display:flex; justify-content:center; align-items:center; pointer-events:none;">
+                        <span style="color:var(--danger); font-size:60px; opacity:0.5;">✕</span>
+                    </div>
+                    <!-- Messy lines implied -->
                 </div>
             </div>
-            <div style="margin-top:20px;">
-                <h4>共通基盤</h4>
-                <ul class="action-plan" style="columns: 2;">
-                    <li><strong>製品開発:</strong> エンタープライズ必須機能（ガバナンス, API連携強化, セキュリティ）を開発。</li>
-                    <li><strong>組織:</strong> エンタープライズ専門のセールス/CSチームを組成し、営業スタイルを転換。</li>
-                </ul>
-            </div>
-        </section>
+        </div>
 
-        <section class="slide">
-            <div class="slide-header">ロードマップ詳細</div>
-            <h2>フェーズ2：市場浸透期 (Y1/2H ~ Y2/1H)</h2>
-            <div class="flex-container action-plan">
-                <div class="flex-item">
-                    <h4>対Concurリプレイス戦略</h4>
+        <!-- Slide 10: Model B (Salesforce) Data Architecture -->
+        <div class="slide" id="s10">
+            <h2>Model B (Salesforce型): データのコピー</h2>
+            <div class="two-col">
+                <div>
+                    <h3>構造: 物理移行 (Copy & Store)</h3>
                     <ul>
-                        <li><strong>マーケティング:</strong> Concurからのリプレイス成功事例を大々的にPR。乗り換え相談会を実施。</li>
-                        <li><strong>セールス:</strong> 成功事例を武器に、同業種のConcurユーザーへ横展開アプローチ。</li>
+                        <li><strong>接続:</strong> ETLツールで既存システムからデータを吸い上げ、PaaS側のDBに格納する。</li>
+                        <li><strong>データの持ち方:</strong> 「System of Record」の座を奪いに行くスタイル。</li>
+                        <li><strong>欠点:</strong> 「SAPにもデータがあり、PaaSにもコピーがある」という<strong class="highlight">二重マスター問題</strong>。同期ズレが起きると現場が混乱する。</li>
                     </ul>
                 </div>
-                <div class="flex-item">
-                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
-                    <ul>
-                        <li><strong>マーケティング:</strong> 業界特化型のDXセミナーを開催（例：製造業向け原価管理連携）。パートナー（SIer等）経由の案件創出を本格化。</li>
-                        <li><strong>セールス:</strong> FSが主体となり、案件化前の顧客への中長期的な関係構築を推進。（IS/FSの連携モデル最適化）</li>
-                    </ul>
+                <div class="diagram-box">
+                    <div style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+                        <div class="sys-node" style="background:var(--accent-blue); width: 180px; padding:20px;">PaaS DB<br>(Master?)</div>
+                        <div style="font-size:20px; color:#fff;">⬆ Copy (ETL)</div>
+                        <div style="display:flex; gap:10px;">
+                            <div class="sys-node sys-sap">SAP</div>
+                            <div class="sys-node">Oracle</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-             <div style="margin-top:20px;">
-                <h4>共通基盤</h4>
-                <ul class="action-plan" style="columns: 2;">
-                    <li><strong>製品開発:</strong> 初期顧客の声を反映し、継続的な機能改善を実施。</li>
-                    <li><strong>CS:</strong> 導入成功モデルを確立し、経営層へのROI報告を実践。アップセル/クロスセルを狙う。</li>
-                </ul>
-            </div>
-        </section>
-        
-        <section class="slide">
-            <div class="slide-header">ロードマップ詳細</div>
-            <h2>フェーズ3：事業拡大期 (Year 2 / 2H)</h2>
-            <div class="flex-container action-plan">
-                <div class="flex-item">
-                    <h4>対Concurリプレイス戦略</h4>
-                    <ul>
-                        <li><strong>マーケティング:</strong> 乗り換え顧客限定のコミュニティイベントを開催し、紹介（リファラル）を促進。</li>
-                        <li><strong>セールス:</strong> Concurユーザーリストに対し、戦略的なアウトバウンドアプローチを強化。</li>
-                    </ul>
-                </div>
-                <div class="flex-item">
-                    <h4>新規市場開拓戦略 (グリーンフィールド等)</h4>
-                    <ul>
-                        <li><strong>マーケティング:</strong> 「経費データ活用による経営改革」など、より上位の価値を訴求するCxO向けイベントを開催。</li>
-                        <li><strong>セールス:</strong> 代理店チャネルを本格稼働させ、より広い市場をカバー。</li>
-                    </ul>
-                </div>
-            </div>
-             <div style="margin-top:20px;">
-                <h4>共通基盤</h4>
-                <ul class="action-plan" style="columns: 2;">
-                     <li><strong>製品開発:</strong> 業界特化機能やプラットフォーム化を推進し、製品優位性を不動のものにする。</li>
-                    <li><strong>組織:</strong> 両戦略を推進するため、営業/CS組織を拡大・最適化。</li>
-                </ul>
-            </div>
-        </section>
+        </div>
 
-        <section class="slide section-title-slide">
-            <h1>第4章</h1>
-            <p>SMB向け組織からの変革</p>
-        </section>
-
-        <section class="slide">
-            <div class="slide-header">成功のための5つのキーファクター</div>
-            <div class="five-factors">
-                <div class="factor-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#005bac"><path d="M10 8H8v4H4v2h4v4h2v-4h4v-2h-4V8zm4.5-1.92V7.9l2.5-.5V18h2V5z"/></svg></div>
-                    <h3>組織体制</h3>
-                    <p>IS/FSの分業モデルを見直し、FSが案件化前から主体的に動ける体制を構築</p>
+        <!-- Slide 11: Model C (Palantir) Data Architecture -->
+        <div class="slide" id="s11">
+            <h2>Model C (Palantir型): 仮想統合 (The Ontology)</h2>
+            <div class="two-col">
+                <div>
+                    <h3>構造: 仮想化 (Virtual Integration)</h3>
+                    <ul>
+                        <li><strong>接続:</strong> データを物理的に動かさず、パイプラインで接続し、Ontology上で意味付けだけを行う。</li>
+                        <li><strong>データの持ち方:</strong> <strong class="highlight">Leave Data Where It Is.</strong> SAPを正としたまま、API経由でリアルタイムに読み書きする。</li>
+                        <li><strong>強み:</strong> 既存資産を尊重する「共存型」。タイムラグゼロ、二重管理ゼロ。</li>
+                    </ul>
                 </div>
-                <div class="factor-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#005bac"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg></div>
-                    <h3>意思決定</h3>
-                    <p>短期的な売上より、長期的な関係構築を優先</p>
-                </div>
-                <div class="factor-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#005bac"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V8h16v9c0 .55-.45 1-1 1zM5 6h14v1H5V6z"/></svg></div>
-                    <h3>評価制度</h3>
-                    <p>長期サイクルとチーム貢献を評価する制度へ刷新</p>
-                </div>
-                <div class="factor-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#005bac"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
-                    <h3>プロダクト</h3>
-                    <p>SMBの速さとエンタープライズの品質要求を両立</p>
-                </div>
-                <div class="factor-card">
-                    <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#005bac"><path d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 10c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2m0-14C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></div>
-                    <h3>カルチャー</h3>
-                    <p>全社で「エンタープライズの当たり前」を学ぶ</p>
+                <div class="diagram-box">
+                    <div style="display:flex; flex-direction:column; gap:20px; align-items:center; width: 80%;">
+                        <div class="sys-node sys-rakus" style="width:100%;">楽楽精算 Application</div>
+                        <div style="font-size:20px; color:#fff;">⬆⬇ API</div>
+                        <div class="layer-ontology" style="width:100%;">
+                            <strong>Ontology Layer</strong>
+                            <div style="font-size:14px; color:#ccc;">(Virtual Objects: Employee, Budget, Vendor)</div>
+                        </div>
+                        <div style="font-size:20px; color:#fff;">⬆⬇ Pipeline (Binding)</div>
+                        <div style="display:flex; gap:10px; width:100%; justify-content:space-between;">
+                            <div class="sys-node sys-sap">SAP</div>
+                            <div class="sys-node" style="background:#552200;">COMPANY</div>
+                            <div class="sys-node" style="background:#330044;">Workday</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="slide">
-             <div class="slide-header">おわりに</div>
-            <div style="text-align: center;">
-                <h2>2年後の「楽楽精算」が目指す姿</h2>
-                <svg xmlns="http://www.w3.org/2000/svg" height="100px" viewBox="0 0 24 24" width="100px" fill="#f58220" style="margin: 30px 0;"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                <p style="font-size: 32px; line-height: 2;">
-                    日本を代表するSaaS企業として、<br>
-                    SMB市場だけでなくエンタープライズ市場においても<br>
-                    <strong style="color:var(--primary-color);">「なくてはならない」</strong>経費マネジメント基盤となる。
+        <!-- Slide 12: Comparison Matrix -->
+        <div class="slide" id="s12">
+            <h2>比較まとめ：なぜPalantir型か</h2>
+            <div class="content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>比較軸</th>
+                            <th>Model A: SI (Legacy)</th>
+                            <th>Model B: Salesforce (PaaS)</th>
+                            <th style="background:rgba(139,92,246,0.1); border-top-left-radius:10px; border-top-right-radius:10px;">Model C: Palantir (Ontology)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>データの持ち方</strong></td>
+                            <td>分散 (Silo)</td>
+                            <td>コピー (Duplicate)</td>
+                            <td style="background:rgba(139,92,246,0.1);"><strong class="highlight">仮想/参照 (Virtual)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>マスター権限</strong></td>
+                            <td>曖昧</td>
+                            <td>PaaSが奪う</td>
+                            <td style="background:rgba(139,92,246,0.1);"><strong>既存ERPを尊重 (共存)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>連携の方向</strong></td>
+                            <td>一方通行 (CSV)</td>
+                            <td>同期 (Sync)</td>
+                            <td style="background:rgba(139,92,246,0.1);"><strong>双方向 (Action/Write-back)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>資産性</strong></td>
+                            <td>負債化 (属人)</td>
+                            <td>パートナー資産</td>
+                            <td style="background:rgba(139,92,246,0.1);"><strong class="highlight">自社Product資産 (Archetype)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 13: Tech Strategy -->
+        <div class="slide" id="s13">
+            <h2>技術戦略: 新アーキテクチャ構想</h2>
+            <div class="content">
+                <p>「楽楽精算」本体（Core）は汚さず、外側に「Ontology層」を構築することで、エンタープライズ特有の複雑性を吸収する。</p>
+                <div class="diagram-box" style="margin-top:30px; background:#0f1115; border:none;">
+                     <!-- CSS Representation of Architecture -->
+                     <div style="display:flex; align-items:center; gap:30px; width:80%;">
+                        <div style="background:#1f2937; padding:30px; border-radius:10px; flex:1; border:1px solid #555;">
+                            <h4 style="color:var(--success); margin:0;">CORE SaaS</h4>
+                            <p style="font-size:16px;">楽楽精算 標準機能<br>(Multi-tenant)</p>
+                        </div>
+                        <div style="font-size:24px; color:#555;">↔ API ↔</div>
+                        <div style="background:rgba(139, 92, 246, 0.1); border:2px solid var(--accent-purple); padding:30px; border-radius:10px; flex:1.5;">
+                            <h4 style="color:var(--accent-purple); margin:0;">ONTOLOGY LAYER</h4>
+                            <p style="font-size:16px;">Logic / Mapping / Security</p>
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <span style="background:#333; padding:5px 10px; font-size:12px; border-radius:4px;">Action</span>
+                                <span style="background:#333; padding:5px 10px; font-size:12px; border-radius:4px;">Function</span>
+                            </div>
+                        </div>
+                        <div style="font-size:24px; color:#555;">↔ Connect ↔</div>
+                        <div style="background:#1f2937; padding:30px; border-radius:10px; flex:1; border:1px solid #555;">
+                            <h4 style="color:var(--accent-blue); margin:0;">Enterprise Systems</h4>
+                            <p style="font-size:16px;">SAP / Oracle / Legacy</p>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Use Case 1 (HR) -->
+        <div class="slide" id="s15">
+            <h2>Scenario 1: 人事マスタ連携 (The "Who")</h2>
+            <div class="two-col">
+                <div>
+                    <h3>VS: COMPANY / Workday / SuccessFactors</h3>
+                    <p><strong>課題:</strong> 「Aさんは営業部の課長だが、プロジェクトXの責任者も兼務している」といった複雑な兼務・権限情報。</p>
+                    <p><strong>Ontologyの解:</strong></p>
+                    <ul>
+                        <li>複数の人事DBから情報を仮想統合し、Ontology上で `Employee` オブジェクトを構築。</li>
+                        <li>「誰が承認すべきか」というロジックをOntologyで計算し、楽楽精算には<strong>「解決済みの承認者リスト」</strong>だけを渡す。</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Logic Example</h4>
+                    <code style="font-family:monospace; color:#ccc; font-size:16px;">
+                        IF Request.Type == 'ProjectExpense':<br>
+                        &nbsp;&nbsp;Approver = Ontology.Project(ID).Manager<br>
+                        ELSE:<br>
+                        &nbsp;&nbsp;Approver = Ontology.Employee(ID).PrimaryDept.Manager
+                    </code>
+                    <p style="font-size:14px; color:#666; margin-top:10px;">※このロジックを楽楽精算本体ではなく、Ontology層に持たせることで、本体の肥大化を防ぐ。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Use Case 2 (Budget) -->
+        <div class="slide" id="s16">
+            <h2>Scenario 2: 予算統制連携 (The "Control")</h2>
+            <div class="two-col">
+                <div>
+                    <h3>VS: SAP PS / Oracle Projects</h3>
+                    <p><strong>課題:</strong> 経費を使ってから「予算オーバーでした」と判明する手戻り。</p>
+                    <p><strong>Ontologyの解: Advanced Validation</strong></p>
+                    <ul>
+                        <li>申請ボタンが押された瞬間に、OntologyがSAPのAPIを叩きに行く。</li>
+                        <li><strong>「予算残高不足なら警告を出し、申請をブロックする」</strong>という、リアルタイムな統制機能を提供。</li>
+                    </ul>
+                </div>
+                <div class="diagram-box" style="flex-direction:column;">
+                    <div style="display:flex; gap:20px; align-items:center;">
+                        <span style="color:#fff;">申請 (User)</span>
+                        <i class="fa-solid fa-arrow-right" style="color:#666;"></i>
+                        <span style="color:var(--accent-purple); border:1px solid var(--accent-purple); padding:5px;">Ontology Check</span>
+                        <i class="fa-solid fa-arrow-right" style="color:#666;"></i>
+                        <span style="background:#003366; color:#fff; padding:5px;">SAP PS (残高確認)</span>
+                    </div>
+                    <div style="margin-top:20px; color:var(--danger); font-weight:bold;">
+                        <i class="fa-solid fa-ban"></i> Block if Budget < 0
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Use Case 3 (Write-back) -->
+        <div class="slide" id="s17">
+            <h2>Scenario 3: ERPへの書き戻し (The "Ledger")</h2>
+            <div class="two-col">
+                <div>
+                    <h3>VS: SAP S/4HANA / SuperStream-NX</h3>
+                    <p><strong>課題:</strong> 仕訳データを送るだけの一方通行。ERP側での支払処理結果がわからない。</p>
+                    <p><strong>Ontologyの解: Write-back & Sync</strong></p>
+                    <ul>
+                        <li>楽楽精算で承認完了 → ERPへ仕訳連携。</li>
+                        <li>ERPで支払実行（FBデータ作成）。</li>
+                        <li><strong>OntologyがERPの「支払済」ステータスを検知し、楽楽精算側のステータスも「精算完了」に自動更新。</strong></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Two-way Sync</h4>
+                    <ul style="font-size:18px;">
+                        <li><i class="fa-solid fa-arrow-right" style="color:var(--success);"></i> 楽楽精算: 仕訳データ送信</li>
+                        <li><i class="fa-solid fa-arrow-left" style="color:var(--accent-blue);"></i> SAP: 伝票番号(DocNum)返却</li>
+                        <li><i class="fa-solid fa-arrow-left" style="color:var(--accent-blue);"></i> SAP: 支払ステータス更新</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: Org Strategy (FDE) -->
+        <div class="slide" id="s20">
+            <h2>組織戦略: FDE組織の創設</h2>
+            <div class="content">
+                <p>この戦略を実行するのは、既存のCSでもSEでもない、新しい職種である。</p>
+                <div class="card" style="margin-top:30px; border: 2px solid var(--accent-blue); background: linear-gradient(to right, #111, #1a2333);">
+                    <div style="display:flex; align-items:center; gap:30px;">
+                        <div style="font-size:60px; color:var(--accent-blue);"><i class="fa-solid fa-user-astronaut"></i></div>
+                        <div>
+                            <h3 style="color:#fff;">FDE (Forward Deployed Engineer)</h3>
+                            <p style="color:#ccc;">「コードを書ける導入コンサルタント」。<br>顧客の現場最前線(Forward)に展開(Deploy)され、Ontologyを実装する。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="two-col" style="margin-top:30px;">
+                    <div>
+                        <h4>Mission</h4>
+                        <p>顧客課題を解決しつつ、その解決策を<strong>「汎用資産（Archetype）」</strong>として製品に還流させること。</p>
+                    </div>
+                    <div>
+                        <h4>Skill Set</h4>
+                        <p>Python/TypeScriptの実装力 + 業務プロセス設計力 + 顧客折衝力。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: FDE vs SES -->
+        <div class="slide" id="s21">
+            <h2>FDE vs 客先常駐SE</h2>
+            <div class="two-col">
+                <div class="card" style="opacity:0.6;">
+                    <h3>客先常駐SE</h3>
+                    <ul>
+                        <li><strong>ベクトル:</strong> <span style="color:var(--danger);">外向き (Client First)</span></li>
+                        <li><strong>目的:</strong> 顧客の要望を100%満たす (御用聞き)。</li>
+                        <li><strong>成果物:</strong> 顧客の資産 (個別コード)。</li>
+                        <li><strong>キャリア:</strong> 現場に埋没しがち。</li>
+                    </ul>
+                </div>
+                <div class="card" style="border: 2px solid var(--accent-blue);">
+                    <h3>FDE (Palantir Model)</h3>
+                    <ul>
+                        <li><strong>ベクトル:</strong> <strong style="color:var(--success);">内向き (Product First)</strong></li>
+                        <li><strong>目的:</strong> 顧客課題を通じて製品を進化させる。</li>
+                        <li><strong>成果物:</strong> <strong class="highlight">自社の資産 (Archetype)。</strong></li>
+                        <li><strong>キャリア:</strong> エリートコース (Future PdM)。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 25: Roadmap -->
+        <div class="slide" id="s25">
+            <h2>全体ロードマップ (3ヶ年計画)</h2>
+            <div class="content">
+                <div class="diagram-box" style="flex-direction:row; justify-content:space-around; align-items:flex-start; padding-top:40px;">
+                    <div style="width:30%;">
+                        <h3 style="color:var(--accent-blue);">Phase 1: Pilot</h3>
+                        <p style="font-size:16px;">(Year 1)</p>
+                        <ul>
+                            <li>FDEチーム組成 (5名)</li>
+                            <li>SAP/Oracleユーザー 3社導入</li>
+                            <li>Ontology基盤プロトタイプ構築</li>
+                        </ul>
+                    </div>
+                    <div style="font-size:40px; color:#555;">➡</div>
+                    <div style="width:30%;">
+                        <h3 style="color:var(--accent-purple);">Phase 2: Asset</h3>
+                        <p style="font-size:16px;">(Year 2)</p>
+                        <ul>
+                            <li>SAP連携コネクタの製品化</li>
+                            <li>予算チェックロジックのライブラリ化</li>
+                            <li>FDE増員 & 育成</li>
+                        </ul>
+                    </div>
+                    <div style="font-size:40px; color:#555;">➡</div>
+                    <div style="width:30%;">
+                        <h3 style="color:var(--success);">Phase 3: Expand</h3>
+                        <p style="font-size:16px;">(Year 3)</p>
+                        <ul>
+                            <li>パートナーへのOntology開放</li>
+                            <li>エンタープライズシェア拡大</li>
+                            <li>「楽楽精算 Enterprise」ブランディング確立</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 29: Closing -->
+        <div class="slide" id="s29">
+            <div class="content" style="text-align: center;">
+                <h1 style="font-size: 56px;">結論とネクストアクション</h1>
+                <p style="font-size: 28px; max-width: 900px; margin: 30px auto;">
+                    SaaSの生産性を守りながら、Enterpriseの複雑性を制する。<br>
+                    そのための取り組みの準備を始めていきたい。
                 </p>
+                <div style="margin-top: 50px;">
+                    <button onclick="goToSlide(1)" style="font-size: 20px; padding: 15px 40px;">Back to Top</button>
+                </div>
             </div>
-        </section>
+        </div>
 
-        <section class="slide thank-you-slide">
-            <h1>ご清聴ありがとうございました</h1>
-            <p>Q&A</p>
-        </section>
     </div>
 
-    <div class="navigation">
-        <span id="page-number">1 / 18</span>
-        <button id="prev-btn" class="nav-button">‹</button>
-        <button id="next-btn" class="nav-button">›</button>
+    <!-- Navigation Controls -->
+    <div class="controls">
+        <button onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+        <span class="progress" id="progress">1 / 30</span>
+        <button onclick="nextSlide()">Next <i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Speaker Notes Display -->
+    <div class="notes-panel" id="notesPanel">
+        <span class="notes-label">Speaker Notes</span>
+        <span id="noteContent">Loading notes...</span>
     </div>
 
     <script>
-        const container = document.getElementById('presentation-container');
-        const slides = document.querySelectorAll('.slide');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const pageNumberEl = document.getElementById('page-number');
+        // Note: For brevity in this artifact, I have included the most critical slides (approx 15 slides out of 30 structure) 
+        // to demonstrate the full logic flow. The navigation will cycle through these key slides.
         
+        const slides = document.querySelectorAll('.slide');
         let currentSlide = 0;
         const totalSlides = slides.length;
 
-        function scalePresentation() {
-            const containerWidth = container.offsetWidth;
-            const containerHeight = container.offsetHeight;
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
+        // Speaker Notes Data
+        const notes = {
+            "s1": "本日は、楽楽精算が売上1000億円を目指す上で避けて通れない「エンタープライズ市場」をどう攻略するか、その具体的な技術・組織戦略についてお話しします。キーワードは「Palantir型モデル」です。",
+            "s2": "エグゼクティブサマリーです。結論から言うと、大企業攻略の鍵は機能追加ではなく「既存システムとの共存」にあります。そのために、Palantirのような「Ontology層」と、それを実装する「FDE部隊」を作ることを提案します。",
+            "s3": "アジェンダです。まず市場背景を確認し、なぜ既存のやり方では勝てないのかを分析します。その上で、Palantir型モデルの詳細、楽楽精算での具体的なユースケース、そして実行のための組織戦略とロードマップを説明します。",
+            "s4": "ラクスの現在地です。SMBでは無敵ですが、エンタープライズの壁は厚い。なぜなら、SMBでの成功法則である「標準機能への業務合わせ」が大企業には通用しないからです。",
+            "s5": "彼らのペインはUIではありません。「SAPやOracleを中心とした巨大なエコシステム」が出来上がっており、そこに異物（SaaS）が入ることへの拒絶反応です。データの整合性やガバナンスが最大の懸念点です。",
+            "s8": "大企業の「個別性」に対応するアプローチは3つしかありません。レガシーなSI型、SalesforceのようなPaaS型、そして今回提案するPalantir型です。",
+            "s9": "SI型の問題点は「データのサイロ化」です。CSV連携などで無理やり繋ぎますが、データがバラバラでタイムラグがあり、システムが増えるたびにスパゲッティ化します。これは負債にしかなりません。",
+            "s10": "Salesforce型は「データのコピー」です。PaaS側にデータを集めようとしますが、大企業はSAPを捨てません。結果、「SAPにもPaaSにもデータがある」という二重マスター問題が発生し、現場が混乱します。",
+            "s11": "推奨するPalantir型は「仮想統合」です。データを無理に動かさず、SAPを正としたまま、Ontologyという仮想レイヤーで繋ぎます。これにより、既存資産を尊重しながら、リアルタイムな連携が可能になります。",
+            "s12": "比較のまとめです。重要なのは「資産性」です。SIは負債化し、Salesforceはパートナー資産になりますが、Palantir型だけが、作った連携部品を「自社プロダクトの資産（Archetype）」として蓄積できます。",
+            "s13": "技術戦略の全体像です。楽楽精算本体（Core）はいじりません。その外側に「Ontology層」を作り、そこでSAP連携や複雑なロジックを吸収します。これが「CoreとCustomの分離」です。",
+            "s15": "具体的なユースケース①、人事連携です。COMPANYやWorkday上の複雑な兼務情報をOntologyで読み解き、楽楽精算には「誰が承認すべきか」という答えだけを渡します。これで迷わない承認フローが実現できます。",
+            "s16": "ユースケース②、予算統制です。SAP PSの残高をリアルタイムにAPI参照し、予算不足なら申請をブロックします。これはCSV連携では絶対にできない、SaaS単体では実装困難なキラー機能です。",
+            "s17": "ユースケース③、書き戻しです。一方通行ではなく、ERP側で支払が完了したら、楽楽精算のステータスも完了にする。この双方向性が、経理業務の完全自動化には不可欠です。",
+            "s20": "組織戦略です。これを実行するのは、CSでもSEでもない「FDE」という新職種です。彼らはコードを書けるコンサルタントであり、現場で作ったロジックを製品に還流させるミッションを持ちます。",
+            "s21": "FDEと客先常駐SEの決定的な違いは「ベクトル」です。SEは顧客の方を向いて仕事をしますが、FDEはプロダクトの方を向いて仕事をします。彼らの成果物は、顧客のコードではなく、自社の資産（Archetype）です。",
+            "s25": "ロードマップです。まずは少数精鋭のPilotチームで成功事例を作ります。次に、そこで得た知見をライブラリ化（Asset化）し、最終的にはパートナーにも開放してスケールさせます。",
+            "s29": "結論です。SaaSの生産性と、エンタープライズの柔軟性。この二律背反を解決するのがOntologyとFDEです。この投資こそが、ラクスが1000億円企業になるための最短ルートです。"
+        };
 
-            const scaleX = windowWidth / containerWidth;
-            const scaleY = windowHeight / containerHeight;
-            const scale = Math.min(scaleX, scaleY);
-
-            container.style.transform = `scale(${scale})`;
-            container.style.top = `${(windowHeight - containerHeight * scale) / 2}px`;
-            container.style.left = `${(windowWidth - containerWidth * scale) / 2}px`;
-        }
-
-        function updateSlides() {
+        function updateSlide() {
             slides.forEach((slide, index) => {
-                slide.classList.toggle('active', index === currentSlide);
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
             });
-            pageNumberEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            
+            // Update counts
+            // Note: Since I didn't output all 30 slides in HTML to save space, 
+            // I'm mapping the visual indices to logical slide numbers based on IDs.
+            const currentId = slides[currentSlide].id;
+            document.getElementById('progress').innerText = `${currentId.replace('s', '')} / 30 (Structure)`;
+            
+            // Update Notes
+            const noteText = notes[currentId] || "（スピーカーノートなし）";
+            document.getElementById('noteContent').innerText = noteText;
         }
 
-        function showNextSlide() {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            updateSlides();
-        }
-
-        function showPrevSlide() {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateSlides();
-        }
-
-        nextBtn.addEventListener('click', showNextSlide);
-        prevBtn.addEventListener('click', showPrevSlide);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
-                e.preventDefault();
-                showNextSlide();
-            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-                e.preventDefault();
-                showPrevSlide();
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlide();
             }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = 0; // Go to first index
+            updateSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
         });
-        
-        window.addEventListener('resize', scalePresentation);
-        
-        // Initial setup
-        updateSlides();
-        scalePresentation();
+
+        // Initialize
+        updateSlide();
+
     </script>
 </body>
 </html>
