@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Native Builder - Full Flow Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .step-content { display: none; }
+        .step-content.active { display: flex; }
+        .tab-active { border-bottom: 4px solid #f97316; color: #f97316; font-weight: bold; }
+        .interactive-item:hover { background-color: #fff7ed; cursor: pointer; border-color: #f97316; }
+        .preview-screen { background: #f8fafc; border: 8px solid #334155; border-radius: 20px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); transition: all 0.5s ease; }
+        .animate-flow { animation: flowMove 2s infinite linear; }
+        @keyframes flowMove { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+        .ai-thinking { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col font-sans overflow-hidden">
+
+    <header class="bg-white border-b px-8 py-4 flex justify-between items-center z-20">
+        <div class="flex items-center gap-4">
+            <div class="bg-orange-600 text-white font-black px-3 py-1 rounded-lg italic shadow-sm">RAKU² AI</div>
+            <nav class="flex gap-6 text-sm ml-4">
+                <button onclick="showStep(0)" id="tab0" class="py-2 tab-active transition-all">0. 業務ヒアリング</button>
+                <button onclick="showStep(1)" id="tab1" class="py-2 text-slate-400 hover:text-orange-500 transition-all">1. 設計修正・プレビュー</button>
+                <button onclick="showStep(2)" id="tab2" class="py-2 text-slate-400 hover:text-orange-500 transition-all">2. 自動処理フロー</button>
+                <button onclick="showStep(3)" id="tab3" class="py-2 text-slate-400 hover:text-orange-500 transition-all">3. AI Native追加機能</button>
+            </nav>
+        </div>
+        <button class="bg-slate-900 text-white px-6 py-2 rounded-full font-bold hover:bg-black transition shadow-lg">本番環境へデプロイ</button>
+    </header>
+
+    <main class="flex-1 overflow-hidden flex">
+
+        <section class="w-[60%] flex flex-col border-r bg-white overflow-y-auto p-8 relative">
+            
+            <div id="step0" class="step-content active flex-col space-y-6 max-w-2xl mx-auto py-4">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-black text-slate-800 mb-2">どんなシステムを作りますか？</h2>
+                    <p class="text-slate-500 italic">あなたの言葉で業務の流れを教えてください。AIが設計図を描きます。</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-slate-100 p-4 rounded-2xl border flex gap-3">
+                        <div class="w-8 h-8 bg-orange-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">AI</div>
+                        <p class="text-sm">「広告の案件管理をしたい」「受注したら自動で請求書を作りたい」など、Excel等の項目や業務フローを入力してください。</p>
+                    </div>
+                    <textarea id="initial-input" rows="3" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-orange-500 outline-none transition" placeholder="（例）案件が決まったら請求データを自動で作って、入金期限が過ぎたら通知したい。"></textarea>
+                    <button onclick="startAnalysis()" id="analysis-btn" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-orange-700 transition">AIによる要件解析を開始</button>
+                    
+                    <div id="analysis-result" class="hidden bg-blue-50 border-2 border-blue-100 rounded-3xl p-6 mt-4">
+                        <h3 class="text-blue-800 font-bold mb-4 flex items-center gap-2">✨ 抽出された構成要素:</h3>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-white p-2 rounded shadow-sm border-l-4 border-blue-400">📊 案件台帳・請求台帳</div>
+                            <div class="bg-white p-2 rounded shadow-sm border-l-4 border-blue-400">🔗 受注確定時のデータコピー</div>
+                            <div class="bg-white p-2 rounded shadow-sm border-l-4 border-blue-400">🚨 入金遅延メールアラート</div>
+                        </div>
+                        <button onclick="showStep(1)" class="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-bold">設計プレビューへ進む ➔</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step1" class="step-content flex-col space-y-8">
+                <div>
+                    <h2 class="text-xl font-black text-slate-800 mb-1">データ構造の修正</h2>
+                    <p class="text-sm text-slate-500 mb-6">項目をクリックして「名前の変更」や「追加」を指示できます。</p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="border-2 border-slate-200 rounded-2xl p-5 hover:border-orange-300 transition-all border-orange-300 ring-2 ring-orange-50">
+                            <h4 class="font-bold text-blue-600 mb-3">案件台帳</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="interactive-item p-2 rounded border border-transparent" onclick="promptEdit('案件名')"><span>案件名</span><span class="text-xs text-slate-400 ml-2">テキスト</span></div>
+                                <div id="amount-field" class="interactive-item p-2 rounded border border-transparent" onclick="promptEdit('受注金額')"><span class="font-bold">受注金額</span><span class="text-xs text-slate-400 ml-2 font-normal">数値(¥)</span></div>
+                                <div class="bg-orange-50 p-2 rounded border border-orange-100"><span class="text-orange-700 font-bold">ステータス</span></div>
+                            </div>
+                        </div>
+                        <div class="border-2 border-slate-200 rounded-2xl p-5">
+                            <h4 class="font-bold text-green-600 mb-3">請求台帳</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="p-2 flex justify-between text-blue-600 bg-blue-50 rounded font-bold italic">親案件ID (Link)</div>
+                                <div class="p-2">請求額<span class="text-xs text-slate-400 ml-2 font-normal">数値(¥)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-100 p-6 rounded-3xl border border-slate-200">
+                    <p id="ai-response" class="text-sm italic mb-4">「修正したい内容を教えてください。」</p>
+                    <div class="flex gap-2">
+                        <input id="user-input" type="text" class="flex-1 p-3 rounded-xl border outline-none" placeholder="受注金額を『契約額』に変えて...">
+                        <button onclick="simulateEdit()" class="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold">指示送信</button>
+                    </div>
+                </div>
+                <button onclick="showStep(2)" class="w-full border-2 border-orange-600 text-orange-600 py-3 rounded-xl font-bold">次は自動処理の確認 ➔</button>
+            </div>
+
+            <div id="step2" class="step-content flex-col space-y-6">
+                <h2 class="text-xl font-black text-slate-800">自動処理ワークフロー</h2>
+                <div class="space-y-4">
+                    <div class="bg-white border-2 border-slate-200 rounded-2xl p-6 relative">
+                        <span class="text-[10px] font-bold text-orange-600 block mb-1">TRIGGER</span>
+                        <p class="font-bold">案件台帳のステータス ➔ 「受注確定」</p>
+                        <div class="h-8 w-1 bg-slate-200 mx-auto my-2"></div>
+                        <span class="text-[10px] font-bold text-indigo-600 block mb-1">ACTION</span>
+                        <p class="font-bold">請求台帳にレコード作成</p>
+                        <div class="mt-3 text-xs bg-indigo-50 p-3 rounded-lg text-indigo-700">
+                            請求金額 ⬅︎ <span id="logic-src-label">受注金額</span> をコピー
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-indigo-900 p-6 rounded-3xl">
+                    <div class="flex gap-2">
+                        <input id="logic-input" type="text" class="flex-1 p-3 rounded-xl outline-none" placeholder="請求額に消費税10%を乗せて計算して...">
+                        <button onclick="applyLogicEdit()" class="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold">更新</button>
+                    </div>
+                </div>
+                <button onclick="showStep(3)" class="w-full border-2 border-indigo-600 text-indigo-600 py-3 rounded-xl font-bold">最終提案を確認 ➔</button>
+            </div>
+
+            <div id="step3" class="step-content flex-col space-y-6">
+                <h2 class="text-2xl font-black text-slate-800">AI Nativeな提案機能</h2>
+                <div class="grid gap-4">
+                    <div class="bg-orange-600 text-white p-6 rounded-3xl shadow-xl shadow-orange-200">
+                        <h4 class="font-bold flex items-center gap-2">✨ 未入金アラート・エージェント</h4>
+                        <p class="text-sm mt-2 opacity-90">期限切れのデータを毎朝自動チェックし、担当者に通知するロジックを組み込みました。</p>
+                    </div>
+                    <div class="bg-white border-2 border-orange-100 p-6 rounded-3xl">
+                        <h4 class="font-bold text-orange-600 flex items-center gap-2">📊 自動需要予測ダッシュボード</h4>
+                        <p class="text-sm text-slate-600 mt-2">過去の請求データから、来月の入金見込みを自動で可視化します。</p>
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-800 text-white rounded-3xl mt-10">
+                    <h3 class="font-bold text-center">全ての準備が整いました。</h3>
+                    <button class="w-full mt-4 bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:scale-105 transition">楽楽販売へ実装を開始する</button>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="w-[40%] bg-slate-200 p-8 flex flex-col">
+            <h3 class="text-xs font-black text-slate-500 mb-4 uppercase tracking-widest">リアルタイム・プレビュー</h3>
+            
+            <div id="preview-container" class="preview-screen flex-1 flex flex-col overflow-hidden bg-white relative">
+                <div class="bg-slate-800 p-2 flex justify-between items-center">
+                    <div class="flex gap-1 ml-1"><div class="w-1.5 h-1.5 rounded-full bg-red-400"></div><div class="w-1.5 h-1.5 rounded-full bg-yellow-400"></div><div class="w-1.5 h-1.5 rounded-full bg-green-400"></div></div>
+                    <div id="app-title" class="text-white text-[9px] font-bold">案件管理アプリ</div>
+                    <div class="w-4 h-4 bg-slate-600 rounded-full"></div>
+                </div>
+
+                <div id="preview-body" class="p-6">
+                    <div class="opacity-20 flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-2xl">
+                        <p class="text-[9px] text-slate-400 text-center">Step 0 のヒアリングを完了すると<br>アプリの画面が表示されます</p>
+                    </div>
+                </div>
+
+                <div id="simulation-layer" class="hidden absolute inset-0 bg-white/90 z-10 flex flex-col p-6">
+                    <div class="text-[10px] font-bold mb-4 flex justify-between items-center">
+                        <span>動作シミュレーション</span>
+                        <button onclick="simulateTrigger()" class="bg-orange-500 text-white px-3 py-1 rounded-full text-[8px]">受注ボタン押下</button>
+                    </div>
+                    <div class="space-y-12">
+                        <div class="border rounded p-2 bg-white text-[10px] shadow-sm">
+                            <div class="text-blue-500 font-bold border-b mb-1">案件：No.1001</div>
+                            <div class="flex justify-between"><span>受注額</span><span id="sim-src-val">¥ 1,000,000</span></div>
+                        </div>
+                        <div class="flex justify-center h-10 relative">
+                             <svg width="20" height="40" class="absolute -top-5"><path id="flow-active" class="hidden animate-flow" d="M10 0 L10 40" stroke="#f97316" stroke-width="3" stroke-dasharray="4 4" fill="none" /></svg>
+                        </div>
+                        <div id="sim-target" class="border-2 border-dashed border-slate-300 rounded p-2 text-[10px] transition-all">
+                            <div class="text-slate-400 italic">請求データ自動作成待ち...</div>
+                            <div id="sim-res-row" class="hidden justify-between font-bold text-indigo-600"><span>請求金額</span><span id="sim-res-val">¥ 1,000,000</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ai-alarm-preview" class="hidden absolute top-12 left-6 right-6 bg-orange-100 border-2 border-orange-400 p-3 rounded-lg shadow-lg flex gap-2 items-center pulse-orange">
+                    <span class="text-lg">🚨</span>
+                    <div class="text-[9px] text-orange-900 font-bold leading-tight">AI警告: 支払期限超過の請求が1件あります。<br>即時確認が必要です。</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentStep = 0;
+
+        function showStep(step) {
+            currentStep = step;
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button[id^="tab"]').forEach(el => el.classList.remove('tab-active', 'text-slate-400'));
+            
+            document.getElementById('step' + step).classList.add('active');
+            document.getElementById('tab' + step).classList.add('tab-active');
+            for(let i=0; i<=3; i++) { if(i != step) document.getElementById('tab' + i).classList.add('text-slate-400'); }
+
+            // UI Preview Management
+            updatePreview(step);
+        }
+
+        function updatePreview(step) {
+            const body = document.getElementById('preview-body');
+            const simLayer = document.getElementById('simulation-layer');
+            const aiAlarm = document.getElementById('ai-alarm-preview');
+
+            if (step >= 1) {
+                body.innerHTML = `
+                    <div class="bg-white rounded p-4 border shadow-sm space-y-3">
+                        <div class="text-[9px] font-bold text-slate-400">入力フォーム</div>
+                        <div><label class="text-[8px] text-slate-500">案件名</label><div class="h-7 bg-slate-50 border rounded"></div></div>
+                        <div><label id="preview-label-amount" class="text-[8px] text-slate-500">受注金額</label><div class="h-7 bg-slate-50 border rounded px-2 text-[9px] flex items-center">¥ 1,000,000</div></div>
+                        <div class="flex gap-2">
+                            <div class="flex-1"><label class="text-[8px] text-slate-500">ステータス</label><div class="h-7 bg-white border border-orange-400 rounded text-orange-600 text-[9px] font-bold px-2 flex items-center justify-between">受注確定 <span>▼</span></div></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Step specific overlays
+            simLayer.classList.toggle('hidden', step !== 2);
+            aiAlarm.classList.toggle('hidden', step !== 3);
+        }
+
+        function startAnalysis() {
+            const btn = document.getElementById('analysis-btn');
+            btn.innerHTML = "要件を解析中...";
+            btn.classList.add('ai-thinking');
+            setTimeout(() => {
+                document.getElementById('analysis-result').classList.remove('hidden');
+                btn.innerHTML = "解析完了";
+                btn.classList.remove('ai-thinking');
+            }, 1200);
+        }
+
+        function promptEdit(target) {
+            document.getElementById('user-input').value = target + "を『契約額』という名前に変えて";
+            document.getElementById('user-input').focus();
+        }
+
+        function simulateEdit() {
+            const val = document.getElementById('user-input').value;
+            if(val.includes('契約額')) {
+                document.getElementById('amount-field').querySelector('span').innerText = "契約額";
+                document.getElementById('preview-label-amount').innerText = "契約額";
+                document.getElementById('sim-src-val').parentElement.querySelector('span').innerText = "契約額";
+                document.getElementById('logic-src-label').innerText = "契約額";
+                document.getElementById('ai-response').innerText = "「受注金額」から「契約額」に名称を統一しました。";
+            }
+            document.getElementById('user-input').value = "";
+        }
+
+        function applyLogicEdit() {
+            const val = document.getElementById('logic-input').value;
+            if(val.includes('10%')) {
+                document.getElementById('sim-res-val').innerText = "¥ 1,100,000";
+                alert("ロジックに消費税1.1倍を適用しました。");
+            }
+            document.getElementById('logic-input').value = "";
+        }
+
+        function simulateTrigger() {
+            const line = document.getElementById('flow-active');
+            const target = document.getElementById('sim-target');
+            const resRow = document.getElementById('sim-res-row');
+            line.classList.remove('hidden');
+            setTimeout(() => {
+                target.classList.add('bg-indigo-50', 'border-indigo-400', 'border-solid');
+                target.querySelector('.text-slate-400').classList.add('hidden');
+                resRow.classList.replace('hidden', 'flex');
+                line.classList.add('hidden');
+            }, 800);
+        }
+    </script>
+</body>
+</html>
