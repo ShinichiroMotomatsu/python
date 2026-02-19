@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>麻布台ヒルズ 地下通路ウォークスルー | Underground Walkthrough</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    #c {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+
+    /* ── クリックして開始オーバーレイ ── */
+    #overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 50;
+      cursor: pointer;
+      user-select: none;
+    }
+    #overlay .title-jp {
+      font-size: clamp(18px, 4vw, 30px);
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    #overlay .title-en {
+      font-size: clamp(11px, 2vw, 16px);
+      color: #aaa;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    #overlay .route-map {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 36px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    #overlay .station {
+      background: #005f9e;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+    #overlay .station.hibiya { background: #9b111e; }
+    #overlay .station.galleria { background: #5a2d8a; }
+    #overlay .arrow {
+      color: #fff;
+      font-size: 22px;
+      padding: 0 8px;
+    }
+    #overlay .start-btn {
+      background: linear-gradient(135deg, #005f9e, #1a6b35);
+      color: #fff;
+      border: none;
+      padding: 14px 40px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 24px;
+      transition: opacity 0.2s;
+    }
+    #overlay .start-btn:hover { opacity: 0.85; }
+    #overlay .controls-hint {
+      color: #888;
+      font-size: 12px;
+      text-align: center;
+      line-height: 2;
+    }
+
+    /* ── HUD: 現在地 ── */
+    #hud-location {
+      position: fixed;
+      bottom: 72px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 10px 24px 8px;
+      border-radius: 8px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+      min-width: 220px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    #hud-loc-jp  { font-size: 17px; font-weight: 700; }
+    #hud-loc-en  { font-size: 11px; color: #bbb; margin-top: 2px; }
+    #hud-loc-line { font-size: 10px; color: #6bc5ff; margin-top: 3px; min-height: 14px; }
+
+    /* ── HUD: 距離 ── */
+    #hud-distance {
+      position: fixed;
+      top: 14px; right: 14px;
+      background: rgba(0,0,0,0.6);
+      color: #ddd;
+      font-size: 12px;
+      font-family: 'Noto Sans JP', monospace;
+      padding: 6px 12px;
+      border-radius: 5px;
+      z-index: 10;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── HUD: ミニマップ ── */
+    #hud-minimap {
+      position: fixed;
+      top: 50px; right: 14px;
+      width: 200px; height: 64px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 5px;
+      z-index: 10;
+      overflow: hidden;
+      backdrop-filter: blur(4px);
+    }
+    #minimap-canvas { width: 100%; height: 100%; }
+
+    /* ── HUD: 進捗バー ── */
+    #hud-progress {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 5px;
+      background: rgba(255,255,255,0.1);
+      z-index: 10;
+    }
+    #hud-progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #005f9e 0%, #5a2d8a 50%, #9b111e 100%);
+      transition: width 0.3s ease;
+    }
+
+    /* ── HUD: 操作ガイド ── */
+    #hud-controls {
+      position: fixed;
+      bottom: 16px; left: 14px;
+      background: rgba(0,0,0,0.55);
+      color: #999;
+      font-size: 11px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      z-index: 10;
+      pointer-events: none;
+      line-height: 1.7;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── HUD: 場所アナウンス（通過時） ── */
+    #hud-announce {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      padding: 14px 30px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 15;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    #hud-announce.show { opacity: 1; }
+    #hud-ann-jp  { font-size: 20px; font-weight: 700; }
+    #hud-ann-en  { font-size: 12px; color: #bbb; margin-top: 4px; }
+
+    /* ── モバイル操作ボタン ── */
+    #mobile-btns {
+      position: fixed;
+      bottom: 80px; right: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 20;
+    }
+    #mobile-btns .row {
+      display: flex; gap: 6px; justify-content: center;
+    }
+    #mobile-btns button {
+      width: 52px; height: 52px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      touch-action: none;
+      backdrop-filter: blur(4px);
+    }
+    @media (pointer: coarse) {
+      #mobile-btns { display: flex; }
+      #hud-controls { display: none; }
+    }
+
+    /* ── 北極線 (crosshair) ── */
+    #crosshair {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    #crosshair::before, #crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(255,255,255,0.75);
+    }
+    #crosshair::before {
+      width: 2px; height: 20px;
+      top: 0; left: 9px;
+    }
+    #crosshair::after {
+      width: 20px; height: 2px;
+      top: 9px; left: 0;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- 開始オーバーレイ -->
+<div id="overlay">
+  <div class="title-jp">六本木一丁目〜麻布台ヒルズ〜神谷町<br>地下道ウォークスルー</div>
+  <div class="title-en">Roppongi-itchome → Azabudai Hills → Kamiyacho Underground Walkthrough</div>
+  <div class="route-map">
+    <div class="station">六本木一丁目駅<br><small>南北線</small></div>
+    <div class="arrow">→</div>
+    <div class="station galleria">麻布台ヒルズ<br><small>ガレリア</small></div>
+    <div class="arrow">→</div>
+    <div class="station hibiya">神谷町駅<br><small>日比谷線</small></div>
+  </div>
+  <button class="start-btn" id="startBtn">クリックして開始 / Click to Start</button>
+  <div class="controls-hint">
+    <strong>PC操作:</strong> マウス = 視点回転 ／ W/A/S/D または ↑↓←→ = 移動<br>
+    <strong>スマホ:</strong> 画面ドラッグ = 視点 ／ ボタン = 移動<br>
+    <strong>全行程:</strong> 約580m（六本木一丁目→ガレリア→神谷町）
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud-location" style="display:none">
+  <div id="hud-loc-jp">六本木一丁目駅</div>
+  <div id="hud-loc-en">Roppongi-itchome Station</div>
+  <div id="hud-loc-line">南北線 Namboku Line</div>
+</div>
+
+<div id="hud-distance" style="display:none">距離 / Distance: 0m</div>
+
+<div id="hud-minimap" style="display:none">
+  <canvas id="minimap-canvas" width="200" height="64"></canvas>
+</div>
+
+<div id="hud-progress" style="display:none">
+  <div id="hud-progress-fill"></div>
+</div>
+
+<div id="hud-controls" style="display:none">
+  WASD / ↑↓←→ : 移動 (Move)<br>
+  マウス : 視点 (Look)<br>
+  ESC : 一時停止 (Pause)
+</div>
+
+<div id="hud-announce">
+  <div id="hud-ann-jp"></div>
+  <div id="hud-ann-en"></div>
+</div>
+
+<div id="crosshair" style="display:none"></div>
+
+<!-- モバイルボタン -->
+<div id="mobile-btns" style="display:none">
+  <div class="row"><button id="mb-fwd">↑</button></div>
+  <div class="row">
+    <button id="mb-left">←</button>
+    <button id="mb-back">↓</button>
+    <button id="mb-right">→</button>
+  </div>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+// ─────────────────────────────────────────────
+// 1. ルートデータ定義
+// ─────────────────────────────────────────────
+
+const ROUTE_LENGTH = 580;
+
+const SEGMENTS = [
+  { id: 0, name: '六本木一丁目駅コンコース', minX: -4,  maxX: 4,  minZ: 0,   maxZ: 30,  height: 3.2, type: 'station_namboku' },
+  { id: 1, name: '改札外通路',               minX: -2,  maxX: 2,  minZ: 30,  maxZ: 90,  height: 2.8, type: 'corridor' },
+  { id: 2, name: '泉ガーデン地下通路',       minX: -3,  maxX: 3,  minZ: 90,  maxZ: 180, height: 3.0, type: 'corridor_wide' },
+  { id: 3, name: '麻布台ヒルズ入口連絡通路', minX: -2.5,maxX: 2.5,minZ: 180, maxZ: 250, height: 2.8, type: 'connector' },
+  { id: 4, name: '麻布台ヒルズ ガレリア',   minX: -10, maxX: 10, minZ: 250, maxZ: 420, height: 12,  type: 'galleria' },
+  { id: 5, name: '神谷町方面通路',           minX: -2.5,maxX: 2.5,minZ: 420, maxZ: 530, height: 3.0, type: 'connector' },
+  { id: 6, name: '神谷町駅コンコース',       minX: -4,  maxX: 4,  minZ: 530, maxZ: 580, height: 3.2, type: 'station_hibiya' }
+];
+
+// ジャンクション（廊下の幅が変わる接続部）
+const JUNCTIONS = [];
+for (let i = 0; i < SEGMENTS.length - 1; i++) {
+  const s1 = SEGMENTS[i], s2 = SEGMENTS[i+1];
+  const minX = Math.min(s1.minX, s2.minX);
+  const maxX = Math.max(s1.maxX, s2.maxX);
+  const minH = Math.min(s1.height, s2.height);
+  JUNCTIONS.push({ minX, maxX, minZ: s1.maxZ - 0.5, maxZ: s2.minZ + 0.5, height: minH });
+}
+
+const WAYPOINTS = [
+  { z: 0,   nameJP: '六本木一丁目駅',       nameEN: 'Roppongi-itchome Station', color: '#005f9e', line: '南北線 Namboku Line' },
+  { z: 28,  nameJP: '改札口（南北線）',     nameEN: 'Ticket Gates (Namboku Line)', color: '#005f9e', line: '' },
+  { z: 90,  nameJP: '泉ガーデン地下通路',   nameEN: 'Izumi Garden Underground',  color: '#3a6040', line: '' },
+  { z: 180, nameJP: '麻布台ヒルズ 入口',   nameEN: 'Azabudai Hills Entrance',   color: '#7a5010', line: '' },
+  { z: 250, nameJP: '麻布台ヒルズ ガレリア',nameEN: 'Azabudai Hills Galleria',   color: '#5a2d8a', line: 'B1F ガレリア' },
+  { z: 335, nameJP: 'ガレリア 中央',        nameEN: 'Galleria Center',           color: '#5a2d8a', line: 'B1F' },
+  { z: 420, nameJP: '神谷町方面 出口',      nameEN: 'To Kamiyacho Exit',         color: '#555',    line: '' },
+  { z: 530, nameJP: '神谷町駅',             nameEN: 'Kamiyacho Station',         color: '#9b111e', line: '日比谷線 Hibiya Line' },
+  { z: 578, nameJP: '神谷町駅 改札口',      nameEN: 'Kamiyacho Ticket Gates',    color: '#9b111e', line: '日比谷線 Hibiya Line' }
+];
+
+// ─────────────────────────────────────────────
+// 2. プロシージャルテクスチャ生成
+// ─────────────────────────────────────────────
+
+function shiftColor(hex, delta) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const clamp = v => Math.min(255, Math.max(0, v));
+  return `rgb(${clamp(r+delta)|0},${clamp(g+delta)|0},${clamp(b+delta)|0})`;
+}
+
+function makeTileTexture(tileColor, groutColor, tileW, tileH, repeatU, repeatV) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  const cols = Math.ceil(512 / tileW) + 1;
+  const rows = Math.ceil(512 / tileH) + 1;
+  ctx.fillStyle = groutColor;
+  ctx.fillRect(0, 0, 512, 512);
+  for (let row = 0; row < rows; row++) {
+    const offsetX = (row % 2) * (tileW / 2);
+    for (let col = -1; col < cols; col++) {
+      const x = col * tileW + offsetX;
+      const y = row * tileH;
+      const v = (Math.random() - 0.5) * 12;
+      ctx.fillStyle = shiftColor(tileColor, v);
+      ctx.fillRect(x + 1.5, y + 1.5, tileW - 3, tileH - 3);
+    }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeatU, repeatV);
+  return tex;
+}
+
+function addMarbleVeining(ctx, w, h) {
+  for (let v = 0; v < 10; v++) {
+    const x0 = Math.random() * w;
+    const cp1x = Math.random() * w, cp1y = Math.random() * h;
+    const cp2x = Math.random() * w, cp2y = Math.random() * h;
+    ctx.beginPath();
+    ctx.moveTo(x0, 0);
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, Math.random() * w, h);
+    const alpha = 0.04 + Math.random() * 0.08;
+    ctx.strokeStyle = `rgba(140,120,100,${alpha})`;
+    ctx.lineWidth = 0.5 + Math.random() * 2;
+    ctx.stroke();
+  }
+}
+
+function makeGalleriaFloor() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  const tileW = 100, tileH = 100;
+  const cols = 6, rows = 6;
+  ctx.fillStyle = '#b0a898';
+  ctx.fillRect(0, 0, 512, 512);
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = col * tileW;
+      const y = row * tileH;
+      const v = (Math.random() - 0.5) * 8;
+      ctx.fillStyle = shiftColor('#e2dcd2', v);
+      ctx.fillRect(x + 2, y + 2, tileW - 4, tileH - 4);
+    }
+  }
+  addMarbleVeining(ctx, 512, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(8, 8);
+  return tex;
+}
+
+function makeWallTexture(type) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+
+  if (type === 'cream_tile') {
+    const tw = 120, th = 40;
+    const rows = Math.ceil(512 / th) + 1;
+    ctx.fillStyle = '#c0b8a8';
+    ctx.fillRect(0, 0, 512, 512);
+    for (let row = 0; row < rows; row++) {
+      const offsetX = (row % 2) * (tw / 2);
+      const cols = Math.ceil(512 / tw) + 2;
+      for (let col = -1; col < cols; col++) {
+        const x = col * tw + offsetX;
+        const y = row * th;
+        const v = (Math.random() - 0.5) * 10;
+        ctx.fillStyle = shiftColor('#f0ece2', v);
+        ctx.fillRect(x + 1.5, y + 1.5, tw - 3, th - 3);
+      }
+    }
+  } else if (type === 'concrete') {
+    ctx.fillStyle = '#9a9690';
+    ctx.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 5000; i++) {
+      const v = (Math.random() - 0.5) * 18;
+      const a = 0.2 + Math.random() * 0.2;
+      ctx.fillStyle = `rgba(${128+v|0},${124+v|0},${116+v|0},${a})`;
+      ctx.fillRect(Math.random()*512, Math.random()*512, 2, 2);
+    }
+    // パネルライン
+    ctx.fillStyle = 'rgba(80,76,70,0.4)';
+    for (let i = 0; i < 512; i += 128) {
+      ctx.fillRect(i, 0, 1.5, 512);
+      ctx.fillRect(0, i, 512, 1.5);
+    }
+  } else if (type === 'white_panel') {
+    ctx.fillStyle = '#f4f2ee';
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillStyle = 'rgba(200,196,188,0.6)';
+    for (let i = 0; i < 512; i += 128) {
+      ctx.fillRect(i, 0, 2, 512);
+    }
+    for (let i = 0; i < 512; i += 200) {
+      ctx.fillRect(0, i, 512, 2);
+    }
+  } else if (type === 'station_white') {
+    const tw = 60, th = 30;
+    const rows = Math.ceil(512 / th) + 1;
+    ctx.fillStyle = '#aaa';
+    ctx.fillRect(0, 0, 512, 512);
+    for (let row = 0; row < rows; row++) {
+      const cols = Math.ceil(512 / tw) + 1;
+      for (let col = 0; col < cols; col++) {
+        const x = col * tw;
+        const y = row * th;
+        const v = (Math.random() - 0.5) * 6;
+        ctx.fillStyle = shiftColor('#f8f6f2', v);
+        ctx.fillRect(x + 1, y + 1, tw - 2, th - 2);
+      }
+    }
+  } else if (type === 'galleria_wall') {
+    // 大理石調の壁
+    ctx.fillStyle = '#e8e0d4';
+    ctx.fillRect(0, 0, 512, 512);
+    addMarbleVeining(ctx, 512, 512);
+    // 縦パネル分割
+    ctx.fillStyle = 'rgba(180,165,148,0.5)';
+    for (let i = 0; i < 512; i += 170) {
+      ctx.fillRect(i, 0, 3, 512);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 2);
+  return tex;
+}
+
+function makeCeilingTexture(type) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+
+  if (type === 'fluorescent') {
+    ctx.fillStyle = '#e6e6e4';
+    ctx.fillRect(0, 0, 512, 512);
+    // 蛍光灯パネル（2列×4行）
+    const panW = 200, panH = 90;
+    const colPositions = [40, 272];
+    const rowPositions = [15, 125, 235, 345];
+    for (const cx of colPositions) {
+      for (const cy of rowPositions) {
+        const grd = ctx.createLinearGradient(cx, cy, cx + panW, cy + panH);
+        grd.addColorStop(0, '#fffff8');
+        grd.addColorStop(0.5, '#f0f4ff');
+        grd.addColorStop(1, '#e8f0ff');
+        ctx.fillStyle = grd;
+        ctx.fillRect(cx, cy, panW, panH);
+        ctx.strokeStyle = '#bbb';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx, cy, panW, panH);
+      }
+    }
+  } else if (type === 'glass') {
+    // ガレリアのガラス天井
+    const grd = ctx.createLinearGradient(0, 0, 0, 512);
+    grd.addColorStop(0, '#a8c8e8');
+    grd.addColorStop(0.6, '#c0d8f0');
+    grd.addColorStop(1, '#d8e8f8');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 512, 512);
+    // ガラスグリッド
+    ctx.strokeStyle = 'rgba(80,100,140,0.6)';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 512; i += 64) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+    }
+    // 光の反射
+    for (let i = 0; i < 6; i++) {
+      const rx = Math.random() * 512, ry = Math.random() * 512;
+      const grd2 = ctx.createRadialGradient(rx, ry, 5, rx, ry, 80);
+      grd2.addColorStop(0, 'rgba(255,255,255,0.45)');
+      grd2.addColorStop(1, 'rgba(200,220,255,0)');
+      ctx.fillStyle = grd2;
+      ctx.fillRect(0, 0, 512, 512);
+    }
+  } else if (type === 'station') {
+    ctx.fillStyle = '#e8e8e4';
+    ctx.fillRect(0, 0, 512, 512);
+    // 広い蛍光灯帯
+    ctx.fillStyle = '#fff';
+    for (let row = 0; row < 4; row++) {
+      const y = row * 128 + 10;
+      const grd = ctx.createLinearGradient(0, y, 0, y+108);
+      grd.addColorStop(0, '#fffff8');
+      grd.addColorStop(1, '#e8f0ff');
+      ctx.fillStyle = grd;
+      ctx.fillRect(10, y, 492, 108);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 1.5);
+  return tex;
+}
+
+function makeSignTexture(japanese, english, arrow, bgColor) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 176;
+  const ctx = c.getContext('2d');
+  // 背景
+  ctx.fillStyle = bgColor || '#1a5c30';
+  ctx.fillRect(0, 0, 512, 176);
+  // 白枠
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(4, 4, 504, 168);
+  // 日本語
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 50px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(japanese, arrow ? 230 : 256, 78);
+  // 英語
+  ctx.font = '26px sans-serif';
+  ctx.fillStyle = '#ddeedd';
+  ctx.fillText(english, arrow ? 230 : 256, 126);
+  // 矢印
+  if (arrow) {
+    ctx.font = 'bold 80px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'right';
+    ctx.fillText(arrow, 504, 118);
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function makeStationSignTexture(lineColor, lineName, stationJP, stationEN) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = lineColor;
+  ctx.fillRect(0, 0, 512, 256);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(4, 4, 504, 248);
+  ctx.fillStyle = '#fff';
+  ctx.font = '22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(lineName, 256, 46);
+  ctx.font = 'bold 70px sans-serif';
+  ctx.fillText(stationJP, 256, 140);
+  ctx.font = '26px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(stationEN, 256, 186);
+  return new THREE.CanvasTexture(c);
+}
+
+function makeFloorArrowTexture(arrow, color) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0)';
+  ctx.clearRect(0, 0, 256, 256);
+  ctx.fillStyle = color || 'rgba(255,255,255,0.25)';
+  ctx.font = 'bold 160px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(arrow, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+// ─────────────────────────────────────────────
+// 3. Three.js シーン初期化
+// ─────────────────────────────────────────────
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0a);
+scene.fog = new THREE.Fog(0x0a0a0a, 25, 110);
+
+const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(0, 1.6, 2);
+
+// ─────────────────────────────────────────────
+// 4. テクスチャ事前生成
+// ─────────────────────────────────────────────
+
+const TEXTURES = {
+  // 床
+  floorGray:    makeTileTexture('#c0c0bc', '#888', 50, 50, 5, 5),
+  floorWhite:   makeTileTexture('#f0f0ec', '#aaa', 45, 45, 5, 5),
+  floorBeige:   makeTileTexture('#d8d0c4', '#a09080', 60, 60, 4, 4),
+  floorGalleria: makeGalleriaFloor(),
+  // 壁
+  wallCreamTile: makeWallTexture('cream_tile'),
+  wallConcrete:  makeWallTexture('concrete'),
+  wallWhitePanel:makeWallTexture('white_panel'),
+  wallStation:   makeWallTexture('station_white'),
+  wallGalleria:  makeWallTexture('galleria_wall'),
+  // 天井
+  ceilFluorescent: makeCeilingTexture('fluorescent'),
+  ceilGlass:       makeCeilingTexture('glass'),
+  ceilStation:     makeCeilingTexture('station'),
+};
+
+// セグメントタイプ別テクスチャマッピング
+function getTextures(segType) {
+  switch(segType) {
+    case 'station_namboku': return { floor: TEXTURES.floorWhite, wall: TEXTURES.wallStation, ceil: TEXTURES.ceilStation };
+    case 'station_hibiya':  return { floor: TEXTURES.floorWhite, wall: TEXTURES.wallStation, ceil: TEXTURES.ceilStation };
+    case 'corridor':        return { floor: TEXTURES.floorGray,  wall: TEXTURES.wallCreamTile, ceil: TEXTURES.ceilFluorescent };
+    case 'corridor_wide':   return { floor: TEXTURES.floorBeige, wall: TEXTURES.wallConcrete,  ceil: TEXTURES.ceilFluorescent };
+    case 'connector':       return { floor: TEXTURES.floorBeige, wall: TEXTURES.wallWhitePanel,ceil: TEXTURES.ceilFluorescent };
+    case 'galleria':        return { floor: TEXTURES.floorGalleria, wall: TEXTURES.wallGalleria, ceil: TEXTURES.ceilGlass };
+    default:                return { floor: TEXTURES.floorGray, wall: TEXTURES.wallCreamTile, ceil: TEXTURES.ceilFluorescent };
+  }
+}
+
+// ─────────────────────────────────────────────
+// 5. 照明設定
+// ─────────────────────────────────────────────
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+const hemi = new THREE.HemisphereLight(0xe8f0ff, 0x302820, 0.18);
+scene.add(hemi);
+
+function addLights(seg) {
+  const isGalleria = seg.type === 'galleria';
+  const isStation  = seg.type.startsWith('station');
+  const step    = isGalleria ? 18 : (isStation ? 5 : 7);
+  const lightH  = seg.height - 0.1;
+  const color   = isGalleria ? 0xfff5e0 : (isStation ? 0xfffef8 : 0xfff8f0);
+  const intensity = isGalleria ? 3.5 : (isStation ? 2.5 : 2.0);
+  const distance  = isGalleria ? 30  : (isStation ? 14  : 10);
+  const cx = (seg.minX + seg.maxX) / 2;
+
+  for (let z = seg.minZ + step * 0.5; z < seg.maxZ; z += step) {
+    const pl = new THREE.PointLight(color, intensity, distance, 2);
+    pl.position.set(cx, lightH, z);
+    if (isGalleria) {
+      pl.castShadow = true;
+      pl.shadow.mapSize.width = 256;
+      pl.shadow.mapSize.height = 256;
+      pl.shadow.camera.near = 0.5;
+      pl.shadow.camera.far = 35;
+    }
+    scene.add(pl);
+
+    // 蛍光灯ビジュアル（天井の光源メッシュ）
+    const bulbGeo = new THREE.PlaneGeometry(0.3, 1.2);
+    const bulbMat = new THREE.MeshBasicMaterial({
+      color: isGalleria ? 0xfff5e0 : 0xfffff8,
+      side: THREE.DoubleSide
+    });
+    const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+    bulb.rotation.x = Math.PI / 2;
+    bulb.position.set(cx, lightH - 0.02, z);
+    scene.add(bulb);
+  }
+}
+
+// ─────────────────────────────────────────────
+// 6. ジオメトリ構築
+// ─────────────────────────────────────────────
+
+function buildSegment(seg) {
+  const texs = getTextures(seg.type);
+  const w = seg.maxX - seg.minX;
+  const d = seg.maxZ - seg.minZ;
+  const cx = (seg.minX + seg.maxX) / 2;
+  const cz = (seg.minZ + seg.maxZ) / 2;
+  const h = seg.height;
+  const roughness = seg.type === 'galleria' ? 0.3 : 0.75;
+
+  function mat(tex, metalness, roughnessOverride) {
+    return new THREE.MeshStandardMaterial({
+      map: tex,
+      roughness: roughnessOverride !== undefined ? roughnessOverride : roughness,
+      metalness: metalness || 0,
+      envMapIntensity: 0.5
+    });
+  }
+
+  // 床
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat(texs.floor, 0.05, seg.type === 'galleria' ? 0.15 : 0.6));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(cx, 0, cz);
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // 天井
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat(texs.ceil, 0, 0.9));
+  ceil.rotation.x = Math.PI / 2;
+  ceil.position.set(cx, h, cz);
+  scene.add(ceil);
+
+  // 左壁
+  const wallL = new THREE.Mesh(new THREE.PlaneGeometry(d, h), mat(texs.wall));
+  wallL.rotation.y = Math.PI / 2;
+  wallL.position.set(seg.minX, h / 2, cz);
+  wallL.receiveShadow = true;
+  scene.add(wallL);
+
+  // 右壁
+  const wallR = new THREE.Mesh(new THREE.PlaneGeometry(d, h), mat(texs.wall));
+  wallR.rotation.y = -Math.PI / 2;
+  wallR.position.set(seg.maxX, h / 2, cz);
+  wallR.receiveShadow = true;
+  scene.add(wallR);
+}
+
+// 幅変わり目の接続パネル
+function buildTransitionWalls() {
+  for (let i = 0; i < SEGMENTS.length - 1; i++) {
+    const s1 = SEGMENTS[i], s2 = SEGMENTS[i + 1];
+    const z = s1.maxZ;
+    const texs1 = getTextures(s1.type);
+    const h = Math.min(s1.height, s2.height);
+
+    // s1より広い側のセグメントの壁を接続パネルで塞ぐ
+    const segments = [s1, s2];
+    for (const s of segments) {
+      const other = s === s1 ? s2 : s1;
+      if (Math.abs(s.minX) > Math.abs(other.minX)) {
+        // 左の段差パネル
+        const pw = Math.abs(s.minX) - Math.abs(other.minX);
+        const panel = new THREE.Mesh(
+          new THREE.PlaneGeometry(pw, h),
+          new THREE.MeshStandardMaterial({ map: texs1.wall, roughness: 0.8 })
+        );
+        const sign = s === s1 ? 1 : -1;
+        panel.rotation.y = sign * Math.PI / 2;
+        panel.position.set(s.minX + pw / 2 * sign, h / 2, z);
+        scene.add(panel);
+      }
+      if (Math.abs(s.maxX) > Math.abs(other.maxX)) {
+        // 右の段差パネル
+        const pw = Math.abs(s.maxX) - Math.abs(other.maxX);
+        const panel = new THREE.Mesh(
+          new THREE.PlaneGeometry(pw, h),
+          new THREE.MeshStandardMaterial({ map: texs1.wall, roughness: 0.8 })
+        );
+        const sign = s === s1 ? -1 : 1;
+        panel.rotation.y = sign * Math.PI / 2;
+        panel.position.set(s.maxX - pw / 2 * sign, h / 2, z);
+        scene.add(panel);
+      }
+    }
+  }
+}
+
+// ガレリアの柱
+function buildGalleriaColumns() {
+  const colMat = new THREE.MeshStandardMaterial({ color: 0xf0ece2, roughness: 0.15, metalness: 0.1 });
+  const colGeo = new THREE.CylinderGeometry(0.45, 0.45, 12, 20);
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0xe0dbd0, roughness: 0.3 });
+  const baseGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.4, 16);
+
+  const zPositions = [268, 286, 304, 322, 340, 358, 376, 394, 410];
+  const xPositions = [-7.5, 7.5];
+
+  for (const z of zPositions) {
+    for (const x of xPositions) {
+      const col = new THREE.Mesh(colGeo, colMat);
+      col.position.set(x, 6, z);
+      col.castShadow = true;
+      scene.add(col);
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.position.set(x, 0.2, z);
+      scene.add(base);
+      const capital = new THREE.Mesh(baseGeo, baseMat);
+      capital.position.set(x, 12.1, z);
+      scene.add(capital);
+    }
+  }
+}
+
+// ガレリア内の店舗ファサード（プレースホルダー）
+function buildGalleriaShops() {
+  const shopColors = [0xf8f5f0, 0xf0ece4, 0xf5f2ec, 0xeae6df, 0xf2eeea];
+  const positions = [
+    { x: -10, z: 265 }, { x: -10, z: 295 }, { x: -10, z: 330 }, { x: -10, z: 365 }, { x: -10, z: 400 },
+    { x:  10, z: 270 }, { x:  10, z: 305 }, { x:  10, z: 340 }, { x:  10, z: 375 },
+  ];
+  for (let i = 0; i < positions.length; i++) {
+    const { x, z } = positions[i];
+    const color = shopColors[i % shopColors.length];
+    // ショップウィンドウ
+    const wGeo = new THREE.PlaneGeometry(18, 4);
+    const wMat = new THREE.MeshStandardMaterial({
+      color, roughness: 0.05, metalness: 0.3,
+      transparent: true, opacity: 0.7
+    });
+    const win = new THREE.Mesh(wGeo, wMat);
+    win.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2;
+    win.position.set(x, 2, z);
+    scene.add(win);
+    // フレーム
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0xc8c0b0, roughness: 0.2, metalness: 0.5 });
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 18.2), frameMat);
+    frame.position.set(x, 2, z);
+    scene.add(frame);
+  }
+}
+
+// 方向サイン設置
+function buildSigns() {
+  const signs = [
+    // 六本木一丁目→
+    { z: 28,  x: 0, y: 2.3, seg: 0, jp: '麻布台ヒルズ方面', en: 'To Azabudai Hills', arrow: '→', color: '#1a5c30' },
+    { z: 28,  x: 0, y: 2.3, seg: 0, jp: '神谷町方面',       en: 'To Kamiyacho',     arrow: '→', color: '#1a5c30', side: 'ceiling' },
+    // 泉ガーデン
+    { z: 90,  x: -2.9, y: 1.8, jp: '麻布台ヒルズ→',        en: 'Azabudai Hills →',  arrow: '→', color: '#1a5c30', wallSide: 'left', seg: 2 },
+    { z: 90,  x:  2.9, y: 1.8, jp: '←六本木一丁目',        en: '← Roppongi-itchome',arrow: '←', color: '#555', wallSide: 'right', seg: 2 },
+    // 麻布台ヒルズ入口
+    { z: 182, x: -2.4, y: 1.8, jp: 'ガレリア入口',          en: 'Galleria Entrance →',arrow: '→', color: '#5a2d8a', wallSide: 'left', seg: 3 },
+    // ガレリア中央
+    { z: 335, x: -9.8, y: 5, jp: '神谷町 方面',            en: '→ Kamiyacho',        arrow: '→', color: '#1a4a7a', wallSide: 'left', seg: 4 },
+    { z: 335, x:  9.8, y: 5, jp: '← 六本木一丁目',         en: '← Roppongi-itchome', arrow: '←', color: '#1a5c30', wallSide: 'right', seg: 4 },
+    // ガレリア出口
+    { z: 418, x: -2.4, y: 1.8, jp: '神谷町駅 →',           en: '→ Kamiyacho Sta.',   arrow: '→', color: '#9b111e', wallSide: 'left', seg: 5 },
+    { z: 418, x:  2.4, y: 1.8, jp: '← 麻布台ヒルズ',       en: '← Azabudai Hills',   arrow: '←', color: '#1a5c30', wallSide: 'right', seg: 5 },
+  ];
+
+  for (const s of signs) {
+    const tex = makeSignTexture(s.jp, s.en, s.arrow, s.color);
+    const geo = new THREE.PlaneGeometry(2.5, 0.8);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geo, mat);
+    if (s.wallSide === 'left') {
+      mesh.rotation.y = Math.PI / 2;
+      mesh.position.set(s.x + 0.05, s.y, s.z);
+    } else if (s.wallSide === 'right') {
+      mesh.rotation.y = -Math.PI / 2;
+      mesh.position.set(s.x - 0.05, s.y, s.z);
+    } else {
+      mesh.position.set(s.x, s.y, s.z);
+    }
+    scene.add(mesh);
+  }
+
+  // 駅名サイン
+  const stationSigns = [
+    { z: 2,   x: -3.8, h: 2.4, color: '#005f9e', line: '南北線 Namboku Line', jp: '六本木一丁目', en: 'Roppongi-itchome', wallSide: 'left' },
+    { z: 2,   x:  3.8, h: 2.4, color: '#005f9e', line: '南北線 Namboku Line', jp: '六本木一丁目', en: 'Roppongi-itchome', wallSide: 'right' },
+    { z: 560, x: -3.8, h: 2.4, color: '#9b111e', line: '日比谷線 Hibiya Line', jp: '神谷町',       en: 'Kamiyacho',       wallSide: 'left' },
+    { z: 560, x:  3.8, h: 2.4, color: '#9b111e', line: '日比谷線 Hibiya Line', jp: '神谷町',       en: 'Kamiyacho',       wallSide: 'right' },
+  ];
+  for (const s of stationSigns) {
+    const tex = makeStationSignTexture(s.color, s.line, s.jp, s.en);
+    const geo = new THREE.PlaneGeometry(2.2, 1.1);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geo, mat);
+    if (s.wallSide === 'left') {
+      mesh.rotation.y = Math.PI / 2;
+      mesh.position.set(s.x + 0.05, s.h, s.z);
+    } else {
+      mesh.rotation.y = -Math.PI / 2;
+      mesh.position.set(s.x - 0.05, s.h, s.z);
+    }
+    scene.add(mesh);
+  }
+
+  // 床の矢印（ガレリア）
+  const arrowTex = makeFloorArrowTexture('▶', 'rgba(255,255,255,0.2)');
+  for (let z = 260; z < 420; z += 25) {
+    const ag = new THREE.PlaneGeometry(1.5, 1.5);
+    const am = new THREE.MeshBasicMaterial({ map: arrowTex, transparent: true });
+    const am2 = am.clone();
+    const a1 = new THREE.Mesh(ag, am);
+    a1.rotation.x = -Math.PI / 2;
+    a1.position.set(-3, 0.01, z);
+    scene.add(a1);
+    const a2 = new THREE.Mesh(ag, am2);
+    a2.rotation.x = -Math.PI / 2;
+    a2.position.set(3, 0.01, z);
+    scene.add(a2);
+  }
+}
+
+// 改札ゲート（簡易）
+function buildGates(z, segWidth, color) {
+  const gateMat = new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.5 });
+  const postGeo = new THREE.BoxGeometry(0.12, 1.1, 0.12);
+  const barGeo  = new THREE.BoxGeometry(0.04, 0.04, 0.8);
+  for (let x = -segWidth * 0.35; x <= segWidth * 0.35; x += segWidth * 0.35) {
+    const post = new THREE.Mesh(postGeo, gateMat);
+    post.position.set(x, 0.55, z);
+    scene.add(post);
+    const bar = new THREE.Mesh(barGeo, gateMat);
+    bar.position.set(x, 0.9, z + 0.35);
+    scene.add(bar);
+  }
+}
+
+// ─────────────────────────────────────────────
+// 7. シーン構築
+// ─────────────────────────────────────────────
+
+// 全セグメント構築
+for (const seg of SEGMENTS) {
+  buildSegment(seg);
+  addLights(seg);
+}
+buildTransitionWalls();
+buildGalleriaColumns();
+buildGalleriaShops();
+buildSigns();
+buildGates(29, 8, 0x005f9e);
+buildGates(531, 8, 0x9b111e);
+
+// スタート終端壁
+(function() {
+  const wallMat = new THREE.MeshStandardMaterial({ map: TEXTURES.wallStation, roughness: 0.8 });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(8, 3.2), wallMat);
+  back.position.set(0, 1.6, -0.5);
+  scene.add(back);
+  const end = new THREE.Mesh(new THREE.PlaneGeometry(8, 3.2), wallMat);
+  end.rotation.y = Math.PI;
+  end.position.set(0, 1.6, 581);
+  scene.add(end);
+})();
+
+// ─────────────────────────────────────────────
+// 8. 衝突判定
+// ─────────────────────────────────────────────
+
+function isInsideAnySegment(pos) {
+  const margin = 0.45;
+  for (const seg of SEGMENTS) {
+    if (pos.x > seg.minX + margin && pos.x < seg.maxX - margin &&
+        pos.z > seg.minZ - 0.2    && pos.z < seg.maxZ + 0.2) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ─────────────────────────────────────────────
+// 9. 入力・コントロール
+// ─────────────────────────────────────────────
+
+const state = {
+  moveForward: false, moveBackward: false,
+  moveLeft: false, moveRight: false,
+  yaw: 0, pitch: 0,
+  speed: 5,
+  pointerLocked: false,
+  started: false,
+};
+
+// キーボード
+const keyMap = {
+  'KeyW':      'moveForward',  'ArrowUp':    'moveForward',
+  'KeyS':      'moveBackward', 'ArrowDown':  'moveBackward',
+  'KeyA':      'moveLeft',     'ArrowLeft':  'moveLeft',
+  'KeyD':      'moveRight',    'ArrowRight': 'moveRight',
+};
+document.addEventListener('keydown', e => {
+  if (!state.started) return;
+  if (keyMap[e.code]) { state[keyMap[e.code]] = true; e.preventDefault(); }
+});
+document.addEventListener('keyup', e => {
+  if (keyMap[e.code]) state[keyMap[e.code]] = false;
+});
+
+// Pointer Lock マウスルック
+canvas.addEventListener('click', () => {
+  if (state.started && !state.pointerLocked) canvas.requestPointerLock();
+});
+document.addEventListener('pointerlockchange', () => {
+  state.pointerLocked = document.pointerLockElement === canvas;
+});
+document.addEventListener('mousemove', e => {
+  if (!state.pointerLocked) return;
+  const sens = 0.0018;
+  state.yaw   -= e.movementX * sens;
+  state.pitch -= e.movementY * sens;
+  state.pitch  = Math.max(-0.55, Math.min(0.55, state.pitch));
+});
+
+// タッチ視点操作
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => {
+  if (!state.started) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+canvas.addEventListener('touchmove', e => {
+  if (!state.started || e.touches.length < 1) return;
+  const dx = e.touches[0].clientX - touchStartX;
+  const dy = e.touches[0].clientY - touchStartY;
+  state.yaw   -= dx * 0.0025;
+  state.pitch -= dy * 0.0025;
+  state.pitch  = Math.max(-0.55, Math.min(0.55, state.pitch));
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+// モバイルボタン
+function bindMobileBtn(id, key) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.addEventListener('touchstart', e => { state[key] = true; e.preventDefault(); }, { passive: false });
+  btn.addEventListener('touchend',   e => { state[key] = false; });
+  btn.addEventListener('mousedown',  e => { state[key] = true; });
+  btn.addEventListener('mouseup',    e => { state[key] = false; });
+}
+bindMobileBtn('mb-fwd',   'moveForward');
+bindMobileBtn('mb-back',  'moveBackward');
+bindMobileBtn('mb-left',  'moveLeft');
+bindMobileBtn('mb-right', 'moveRight');
+
+// 開始ボタン
+function startExperience() {
+  state.started = true;
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('hud-location').style.display = '';
+  document.getElementById('hud-distance').style.display = '';
+  document.getElementById('hud-minimap').style.display = '';
+  document.getElementById('hud-progress').style.display = '';
+  document.getElementById('hud-controls').style.display = '';
+  document.getElementById('crosshair').style.display = '';
+  if (/pointer: coarse/.test(window.matchMedia('(pointer: coarse)').media) ||
+      navigator.maxTouchPoints > 0) {
+    document.getElementById('mobile-btns').style.display = 'flex';
+  }
+  canvas.requestPointerLock().catch(() => {});
+}
+
+document.getElementById('startBtn').addEventListener('click', e => { e.stopPropagation(); startExperience(); });
+document.getElementById('overlay').addEventListener('click', startExperience);
+
+// ─────────────────────────────────────────────
+// 10. 移動処理
+// ─────────────────────────────────────────────
+
+const moveDir = new THREE.Vector3();
+const moveVec = new THREE.Vector3();
+const euler   = new THREE.Euler(0, 0, 0, 'YXZ');
+
+function updateMovement(delta) {
+  moveDir.set(0, 0, 0);
+  if (state.moveForward)  moveDir.z -= 1;
+  if (state.moveBackward) moveDir.z += 1;
+  if (state.moveLeft)     moveDir.x -= 1;
+  if (state.moveRight)    moveDir.x += 1;
+  if (moveDir.lengthSq() === 0) return;
+  moveDir.normalize();
+  moveDir.multiplyScalar(state.speed * delta);
+  euler.set(0, state.yaw, 0);
+  moveVec.copy(moveDir).applyEuler(euler);
+
+  const next = camera.position.clone().add(moveVec);
+  next.y = 1.6; // 高さ固定
+  next.z = Math.max(-0.3, Math.min(ROUTE_LENGTH + 0.3, next.z));
+
+  if (isInsideAnySegment(next)) {
+    camera.position.copy(next);
+  } else {
+    // X方向のみ試す
+    const tryX = new THREE.Vector3(next.x, next.y, camera.position.z);
+    if (isInsideAnySegment(tryX)) {
+      camera.position.copy(tryX);
+    } else {
+      // Z方向のみ試す
+      const tryZ = new THREE.Vector3(camera.position.x, next.y, next.z);
+      if (isInsideAnySegment(tryZ)) {
+        camera.position.copy(tryZ);
+      }
+    }
+  }
+}
+
+// カメラ方向更新
+function updateCamera() {
+  euler.set(state.pitch, state.yaw, 0, 'YXZ');
+  camera.quaternion.setFromEuler(euler);
+}
+
+// ─────────────────────────────────────────────
+// 11. HUD 更新
+// ─────────────────────────────────────────────
+
+const minimapCtx = document.getElementById('minimap-canvas').getContext('2d');
+let lastWaypointIdx = -1;
+let announceTimer = null;
+
+function getCurrentWaypoint(z) {
+  let best = 0, bestDist = Infinity;
+  for (let i = 0; i < WAYPOINTS.length; i++) {
+    const d = Math.abs(WAYPOINTS[i].z - z);
+    if (d < bestDist) { bestDist = d; best = i; }
+  }
+  return best;
+}
+
+function showAnnounce(wp) {
+  const el = document.getElementById('hud-announce');
+  document.getElementById('hud-ann-jp').textContent = wp.nameJP;
+  document.getElementById('hud-ann-en').textContent = wp.nameEN;
+  el.classList.add('show');
+  if (announceTimer) clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function drawMinimap(posZ) {
+  const W = 200, H = 64, ctx = minimapCtx;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, W, H);
+
+  // セグメント色帯
+  for (const seg of SEGMENTS) {
+    const x1 = (seg.minZ / ROUTE_LENGTH) * W;
+    const x2 = (seg.maxZ / ROUTE_LENGTH) * W;
+    ctx.fillStyle =
+      seg.type === 'galleria'        ? '#4a2d78' :
+      seg.type === 'station_namboku' ? '#005f9e' :
+      seg.type === 'station_hibiya'  ? '#8b1020' : '#333';
+    ctx.fillRect(x1, H/2 - 5, x2 - x1, 10);
+  }
+
+  // ウェイポイント
+  for (const wp of WAYPOINTS) {
+    const x = (wp.z / ROUTE_LENGTH) * W;
+    ctx.fillStyle = wp.color;
+    ctx.beginPath(); ctx.arc(x, H/2, 3, 0, Math.PI*2); ctx.fill();
+  }
+
+  // 自機
+  const px = Math.max(5, Math.min(W-5, (posZ / ROUTE_LENGTH) * W));
+  ctx.fillStyle = '#ffe000';
+  ctx.beginPath(); ctx.arc(px, H/2, 5, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // 端ラベル
+  ctx.fillStyle = '#888';
+  ctx.font = '8px sans-serif';
+  ctx.textAlign = 'left';  ctx.fillText('六本木一丁目', 2, H-5);
+  ctx.textAlign = 'right'; ctx.fillText('神谷町', W-2, H-5);
+}
+
+function updateHUD(posZ) {
+  const pct = Math.max(0, Math.min(100, (posZ / ROUTE_LENGTH) * 100));
+  document.getElementById('hud-progress-fill').style.width = pct + '%';
+  document.getElementById('hud-distance').textContent =
+    `距離 / Distance: ${Math.max(0, Math.round(posZ))}m`;
+
+  const idx = getCurrentWaypoint(posZ);
+  const wp  = WAYPOINTS[idx];
+  document.getElementById('hud-loc-jp').textContent   = wp.nameJP;
+  document.getElementById('hud-loc-en').textContent   = wp.nameEN;
+  document.getElementById('hud-loc-line').textContent = wp.line;
+
+  if (idx !== lastWaypointIdx) {
+    showAnnounce(wp);
+    lastWaypointIdx = idx;
+  }
+
+  drawMinimap(posZ);
+}
+
+// ─────────────────────────────────────────────
+// 12. メインループ
+// ─────────────────────────────────────────────
+
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  if (state.started) {
+    updateMovement(delta);
+    updateCamera();
+    updateHUD(camera.position.z);
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// ─────────────────────────────────────────────
+// 13. リサイズ対応
+// ─────────────────────────────────────────────
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+})();
+</script>
+</body>
+</html>
