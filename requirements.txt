@@ -1,0 +1,10 @@
+# ブラウザ自動化
+playwright>=1.41.0
+
+# Google Calendar API
+google-api-python-client>=2.115.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# 環境変数管理
+python-dotenv>=1.0.0
