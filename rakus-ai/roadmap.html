@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIロードマップ | RAKUS AI Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header__inner">
+    <a href="index.html" class="site-logo"><span class="site-logo__mark">!</span><span class="site-logo__text">RAKUS AI<small>AI STRATEGY MICROSITE</small></span></a>
+    <button class="menu-toggle" onclick="document.querySelector('.site-nav').classList.toggle('is-open')">≡</button>
+    <nav class="site-nav">
+      <a href="index.html">トップ</a>
+      <a href="corporate.html">法人のお客様へ</a>
+      <a href="investor.html">投資家の皆様へ</a>
+      <a href="roadmap.html" class="is-active">AIロードマップ</a>
+      <a href="news.html">ニュース</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero hero--news">
+  <div class="container hero__inner">
+    <span class="hero__eyebrow">AI ROADMAP</span>
+    <h1 class="hero__title">AIで楽楽クラウドは<br>こう<span class="accent">進化</span>する</h1>
+    <p class="hero__lead">既存サービスへのAI実装は3つのフェーズで段階的に進みます。各製品のロードマップと、目指す将来像をご紹介します。</p>
+  </div>
+</section>
+
+<!-- OVERVIEW PHASES -->
+<section>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">3 Phases</span>
+      <h2 class="section-title">全体ロードマップ</h2>
+    </div>
+    <div class="roadmap-grid">
+      <div class="roadmap-stage roadmap-stage--current">
+        <div class="roadmap-stage__period">Phase 1: 2025 — 2026</div>
+        <h3 class="roadmap-stage__title">AI機能のローンチと実証</h3>
+        <ul class="roadmap-stage__list">
+          <li>楽楽AIエージェント for 楽楽精算 β版 提供開始</li>
+          <li>楽楽販売 AIアシスト機能 無償提供開始</li>
+          <li>楽楽自動応対 メール作成エージェント リリース</li>
+          <li>楽楽明細 AI機能 順次搭載開始</li>
+          <li>楽楽精算 申請入力補助・AI不備チェック開発</li>
+          <li>AIエージェント開発課 設立（2025年5月）</li>
+        </ul>
+      </div>
+      <div class="roadmap-stage">
+        <div class="roadmap-stage__period">Phase 2: 2026 — 2027</div>
+        <h3 class="roadmap-stage__title">業務フローをAIが横断</h3>
+        <ul class="roadmap-stage__list">
+          <li>楽楽販売 「要件化アシストAI」へアップデート</li>
+          <li>製品横断AIエージェント連携の実現</li>
+          <li>マルチエージェント基盤の本格運用</li>
+          <li>承認者向けAI経路最適化の展開</li>
+          <li>新規AIサービスの段階的公開</li>
+        </ul>
+      </div>
+      <div class="roadmap-stage">
+        <div class="roadmap-stage__period">Phase 3: 2027 — 2029</div>
+        <h3 class="roadmap-stage__title">業務代替まで踏み込むAI</h3>
+        <ul class="roadmap-stage__list">
+          <li>経費規定違反・利用目的不明瞭の自動検知</li>
+          <li>通常経費の自動承認・否認（Level 3）</li>
+          <li>問い合わせ対応の完全自動化（Level 3）</li>
+          <li>業務フロー整理〜環境構築のAI一貫支援</li>
+          <li>全作業時間 約60%削減の実現（楽楽精算）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCT-SPECIFIC ROADMAPS -->
+<section class="section--bg-warm">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Product Roadmaps</span>
+      <h2 class="section-title">製品別ロードマップ</h2>
+    </div>
+
+    <!-- 楽楽精算 -->
+    <div class="philosophy-block" style="margin-bottom:36px;">
+      <h3>楽楽精算のAIロードマップ</h3>
+      <p><strong>目標：</strong>経費精算に必要な全作業時間を<span class="accent">約60%削減</span>（月間平均 約149時間 → 約59時間）</p>
+      <div class="level-grid" style="margin-top:24px;">
+        <div class="level-card">
+          <div class="level-card__no">FY2025 — FY2026</div>
+          <h3 class="level-card__title">申請者向け</h3>
+          <p class="level-card__body">入力補助機能の開発。AIによる申請不備チェック。楽楽AIエージェントβ版での経費精算書自動作成（最大95%時間削減）。</p>
+        </div>
+        <div class="level-card level-card--2">
+          <div class="level-card__no">FY2025 — FY2026</div>
+          <h3 class="level-card__title">承認者向け</h3>
+          <p class="level-card__body">経費申請内容のAIチェック機能。承認経路のAI最適化。承認業務の効率化と不正検知の強化。</p>
+        </div>
+        <div class="level-card level-card--3">
+          <div class="level-card__no">FY2027 — FY2029</div>
+          <h3 class="level-card__title">自動化へ</h3>
+          <p class="level-card__body">経費規定違反・利用目的不明瞭な申請のAI自動検知。通常経費申請の自動承認・否認。Level 3領域の拡張。</p>
+        </div>
+      </div>
+      <p style="margin-top:18px;font-size:0.85rem;color:var(--rakus-text-mute);">出典：ラクス プレスリリース 2024/12/12「楽楽精算、AIを活用した開発ロードマップを発表」</p>
+    </div>
+
+    <!-- 楽楽販売 -->
+    <div class="philosophy-block" style="margin-bottom:36px;">
+      <h3>楽楽販売のAIロードマップ</h3>
+      <p><strong>目標：</strong>業務フロー整理から環境構築まで<span class="accent">AIが一貫支援</span></p>
+      <div class="cards-2" style="margin-top:24px;">
+        <div class="flex-card">
+          <h4>2025年11月〜（現在）</h4>
+          <p>AIアシスト機能を無償提供開始。「売上」「原価」「収支」等の主要業務領域でDB構成・項目を自動提案。AI×専任担当者のハイブリッドサポート。</p>
+        </div>
+        <div class="flex-card">
+          <h4>2026年内（予定）</h4>
+          <p>「要件化アシストAI」へアップデート。DB内容や自動処理の組み合わせまで踏み込んだ提案が可能に。将来的には業務フロー整理〜環境構築の一貫AI支援。</p>
+        </div>
+      </div>
+      <p style="margin-top:18px;font-size:0.85rem;color:var(--rakus-text-mute);">出典：ラクス プレスリリース 2025/7/10, 2025/11/10</p>
+    </div>
+
+    <!-- 楽楽自動応対 -->
+    <div class="philosophy-block">
+      <h3>楽楽自動応対（旧メールディーラー）のAIロードマップ</h3>
+      <p><strong>目標：</strong>問い合わせ対応の<span class="accent">完全自動化</span>（Level 3）</p>
+      <div class="cards-2" style="margin-top:24px;">
+        <div class="flex-card">
+          <h4>2025年7月〜（現在）</h4>
+          <p>メール作成エージェント第一弾リリース。AIが返信文を自動生成、担当者は確認・送信のみ。生成AIによるクレーム検知オプション提供開始。</p>
+        </div>
+        <div class="flex-card">
+          <h4>将来ビジョン</h4>
+          <p>顧客からのメール問い合わせ対応の完全自動化を最終目標に。人間の介在なしにAIが返信・エスカレーション判断まで自律的に実行するLevel 3の実現を目指す。</p>
+        </div>
+      </div>
+      <p style="margin-top:18px;font-size:0.85rem;color:var(--rakus-text-mute);">出典：ラクス 2025/5/1, ITmedia 2025/6/25, Cloud Watch</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-strip">
+      <div class="cta-strip__copy">
+        <h3>各サービスの最新情報</h3>
+        <p>ロードマップの進捗や新機能の発表は、ニュースページでもお知らせしています。</p>
+      </div>
+      <a href="news.html" class="btn btn--primary">ニュース一覧を見る</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-disclaimer">
+      &copy; RAKUS Co., Ltd. — AI Strategy Microsite Concept. ロードマップは公表時点の計画であり変更の可能性があります。<a href="https://www.rakus.co.jp/" target="_blank" rel="noopener" style="color:#fff;">公式サイト</a>で最新情報をご確認ください。
+    </div>
+  </div>
+</footer>
+</body>
+</html>
