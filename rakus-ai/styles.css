@@ -95,56 +95,10 @@ a:hover { color: var(--rakus-orange); }
 
 .site-logo:hover { color: var(--rakus-navy); }
 
-.site-logo__mark {
-  width: 52px;
-  height: 52px;
-  background: var(--rakus-orange);
-  color: #fff;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 1.1rem;
-  line-height: 1;
-  letter-spacing: 0;
-  gap: 0;
-}
-
-.site-logo__mark .logo-raku {
-  font-size: 1.2rem;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.site-logo__mark .logo-ex {
-  font-size: 1.4rem;
-  font-weight: 900;
-  line-height: 0.9;
-  margin-top: -2px;
-}
-
-.site-logo__text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-  margin-left: 8px;
-}
-
-.site-logo__corp {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: var(--rakus-navy);
-  letter-spacing: 0.06em;
-}
-
-.site-logo__sub {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--rakus-text-mute);
-  letter-spacing: 0.08em;
-  margin-top: 2px;
+.site-logo__img {
+  height: 56px;
+  width: auto;
+  display: block;
 }
 
 .site-nav {
