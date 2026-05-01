@@ -1226,6 +1226,53 @@ section { padding: 96px 0; }
   border: none;
 }
 
+/* =========================================================
+   Variant Switcher (A/B/C toggle)
+   ========================================================= */
+
+.variant-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0 8px;
+}
+
+.variant-btn {
+  padding: 8px 22px;
+  border: 2px solid var(--rakus-border);
+  background: #fff;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--rakus-text-soft);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.variant-btn:hover {
+  border-color: var(--rakus-orange);
+  color: var(--rakus-orange);
+}
+
+.variant-btn.is-active {
+  background: var(--rakus-orange);
+  border-color: var(--rakus-orange);
+  color: #fff;
+}
+
+.hero-variant {
+  display: none;
+  animation: fadeIn 0.35s ease;
+}
+
+.hero-variant.is-visible { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Mobile menu toggle */
 .menu-toggle {
   display: none;
