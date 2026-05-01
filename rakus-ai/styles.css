@@ -243,10 +243,15 @@ body {
 
 .hero {
   position: relative;
-  padding: 80px 0 90px;
+  padding: 56px 0 64px;
   background: #FFFFFF;
   overflow: hidden;
+  min-height: calc(100vh - 82px);
+  display: flex;
+  align-items: center;
 }
+
+.hero .container { width: 100%; }
 
 .hero::before,
 .hero::after {
@@ -297,16 +302,28 @@ body {
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--rakus-orange);
-  margin: 0 0 32px;
+  margin: 0 0 28px;
 }
+
+.hero__subtitle--center { text-align: center; }
 
 .hero__lead {
   font-size: 1.05rem;
   color: var(--rakus-text-soft);
   max-width: 700px;
-  margin: 0 0 40px;
+  margin: 0 0 36px;
   line-height: 1.9;
 }
+
+.hero__lead--center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero__title--center { text-align: center; }
+
+.hero__cta--center { justify-content: center; }
 
 .hero__cta {
   display: flex;
@@ -320,10 +337,15 @@ body {
   color: var(--rakus-text-soft);
 }
 
-/* Hero variants — all white like rakus.co.jp */
-.hero--corp { background: #fff; }
-.hero--inv { background: #fff; }
-.hero--news { background: #fff; padding: 80px 0 60px; }
+/* Hero variants — subpages don't need full viewport height */
+.hero--corp,
+.hero--inv,
+.hero--news {
+  background: #fff;
+  min-height: auto;
+  padding: 72px 0 56px;
+  display: block;
+}
 
 /* =========================================================
    Sections
