@@ -95,56 +95,10 @@ a:hover { color: var(--rakus-orange); }
 
 .site-logo:hover { color: var(--rakus-navy); }
 
-.site-logo__mark {
-  width: 52px;
-  height: 52px;
-  background: var(--rakus-orange);
-  color: #fff;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 1.1rem;
-  line-height: 1;
-  letter-spacing: 0;
-  gap: 0;
-}
-
-.site-logo__mark .logo-raku {
-  font-size: 1.2rem;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.site-logo__mark .logo-ex {
-  font-size: 1.4rem;
-  font-weight: 900;
-  line-height: 0.9;
-  margin-top: -2px;
-}
-
-.site-logo__text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-  margin-left: 8px;
-}
-
-.site-logo__corp {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: var(--rakus-navy);
-  letter-spacing: 0.06em;
-}
-
-.site-logo__sub {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--rakus-text-mute);
-  letter-spacing: 0.08em;
-  margin-top: 2px;
+.site-logo__img {
+  height: 56px;
+  width: auto;
+  display: block;
 }
 
 .site-nav {
@@ -197,78 +151,30 @@ a:hover { color: var(--rakus-orange); }
 .site-nav__cta::after { display: none !important; }
 
 /* =========================================================
-   Background "!!" Decoration — matches rakus.co.jp/ir/
+   Background "!!" Decoration — fixed background image
+   Matches rakus.co.jp/ir/ style
    ========================================================= */
 
-.deco-ex {
-  position: absolute;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.deco-ex--hero {
-  right: 40px;
-  top: -20px;
-  bottom: -20px;
-  width: 360px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.deco-ex__bang {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-
-.deco-ex__bar {
-  width: 64px;
-  border-radius: 32px;
-  background: var(--rakus-peach-light);
-  position: relative;
-  overflow: hidden;
-}
-
-.deco-ex__bar--tall { height: 220px; }
-.deco-ex__bar--short { height: 180px; }
-
-.deco-ex__bar::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60%;
-  background: linear-gradient(135deg, transparent 33%, rgba(239,130,0,0.08) 33%, rgba(239,130,0,0.08) 66%, transparent 66%);
-  background-size: 20px 20px;
-}
-
-.deco-ex__dot {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--rakus-peach-light);
-}
-
-.deco-ex__dot--sm {
-  width: 36px;
-  height: 36px;
+body {
+  background-image: url('bg-exclamation.svg');
+  background-repeat: no-repeat;
+  background-position: right 40px top 100px;
+  background-size: 320px auto;
+  background-attachment: fixed;
 }
 
 @media (max-width: 980px) {
-  .deco-ex--hero { width: 200px; right: 10px; }
-  .deco-ex__bar { width: 40px; }
-  .deco-ex__bar--tall { height: 140px; }
-  .deco-ex__bar--short { height: 110px; }
-  .deco-ex__dot { width: 32px; height: 32px; }
-  .deco-ex__dot--sm { width: 24px; height: 24px; }
+  body {
+    background-size: 200px auto;
+    background-position: right 10px top 80px;
+  }
 }
 
 @media (max-width: 720px) {
-  .deco-ex--hero { display: none; }
+  body {
+    background-size: 140px auto;
+    background-position: right -20px top 80px;
+  }
 }
 
 /* =========================================================

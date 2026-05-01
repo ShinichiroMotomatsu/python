@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="96" viewBox="0 0 80 96">
+  <rect x="4" y="4" width="72" height="72" rx="14" ry="14" fill="#EF8200"/>
+  <text x="40" y="36" text-anchor="middle" font-family="'Hiragino Sans','Noto Sans JP',sans-serif" font-size="32" font-weight="900" fill="#fff">楽</text>
+  <text x="40" y="66" text-anchor="middle" font-family="'Hiragino Sans','Noto Sans JP',sans-serif" font-size="30" font-weight="900" fill="#fff">!</text>
+  <text x="40" y="92" text-anchor="middle" font-family="'Hiragino Sans','Noto Sans JP',sans-serif" font-size="16" font-weight="800" fill="#333">ラクス</text>
+</svg>
