@@ -156,7 +156,7 @@ a:hover { color: var(--rakus-orange); }
    ========================================================= */
 
 body {
-  background-image: url('bg-exclamation.svg');
+  background-image: url('https://www.rakus.co.jp/assets/img/index/hero-graphic.svg');
   background-repeat: no-repeat;
   background-position: right 40px top 100px;
   background-size: 320px auto;
