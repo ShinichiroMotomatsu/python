@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <defs>
+    <clipPath id="bar2clip"><path d="M240,20 C240,20 300,20 300,80 L300,340 C300,400 240,400 240,400 L200,400 C200,400 180,400 180,340 L180,80 C180,20 200,20 200,20 Z"/></clipPath>
+  </defs>
+
+  <!-- Left "!" — solid peach -->
+  <path d="M60,20 C60,20 120,20 120,80 L120,300 C120,360 60,360 60,360 L40,360 C40,360 20,360 20,300 L20,80 C20,20 40,20 40,20 Z" fill="#F5D5A0" opacity="0.55"/>
+  <circle cx="70" cy="420" r="40" fill="#F5D5A0" opacity="0.55"/>
+
+  <!-- Right "!" — geometric pattern fill -->
+  <g clip-path="url(#bar2clip)">
+    <rect x="180" y="20" width="120" height="380" fill="#F5D5A0" opacity="0.45"/>
+    <!-- Geometric pattern shapes -->
+    <rect x="180" y="20" width="60" height="60" fill="#F0C878" opacity="0.4"/>
+    <polygon points="240,20 300,20 300,80" fill="#FBE8B8" opacity="0.5"/>
+    <rect x="180" y="80" width="40" height="40" fill="#FBE8B8" opacity="0.45"/>
+    <polygon points="220,80 260,80 220,120" fill="#F0C878" opacity="0.35"/>
+    <circle cx="280" cy="100" r="30" fill="#FBE8B8" opacity="0.4"/>
+    <polygon points="180,140 240,140 210,200" fill="#EDBE6A" opacity="0.3"/>
+    <rect x="250" y="140" width="50" height="60" fill="#FBE8B8" opacity="0.4"/>
+    <polygon points="180,200 220,200 200,260" fill="#FBE8B8" opacity="0.45"/>
+    <rect x="220" y="210" width="80" height="40" fill="#F0C878" opacity="0.3"/>
+    <polygon points="240,260 300,260 300,320" fill="#FBE8B8" opacity="0.4"/>
+    <rect x="180" y="270" width="50" height="50" fill="#EDBE6A" opacity="0.25"/>
+    <polygon points="250,310 300,350 200,380" fill="#FBE8B8" opacity="0.35"/>
+    <polygon points="180,330 220,330 200,400" fill="#F0C878" opacity="0.35"/>
+    <rect x="260" y="340" width="40" height="60" fill="#F5D5A0" opacity="0.3"/>
+  </g>
+
+  <!-- Right dot — geometric pattern -->
+  <circle cx="240" cy="450" r="40" fill="#F5D5A0" opacity="0.45"/>
+  <clipPath id="dotclip"><circle cx="240" cy="450" r="40"/></clipPath>
+  <g clip-path="url(#dotclip)">
+    <polygon points="220,430 260,430 240,470" fill="#F0C878" opacity="0.4"/>
+    <rect x="240" y="440" width="30" height="30" fill="#FBE8B8" opacity="0.35"/>
+    <polygon points="210,450 230,470 210,470" fill="#EDBE6A" opacity="0.3"/>
+  </g>
+</svg>
