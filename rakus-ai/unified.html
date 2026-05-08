@@ -30,8 +30,51 @@
 <section class="hero">
   <div class="container hero__inner">
     <div class="hero__breadcrumb"><a href="https://www.rakus.co.jp/" target="_blank">TOP</a> &gt; ラクスのAIへの取り組み</div>
+    <!-- ===== Variant Switcher ===== -->
+    <div class="variant-switcher">
+      <button class="variant-btn is-active" data-variant="a">案 A</button>
+      <button class="variant-btn" data-variant="b1">案 B-1</button>
+      <button class="variant-btn" data-variant="b2">案 B-2</button>
+      <button class="variant-btn" data-variant="c">案 C</button>
+    </div>
+
     <h1 class="hero__title hero__title--center">AIで、楽を、もっと<span class="accent">楽</span><span class="ex">!</span> に。</h1>
-    <p class="hero__subtitle hero__subtitle--center">止まらない進化を。<br>バックオフィス業務を知り尽くした楽楽クラウドが、AIで自動化を加速させる。</p>
+
+    <div class="hero-variant is-visible" id="variant-a">
+      <p class="hero__subtitle hero__subtitle--center">止まらない進化を。<br>バックオフィス業務を知り尽くした楽楽クラウドが、AIで自動化を加速させる。</p>
+      <p class="hero__lead hero__lead--center">
+        20年以上、日本の現場に寄り添ってきた私たちが提案するのは、<br>
+        現場のフローを壊すAI化ではありません。<br>
+        既存の業務フローを大切にしながらも、AIを適材適所に配置。<br>
+        手作業の連鎖を断ち切り、人がより創造的な仕事に向き合える時間を創出します。
+      </p>
+    </div>
+
+    <div class="hero-variant" id="variant-b1">
+      <p class="hero__subtitle hero__subtitle--center">現場の「当たり前」が、AIで「かつて」に変わる。</p>
+      <p class="hero__lead hero__lead--center">
+        20年以上、日本の現場に寄り添ってきた私たちが提案するのは、<br>
+        現場のフローを壊すAI化ではありません。<br>
+        既存の業務フローを大切にしながらも、AIを適材適所に配置。<br>
+        手作業の連鎖を断ち切り、人がより創造的な仕事に向き合える時間を創出します。
+      </p>
+    </div>
+
+    <div class="hero-variant" id="variant-b2">
+      <p class="hero__subtitle hero__subtitle--center">現場の「わずらわしさ」を、AIで「感動」に変えていく。</p>
+      <p class="hero__lead hero__lead--center">
+        20年以上、日本の現場に寄り添ってきた私たちが提案するのは、<br>
+        現場のフローを壊すAI化ではありません。<br>
+        既存業務フローを大切にしながらも、AIを適材適所に配置。<br>
+        手作業の連鎖を断ち切り、人がより創造的な仕事に向き合える時間を創出します。
+      </p>
+    </div>
+
+    <div class="hero-variant" id="variant-c">
+      <p class="hero__subtitle hero__subtitle--center" style="font-size:1.5rem;line-height:1.6;">守るべきは、信頼。変えるべきは、手間。</p>
+      <p class="hero__lead hero__lead--center" style="font-size:1.15rem;margin-top:8px;">—— 楽楽クラウドの「寄り添うAI」</p>
+    </div>
+
     <div class="hero__cta hero__cta--center">
       <a href="#philosophy" class="btn btn--primary btn--lg">AIへの取り組みを見る</a>
     </div>
@@ -51,7 +94,7 @@
         AIの力でさらに高度に、よりスムーズに業務を支援していきます。
       </p>
     </div>
-    <div class="philosophy-block container--narrow">
+    <div class="philosophy-block container--narrow" style="margin-left:auto;margin-right:auto;">
       <h3>業務の全体を見つめ、確実に回る仕組みを守りながら、AIで一気に進化させる。</h3>
       <p>楽楽クラウドの各製品は、それぞれの業務領域に最適化された製品群で、業務全体を一貫してカバーしています。たとえば経費精算なら、事前申請・伝票起票から承認・仕訳・会計システムや銀行への出力まで。20年以上、日本企業の業務に向き合い、既存の業務フローを踏まえた形で、精度高くシステム化してきました。</p>
       <p style="margin-top:16px;">AI活用においても、この全体を前提に、スピーディに進化させていきます。ただし、やみくもに全自動化するのではありません。「業務が正確に、効率的に回り続けること」を前提に据えたうえで、AIによる置き換えを加速させていきます。</p>
@@ -184,34 +227,6 @@
   </div>
 </section>
 
-<!-- Performance / At a Glance -->
-<section id="performance" class="section--bg-navy">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-eyebrow">At a Glance</span>
-      <h2 class="section-title">数字で見るラクスとAI</h2>
-    </div>
-    <div class="stats-grid">
-      <div class="stat">
-        <div class="stat__num">25<small>期</small></div>
-        <div class="stat__label">連続増収</div>
-      </div>
-      <div class="stat">
-        <div class="stat__num">95,000<small>社+</small></div>
-        <div class="stat__label">累計契約社数</div>
-      </div>
-      <div class="stat">
-        <div class="stat__num">97.9<small>%</small></div>
-        <div class="stat__label">社員の生成AI活用率</div>
-      </div>
-      <div class="stat">
-        <div class="stat__num">95<small>%減</small></div>
-        <div class="stat__label">経費精算書作成時間</div>
-        <div class="stat__sub">楽楽AIエージェントβ実測</div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- CEO Quote -->
 <section>
@@ -287,5 +302,15 @@
     </div>
   </div>
 </footer>
+<script>
+document.querySelectorAll('.variant-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.variant-btn').forEach(function(b) { b.classList.remove('is-active'); });
+    document.querySelectorAll('.hero-variant').forEach(function(v) { v.classList.remove('is-visible'); });
+    btn.classList.add('is-active');
+    document.getElementById('variant-' + btn.dataset.variant).classList.add('is-visible');
+  });
+});
+</script>
 </body>
 </html>
