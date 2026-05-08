@@ -130,6 +130,34 @@ a:hover { color: var(--rakus-orange); }
   background: var(--rakus-orange);
 }
 
+.site-nav__sep {
+  color: var(--rakus-border);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.site-nav__ver {
+  font-size: 0.82rem;
+  padding: 5px 14px;
+  border: 1px solid var(--rakus-border);
+  border-radius: 999px;
+  color: var(--rakus-text-mute) !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.site-nav__ver:hover {
+  border-color: var(--rakus-orange);
+  color: var(--rakus-orange) !important;
+  text-decoration: none;
+}
+
+.site-nav__ver.is-active {
+  background: var(--rakus-orange);
+  border-color: var(--rakus-orange);
+  color: #fff !important;
+}
+
 .site-nav__cta {
   display: inline-flex;
   align-items: center;
