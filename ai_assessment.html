@@ -138,14 +138,17 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     </div>
   </div>
 
-  <h2>受験者情報</h2>
+  <h2>受験者情報・提出先</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-    <div><label>氏名(または受験番号)</label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
-    <div><label>所属・現職</label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
+    <div><label>氏名(または受験番号) <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
+    <div><label>所属・現職 <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
+    <div><label>提出先メールアドレス(評価者) <span style="color:var(--c-danger);">*</span></label><input type="email" id="evaluatorEmail" placeholder="例: hr-promotion@company.co.jp"></div>
+    <div><label>あなたのメールアドレス(任意・CC送信用)</label><input type="email" id="examineeEmail" placeholder="例: yamada@company.co.jp"></div>
   </div>
 
   <div class="callout info" style="margin-top:14px;">
-    開始ボタンを押すと <b>30分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。
+    開始ボタンを押すと <b>60分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
+    試験提出時に、結果サマリを含むメールが <b>提出先メールアドレス宛て</b>に作成され(あなたのメールクライアントが起動)、詳細結果テキストが添付用に自動ダウンロードされます。
   </div>
 
   <div style="margin-top:18px;text-align:right;">
@@ -212,10 +215,21 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     <div class="prompt" id="evalPrompt"></div>
 
     <hr>
-    <div class="flex between no-print">
-      <button class="ghost" onclick="window.print()">🖨️ 結果を印刷 / PDF</button>
-      <button class="ghost" onclick="downloadJSON()">⬇️ 結果をJSONで保存</button>
-      <button class="primary" onclick="if(confirm('結果を破棄して最初に戻ります。よろしいですか?')){location.reload();}">新しいテストを開始</button>
+
+    <h2>結果の提出</h2>
+    <div class="callout info" style="margin-top:0;">
+      下のボタンを押すと、<b id="emailToShow">—</b> 宛てのメールがあなたのメールクライアントで開き、同時に <b>詳細結果テキスト(添付用)</b>が自動ダウンロードされます。<br>
+      開いたメール本文を確認し、<b>ダウンロードされた添付ファイル(.txt)を必ず添付してから送信</b>してください。
+    </div>
+    <div id="emailFlowNote" class="muted" style="margin:8px 0 14px;font-size:13px;"></div>
+    <div class="flex between no-print" style="flex-wrap:wrap;gap:8px;">
+      <button class="primary" onclick="submitByEmail()" style="font-size:15px;padding:12px 28px;">📧 結果をメールで提出する</button>
+      <div class="flex" style="gap:8px;">
+        <button class="ghost" onclick="downloadResultsTxt()">⬇️ 添付テキストのみ再ダウンロード</button>
+        <button class="ghost" onclick="window.print()">🖨️ 印刷 / PDF</button>
+        <button class="ghost" onclick="downloadJSON()">⬇️ JSON</button>
+        <button class="ghost" onclick="if(confirm('結果を破棄して最初に戻ります。よろしいですか?')){location.reload();}">最初に戻る</button>
+      </div>
     </div>
   </div>
 </section>
@@ -998,14 +1012,26 @@ let curIdx = 0;
 let timerSec = 60*60;
 let timerHandle = null;
 let startedAt = null;
-let examinee = {name:'',role:''};
+let examinee = {name:'',role:'',evaluatorEmail:'',email:''};
+let RESULT = null;      // cached result snapshot for export/email
 
 // ========================================================================
 // FLOW
 // ========================================================================
 function startTest(){
-  examinee.name = document.getElementById('examineeName').value.trim() || '(未入力)';
-  examinee.role = document.getElementById('examineeRole').value.trim() || '(未入力)';
+  const name = document.getElementById('examineeName').value.trim();
+  const role = document.getElementById('examineeRole').value.trim();
+  const evalEmail = document.getElementById('evaluatorEmail').value.trim();
+  const myEmail = document.getElementById('examineeEmail').value.trim();
+  const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  if(!name){ alert('氏名(または受験番号)を入力してください'); return; }
+  if(!role){ alert('所属・現職を入力してください'); return; }
+  if(!evalEmail || !emailRe.test(evalEmail)){ alert('提出先メールアドレス(評価者)を正しい形式で入力してください'); return; }
+  if(myEmail && !emailRe.test(myEmail)){ alert('あなたのメールアドレスの形式が正しくありません(空欄でも構いません)'); return; }
+  examinee.name = name;
+  examinee.role = role;
+  examinee.evaluatorEmail = evalEmail;
+  examinee.email = myEmail;
   // generate test (instantiate each bank item's build())
   TEST = [];
   BANK_A.forEach(it=> TEST.push({...it, ...it.build()}));
@@ -1222,6 +1248,26 @@ function showResult(elapsedSec){
 
   // D evaluation prompt
   renderEvalPrompt();
+
+  // cache full result snapshot for email/export
+  let verdictText;
+  if(dNeeded===0) verdictText = `自動部分のみで合格基準達成(セクションDで${dMinThreshold}点以上で合格確定)`;
+  else if(dNeeded<=sec.D.max-dMinThreshold) verdictText = `合格にはセクションDで ${dNeeded}/${sec.D.max} 点以上が必要`;
+  else if(dNeeded<=sec.D.max) verdictText = `合格にはセクションDで ${dNeeded}/${sec.D.max} 点以上(高難度)`;
+  else verdictText = `自動部分が基準未達。セクションDが満点でも合格基準${passThreshold}点に届かない`;
+
+  RESULT = {
+    totalAuto, maxAuto, maxAll, passThreshold, dMinThreshold, dNeeded,
+    sec, perSkill, fbItems, verdictText, elapsedSec,
+  };
+
+  // show evaluator email on result screen
+  const showEl = document.getElementById('emailToShow');
+  if(showEl) showEl.textContent = examinee.evaluatorEmail || '(未設定)';
+  const noteEl = document.getElementById('emailFlowNote');
+  if(noteEl) noteEl.innerHTML = examinee.email
+    ? `送信時、CCに <b>${escapeHtml(examinee.email)}</b> が自動付与されます。`
+    : `(CCは指定されていません。本人控えが必要な場合は最初の画面で自分のメールアドレスを入力してください。)`;
 }
 
 function renderEvalPrompt(){
@@ -1320,6 +1366,163 @@ function downloadJSON(){
 }
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ========================================================================
+// EMAIL SUBMISSION
+// ========================================================================
+function buildEmailSubject(){
+  return `[管理職昇格AIアセスメント] 結果送付 — ${examinee.name} (${examinee.role})`;
+}
+
+function buildEmailBody(){
+  if(!RESULT) return '';
+  const r = RESULT;
+  const m=Math.floor(r.elapsedSec/60), s=r.elapsedSec%60;
+  const fbLines = r.fbItems.length===0
+    ? '(セクションA〜Cはすべて正答)'
+    : r.fbItems.map(it=>`  - [${it.section}-${it.idx}] ${it.skill}`).join('\n');
+  return [
+    '管理職昇格AIアセスメントの結果を送付します。',
+    '',
+    '【受験者】',
+    `氏名: ${examinee.name}`,
+    `所属: ${examinee.role}`,
+    `受験日時: ${startedAt.toLocaleString('ja-JP')}`,
+    `所要時間: ${m}分${String(s).padStart(2,'0')}秒`,
+    '',
+    '【自動採点結果(セクションA〜C)】',
+    `セクションA (L1 基礎理解)       : ${r.sec.A.got}/${r.sec.A.max}`,
+    `セクションB (L2 業務活用判断)   : ${r.sec.B.got}/${r.sec.B.max}`,
+    `セクションC (L3 マネジメント応用): ${r.sec.C.got}/${r.sec.C.max}`,
+    `─────────────────────────`,
+    `自動採点 小計                    : ${r.totalAuto}/${r.maxAuto}`,
+    `セクションD (プロンプト記述)    : AI評価未実施 (満点 ${r.sec.D.max})`,
+    '',
+    '【合格判定(暫定)】',
+    `合格基準: 総合 ${r.passThreshold}/${r.maxAll} 点(64%)以上 かつ セクションD ≧ ${r.dMinThreshold}/${r.sec.D.max} 点`,
+    `現状: ${r.verdictText}`,
+    '',
+    '【セクションA〜C 不正解項目】',
+    fbLines,
+    '',
+    '【次の評価ステップ(評価者の方へ)】',
+    '1. 添付の詳細結果テキスト(.txt)を開いてください。',
+    '2. ファイル末尾に「Gemini に貼り付ける AI評価用プロンプト」が含まれています。',
+    '3. そのプロンプトを Gemini にコピー&ペーストし、出力された採点結果を本人記述に当てた点数として参照してください。',
+    '4. セクションD の点数を確定した上で、最終合否を判定してください。',
+    '',
+    '※ このメールは管理職昇格AIアセスメント(クライアント完結HTML)から自動作成されました。',
+    '※ 添付ファイル(詳細結果テキスト)は同タイミングでブラウザによりダウンロードされています。送信前に添付し忘れにご注意ください。',
+  ].join('\n');
+}
+
+function buildResultsText(){
+  if(!RESULT) return '';
+  const r = RESULT;
+  const m=Math.floor(r.elapsedSec/60), s=r.elapsedSec%60;
+  const lines = [];
+  lines.push('========================================================');
+  lines.push('  管理職昇格AIアセスメント — 詳細結果');
+  lines.push('========================================================');
+  lines.push('');
+  lines.push(`受験者: ${examinee.name} (${examinee.role})`);
+  lines.push(`受験者メール: ${examinee.email || '(未設定)'}`);
+  lines.push(`提出先: ${examinee.evaluatorEmail}`);
+  lines.push(`受験日時: ${startedAt.toLocaleString('ja-JP')}`);
+  lines.push(`所要時間: ${m}分${String(s).padStart(2,'0')}秒`);
+  lines.push('');
+  lines.push('--------------------------------------------------------');
+  lines.push('セクション別 自動採点結果');
+  lines.push('--------------------------------------------------------');
+  lines.push(`A. L1 基礎理解        : ${r.sec.A.got}/${r.sec.A.max}`);
+  lines.push(`B. L2 業務活用判断    : ${r.sec.B.got}/${r.sec.B.max}`);
+  lines.push(`C. L3 マネジメント応用 : ${r.sec.C.got}/${r.sec.C.max}`);
+  lines.push(`自動採点 小計          : ${r.totalAuto}/${r.maxAuto}`);
+  lines.push(`D. プロンプト記述      : AI評価未実施 (満点 ${r.sec.D.max})`);
+  lines.push('');
+  lines.push(`合格基準: 総合 ${r.passThreshold}/${r.maxAll} 点 (64%) 以上 かつ セクションD ≧ ${r.dMinThreshold}/${r.sec.D.max} 点`);
+  lines.push(`現状: ${r.verdictText}`);
+  lines.push('');
+  lines.push('--------------------------------------------------------');
+  lines.push('スキル別 到達度');
+  lines.push('--------------------------------------------------------');
+  Object.entries(r.perSkill).forEach(([sk,v])=>{
+    const pct = v.max? Math.round(v.got/v.max*100):0;
+    lines.push(`  - ${sk}: ${v.got}/${v.max} (${pct}%)`);
+  });
+  lines.push('');
+  lines.push('--------------------------------------------------------');
+  lines.push('セクションA〜C 全設問の詳細');
+  lines.push('--------------------------------------------------------');
+  TEST.forEach((q,i)=>{
+    if(q.section==='D') return;
+    const ans = answers[i];
+    const isCorrect = ans===q.correctIndex;
+    lines.push('');
+    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点 / ${isCorrect?'○ 正答':'× 誤答'}`);
+    lines.push(`問題: ${q.prompt.replace(/\n/g,'\n      ')}`);
+    q.options.forEach((o,j)=>{
+      const mark = j===q.correctIndex? '★正解': (j===ans? '← 受験者の回答':'');
+      lines.push(`  ${String.fromCharCode(65+j)}. ${o}  ${mark}`);
+    });
+    if(ans===undefined) lines.push('  (未回答)');
+  });
+  lines.push('');
+  lines.push('--------------------------------------------------------');
+  lines.push('セクションD 記述回答(AI評価対象)');
+  lines.push('--------------------------------------------------------');
+  TEST.forEach((q,i)=>{
+    if(q.section!=='D') return;
+    lines.push('');
+    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点`);
+    lines.push(`設問: ${q.prompt.replace(/\n/g,'\n     ')}`);
+    lines.push('受験者の回答:');
+    const a = answers[i] || '(未回答)';
+    lines.push(a.split('\n').map(l=>'  '+l).join('\n'));
+    if(q.rubric){
+      lines.push('評価ルーブリック:');
+      q.rubric.forEach((rb,j)=>lines.push(`  R${j+1}. ${rb}`));
+    }
+  });
+  lines.push('');
+  lines.push('========================================================');
+  lines.push('  Gemini に貼り付ける AI評価用プロンプト(評価者向け)');
+  lines.push('========================================================');
+  lines.push('');
+  lines.push(document.getElementById('evalPrompt').textContent);
+  lines.push('');
+  lines.push('========================================================');
+  lines.push('  END OF REPORT');
+  lines.push('========================================================');
+  return lines.join('\n');
+}
+
+function downloadResultsTxt(){
+  const txt = buildResultsText();
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (examinee.name||'examinee').replace(/[^\w\-]/g,'_');
+  a.href=url; a.download=`ai_assessment_${safeName}_${Date.now()}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function submitByEmail(){
+  if(!RESULT){ alert('結果がまだ集計されていません'); return; }
+  if(!examinee.evaluatorEmail){ alert('提出先メールアドレスが設定されていません'); return; }
+  // 1) trigger download of the attachment file
+  downloadResultsTxt();
+  // 2) open mailto: with summary in body
+  const subject = buildEmailSubject();
+  const body = buildEmailBody();
+  let mailto = `mailto:${encodeURIComponent(examinee.evaluatorEmail)}`
+    + `?subject=${encodeURIComponent(subject)}`
+    + `&body=${encodeURIComponent(body)}`;
+  if(examinee.email) mailto += `&cc=${encodeURIComponent(examinee.email)}`;
+  // open in same tab to invoke mail client
+  window.location.href = mailto;
+}
 </script>
 
 </body>
