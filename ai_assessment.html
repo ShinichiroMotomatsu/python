@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理職昇格AIアセスメント — AI Literacy & Application Test</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-primary:#1a73e8;
+  --c-primary-dark:#174ea6;
+  --c-accent:#34a853;
+  --c-warn:#fbbc04;
+  --c-danger:#ea4335;
+  --c-ink:#202124;
+  --c-ink-2:#5f6368;
+  --c-bg:#f8f9fa;
+  --c-card:#ffffff;
+  --c-line:#dadce0;
+}
+html,body{margin:0;padding:0;min-height:100%;font-family:'Noto Sans JP',sans-serif;color:var(--c-ink);background:#f1f3f4;}
+.wrap{max-width:920px;margin:0 auto;padding:24px;}
+.card{background:#fff;border:1px solid var(--c-line);border-radius:10px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+h1{font-size:26px;font-weight:800;color:var(--c-ink);margin:0 0 6px;}
+.sub{color:var(--c-ink-2);font-size:14px;margin-bottom:18px;}
+h2{font-size:18px;font-weight:700;color:var(--c-primary-dark);border-left:4px solid var(--c-primary);padding-left:10px;margin:24px 0 12px;}
+h3{font-size:14px;font-weight:700;color:var(--c-ink);margin:14px 0 6px;}
+label{display:block;font-size:13px;color:var(--c-ink-2);margin:8px 0 4px;}
+input[type=text],textarea{width:100%;border:1px solid var(--c-line);border-radius:6px;padding:8px 10px;font-size:14px;font-family:inherit;box-sizing:border-box;}
+textarea{min-height:120px;line-height:1.7;}
+button.primary{background:var(--c-primary);color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;}
+button.primary:hover{background:var(--c-primary-dark);}
+button.ghost{background:#fff;color:var(--c-ink);border:1px solid var(--c-line);padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;}
+button.ghost:hover{background:#f1f3f4;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+.bar{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--c-line);border-radius:8px;padding:10px 16px;margin-bottom:14px;position:sticky;top:14px;z-index:10;}
+.bar .meta{display:flex;gap:14px;font-size:12px;color:var(--c-ink-2);}
+.bar .meta b{color:var(--c-ink);font-family:'JetBrains Mono',monospace;}
+.progress{flex:1;height:8px;background:#e8eaed;border-radius:999px;overflow:hidden;}
+.progress > div{height:100%;background:var(--c-primary);transition:width .3s;}
+.timer{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--c-ink);background:#f1f3f4;padding:4px 10px;border-radius:4px;}
+.timer.warn{background:#fef7e0;color:#b06000;}
+.timer.danger{background:#fdecea;color:#a50e0e;}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;margin-right:6px;}
+.tag.A{background:#e8f0fe;color:#1967d2;}
+.tag.B{background:#e6f4ea;color:#137333;}
+.tag.C{background:#fce8e6;color:#a50e0e;}
+.tag.D{background:#fef7e0;color:#b06000;}
+.q-text{font-size:15px;line-height:1.85;margin:8px 0 14px;}
+.q-text .blank{background:#fffbe6;border-bottom:2px solid #fbbc04;padding:0 4px;font-weight:600;}
+.options{display:flex;flex-direction:column;gap:8px;}
+.option{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--c-line);border-radius:8px;padding:12px 14px;cursor:pointer;font-size:14px;line-height:1.7;transition:all .15s;background:#fff;}
+.option:hover{border-color:var(--c-primary);background:#f8fafc;}
+.option.selected{border-color:var(--c-primary);background:#e8f0fe;box-shadow:inset 0 0 0 1px var(--c-primary);}
+.option .idx{font-weight:700;color:var(--c-primary);font-family:'JetBrains Mono',monospace;margin-right:4px;min-width:18px;}
+.option input[type=radio]{display:none;}
+.callout{border-left:4px solid var(--c-warn);background:#fffbe6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px;margin:10px 0;}
+.callout.good{border-color:var(--c-accent);background:#e6f4ea;}
+.callout.danger{border-color:var(--c-danger);background:#fdecea;}
+.callout.info{border-color:var(--c-primary);background:#e8f0fe;}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0;}
+.kpi .b{background:#f8f9fa;border:1px solid var(--c-line);border-radius:8px;padding:14px;text-align:center;}
+.kpi .b .v{font-size:30px;font-weight:800;color:var(--c-primary);font-family:'JetBrains Mono',monospace;}
+.kpi .b .l{font-size:11px;color:var(--c-ink-2);}
+.score-row{display:grid;grid-template-columns:160px 1fr 80px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--c-line);font-size:14px;}
+.score-row:last-child{border-bottom:none;}
+.score-bar{height:14px;background:#e8eaed;border-radius:999px;overflow:hidden;position:relative;}
+.score-bar > div{height:100%;background:linear-gradient(90deg,#34a853,#1a73e8);}
+.score-bar.warn > div{background:linear-gradient(90deg,#fbbc04,#ea4335);}
+.score-row .v{font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right;}
+.prompt{background:#0b1021;color:#e6e6e6;border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;border:1px solid #1f2547;max-height:400px;overflow:auto;}
+.copy-btn{float:right;background:#1f2547;color:#79c0ff;border:1px solid #2d3554;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.copy-btn:hover{background:#2d3554;}
+.copy-btn.copied{background:#137333;color:#fff;border-color:#137333;}
+.verdict{display:inline-block;padding:6px 16px;border-radius:999px;font-size:16px;font-weight:700;}
+.verdict.pass{background:#e6f4ea;color:#137333;border:2px solid #34a853;}
+.verdict.fail{background:#fdecea;color:#a50e0e;border:2px solid #ea4335;}
+.verdict.review{background:#fef7e0;color:#b06000;border:2px solid #fbbc04;}
+hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
+.muted{color:var(--c-ink-2);font-size:13px;}
+.flex{display:flex;gap:14px;align-items:center;}
+.flex.between{justify-content:space-between;}
+.hide{display:none !important;}
+.skill-pills span{display:inline-block;background:#f1f3f4;color:var(--c-ink-2);font-size:11px;padding:2px 8px;border-radius:999px;margin:2px 4px 2px 0;}
+.print-only{display:none;}
+@media print{
+  body{background:#fff;}
+  .no-print{display:none !important;}
+  .print-only{display:block;}
+  .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ========================= START SCREEN ========================= -->
+<section id="screen-start" class="card">
+  <h1>管理職昇格AIアセスメント</h1>
+  <p class="sub">AI Literacy &amp; Application Test for Manager Promotion · Version 2026.05</p>
+
+  <h2>受験要領</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>30分</b>(時間切れで自動提出)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全15問 / セクションA〜D / 70点満点</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 45/70 点以上</b> かつ <b>セクションD ≧ 15/30 点</b></td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
+  </table>
+
+  <h2>セクション構成と測定スキル</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
+    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
+      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 5問 · 10点
+      <div class="skill-pills" style="margin-top:8px;">
+        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティ</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span>
+      </div>
+    </div>
+    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
+      <span class="tag B">Section B</span> <b>L2 業務活用判断</b> · 5問 · 15点
+      <div class="skill-pills" style="margin-top:8px;">
+        <span>議事録・タスク抽出</span><span>メール・トーン調整</span><span>提案資料起案</span><span>検証習慣</span><span>ツール選択</span>
+      </div>
+    </div>
+    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
+      <span class="tag C">Section C</span> <b>L3 マネジメント応用</b> · 3問 · 15点
+      <div class="skill-pills" style="margin-top:8px;">
+        <span>1on1への活用</span><span>FB・評価への活用</span><span>組織課題の構造化</span><span>AIに渡さない領域の判断</span>
+      </div>
+    </div>
+    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
+      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 2問 · 30点
+      <div class="skill-pills" style="margin-top:8px;">
+        <span>プロンプト設計力</span><span>5要素の網羅</span><span>マネジメントへの応用記述</span><span>判断の言語化</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>受験者情報</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div><label>氏名(または受験番号)</label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
+    <div><label>所属・現職</label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
+  </div>
+
+  <div class="callout info" style="margin-top:14px;">
+    開始ボタンを押すと <b>30分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。
+  </div>
+
+  <div style="margin-top:18px;text-align:right;">
+    <button class="primary" onclick="startTest()">テスト開始 →</button>
+  </div>
+</section>
+
+<!-- ========================= TEST SCREEN ========================= -->
+<section id="screen-test" class="hide">
+  <div class="bar no-print">
+    <div class="meta">
+      <span>問題 <b id="qNow">1</b> / <b id="qTotal">15</b></span>
+      <span>セクション <b id="qSection">A</b></span>
+    </div>
+    <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+    <div class="timer" id="timer">30:00</div>
+  </div>
+
+  <div id="questionContainer"></div>
+
+  <div class="flex between" style="margin-top:18px;" id="qNav">
+    <button class="ghost" id="prevBtn" onclick="prevQ()">← 前へ</button>
+    <span class="muted" id="answerStatus"></span>
+    <button class="primary" id="nextBtn" onclick="nextQ()">次へ →</button>
+  </div>
+</section>
+
+<!-- ========================= RESULT SCREEN ========================= -->
+<section id="screen-result" class="hide">
+  <div class="card">
+    <h1>採点結果</h1>
+    <p class="sub">セクションA〜Cは自動採点完了。セクションDは下部の<b>AI評価プロンプト</b>を採点者がGeminiに貼って評価してください。</p>
+
+    <div class="flex between" style="margin:18px 0;">
+      <div>
+        <div class="muted">受験者</div>
+        <div style="font-size:18px;font-weight:700;" id="resultName">—</div>
+        <div class="muted" id="resultRole">—</div>
+        <div class="muted" id="resultTime"></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="muted">自動採点スコア (A〜C)</div>
+        <div style="font-size:38px;font-weight:800;color:var(--c-primary);font-family:'JetBrains Mono',monospace;" id="scoreAuto">0 / 40</div>
+        <div style="margin-top:6px;" id="verdictBox"></div>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="b"><div class="v" id="scoreA">0/10</div><div class="l">A. L1 基礎理解</div></div>
+      <div class="b"><div class="v" id="scoreB">0/15</div><div class="l">B. L2 業務活用判断</div></div>
+      <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
+      <div class="b"><div class="v">—/30</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
+    </div>
+
+    <h2>スキル別到達度</h2>
+    <div id="skillBreakdown"></div>
+
+    <h2>個別フィードバック</h2>
+    <div id="feedback"></div>
+
+    <h2>セクションD — AI評価用プロンプト</h2>
+    <p class="muted">下のプロンプトをコピーして Gemini に貼ると、受験者の記述回答をルーブリックに従って採点します。採点者は出力結果を確認・調整してから最終スコアを確定してください。</p>
+    <button class="copy-btn" id="copyBtn" onclick="copyPrompt()" style="float:none;margin-bottom:8px;">📋 評価プロンプトをコピー</button>
+    <div class="prompt" id="evalPrompt"></div>
+
+    <hr>
+    <div class="flex between no-print">
+      <button class="ghost" onclick="window.print()">🖨️ 結果を印刷 / PDF</button>
+      <button class="ghost" onclick="downloadJSON()">⬇️ 結果をJSONで保存</button>
+      <button class="primary" onclick="if(confirm('結果を破棄して最初に戻ります。よろしいですか?')){location.reload();}">新しいテストを開始</button>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// ========================================================================
+// QUESTION BANK
+// Each item has the same measured skill, but multiple variants & variable pools
+// so the surface form is different every time, while the assessed competency is fixed.
+// ========================================================================
+
+// Variable pools (used by templated questions)
+const POOLS = {
+  role: ['法人営業部','カスタマーサクセス部','マーケティング部','インサイドセールス部','PMM部'],
+  product: ['当社のSaaSプロダクト','自社のCRMサービス','SMB向けSaaS','エンタープライズ向けプラットフォーム'],
+  member: [
+    {alias:'メンバーA',tenure:'入社3年目',rank:'主任',strength:'新規開拓',weak:'クロージング'},
+    {alias:'メンバーB',tenure:'入社2年目',rank:'一般',strength:'提案設計',weak:'新規開拓'},
+    {alias:'メンバーC',tenure:'入社5年目',rank:'主任',strength:'顧客深耕',weak:'テンプレ依存'},
+    {alias:'メンバーD',tenure:'入社1年目',rank:'一般',strength:'素直さ',weak:'論点整理'},
+  ],
+  kpi: ['新規商談数','商談化率','受注率','解約率','NPS','ARR成長率'],
+  delta: ['15%','20%','25%','30%'],
+  period: ['直近3ヶ月','今四半期','今期半年'],
+  meetingType: ['週次定例','クライアント定例','部長との1on1','経営会議'],
+};
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pickN(arr,n){ const a=[...arr];const r=[];for(let i=0;i<n && a.length;i++){r.push(a.splice(Math.floor(Math.random()*a.length),1)[0]);}return r; }
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function fill(tpl,vars){ return tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??_); }
+
+// -------------------- SECTION A: L1 基礎理解 (5問 × 2点 = 10点) --------------------
+const BANK_A = [
+  // A1: LLMの動作原理
+  {
+    id:'A1', section:'A', skill:'LLMの動作原理', points:2,
+    build: ()=> {
+      const correct = '入力に対して、学習データから得られた確率パターンに基づき「もっともらしい次の単語」を順次生成している';
+      const distractors = shuffle([
+        '内部に保持された巨大なデータベースから、質問に該当する事実を検索して返している',
+        '入力された質問に対して、人間が事前に用意した回答テンプレートを参照して返している',
+        '形式論理に基づき、前提から結論を演繹的に推論して回答を導いている',
+        'インターネット上をリアルタイムに検索して、最新の情報を取得して回答している',
+      ]).slice(0,3);
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: 'LLM(大規模言語モデル)の動作原理として最も正確な説明はどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // A2: ハルシネーション
+  {
+    id:'A2', section:'A', skill:'ハルシネーション対策', points:2,
+    build: ()=> {
+      const topic = pick([
+        '国内SaaS市場の規模を年度別に',
+        '競合A社のARRと従業員数を',
+        'ある書籍の著者名と出版年を',
+        'ある法令の正確な条文を',
+      ]);
+      const correct = '出力された情報を一次情報源(公式統計・公式サイト・原典)で検証してから引用する';
+      const distractors = [
+        '同じ質問をもう一度し、同じ答えが返ってきたら正しいと判断する',
+        'AIが「自信を持って」答えているように見えれば、概ね信用してよい',
+        '回答に数値や固有名詞が含まれていれば、検索ソースを参照したものとみなせる',
+        '長く詳細に答えてくれたら、それだけ正確性が高いと考えてよい',
+      ];
+      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
+      return {
+        prompt: `あなたは ${topic} 知るためにAIに質問した。回答として最も信頼性の高い扱い方はどれか。`,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // A3: 情報セキュリティ
+  {
+    id:'A3', section:'A', skill:'情報セキュリティ判断', points:2,
+    build: ()=> {
+      const cases = [
+        { ctx:'部下の評価コメント草案を作るため、メンバーの実名・等級・評価点・健康面の懸念を含むテキストを業務契約のGeminiに貼り付けようとしている。',
+          correct:'実名・健康情報は伏字または抽象化(例:「メンバーA・主任」)し、評価点と職務行動の事実のみ入力する',
+          distractors:['会社契約Geminiは学習に使われない設定のため、実名を含めて入力してよい',
+            'すべての情報を抽象化し、何も具体性のない内容にする',
+            '健康情報は伏字にするが、実名は業務効率のためそのまま使う']
+        },
+        { ctx:'来週のプレスリリース文案を、社外発表前にAIで推敲しようとしている。',
+          correct:'業務契約のGeminiであれば、発表前であってもプレス文案をそのまま入力して推敲を依頼してよい',
+          distractors:['プレス文案は社外秘扱いのため、いかなる場合もAI入力は禁止',
+            'タイトルだけ入力して本文は人間が推敲する',
+            'プレス文案を一度社内Slackに投稿してからAIに入力する']
+        },
+        { ctx:'採用候補者の履歴書を要約させようとしている。氏名・大学名・前職企業名が記載されている。',
+          correct:'候補者の個人情報は原則入力しない。要約はキャリアの構造(業界・職位・年数)のみ抽象化して入力する',
+          distractors:['会社契約のGeminiであれば、履歴書を画像のままアップロードしてよい',
+            '氏名のみ伏字化し、大学名・前職企業名はそのまま入力する',
+            'AIに「個人情報は記憶しないで」と指示すれば、原文のまま入力してよい']
+        },
+      ];
+      const c = pick(cases);
+      const opts = shuffle([{t:c.correct,c:true},...c.distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: c.ctx + ' この時の最も適切な対応はどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // A4: 得意/不得意の見極め
+  {
+    id:'A4', section:'A', skill:'AIの得意/不得意', points:2,
+    build: ()=> {
+      const tasks = [
+        {t:'チームの今月の売上数値を10社分、表計算で正確に合計する',ai:false},
+        {t:'今期の業績評価の最終ランクを、メンバー10名分について自動で決定させる',ai:false},
+        {t:'1時間の会議文字起こしから、決定事項とToDoだけを箇条書きに整理する',ai:true},
+        {t:'部下に伝えにくいフィードバックの、3パターンの言い回し案を出してもらう',ai:true},
+        {t:'今月の最新の競合企業の決算情報を、AI単体で正確に取得する',ai:false},
+        {t:'長文の提案メールから、相手の主要な懸念点を3つに要約する',ai:true},
+      ];
+      const sel = pickN(tasks,4);
+      const correct = sel.find(s=>!s.ai);
+      let opts;
+      if(correct){
+        opts = shuffle(sel);
+        return {
+          prompt: '次のうち、現時点のAIに任せきる(最終アウトプットとして使う)のが最も不適切なものはどれか。',
+          options: opts.map(o=>o.t),
+          correctIndex: opts.findIndex(o=>o===correct),
+        };
+      } else {
+        // fallback: ensure at least one negative case
+        const neg = tasks.find(t=>!t.ai);
+        const pos = pickN(tasks.filter(t=>t.ai),3);
+        opts = shuffle([neg,...pos]);
+        return {
+          prompt: '次のうち、現時点のAIに任せきる(最終アウトプットとして使う)のが最も不適切なものはどれか。',
+          options: opts.map(o=>o.t),
+          correctIndex: opts.findIndex(o=>o===neg),
+        };
+      }
+    }
+  },
+  // A5: プロンプト欠陥の識別
+  {
+    id:'A5', section:'A', skill:'プロンプト品質の評価', points:2,
+    build: ()=> {
+      const scenarios = [
+        {
+          p: '「来期のKPIを考えて」',
+          missing: '役割・背景・制約・出力形式 のすべてが欠落しており、誰のどんな状況に対するKPIなのかAIが推測するしかない',
+          dist: ['プロンプトが短すぎるため、文字数を増やせばよい',
+            'AIに敬語を使っていないため、出力品質が下がる',
+            'プロンプトに具体的な企業名が入っていないため']
+        },
+        {
+          p: '「あなたは優秀なコンサルタントです。来期の新規顧客獲得を伸ばすアイデアを出して」',
+          missing: '背景情報(現状の数値・組織状況)と制約条件(予算・人員・期間)が欠落しているため、出力が一般論で終わる',
+          dist: ['「優秀な」という形容詞が冗長',
+            '具体的な業界が指定されていないだけで、それ以外は十分',
+            '日本語が丁寧すぎるため、命令調に変えるべき']
+        },
+        {
+          p: '「SaaSの法人営業マネージャーです。商談化率が低い理由を10個挙げて」',
+          missing: '出力形式(表/箇条書き/構造化)の指定がなく、また自社の前提条件(プロダクト・ターゲット・現状の商談化率)が背景として渡されていない',
+          dist: ['10個という数が多すぎる',
+            '商談化率の定義を聞いていないため',
+            '「SaaSの法人営業」では業種が広すぎる']
+        },
+      ];
+      const s = pick(scenarios);
+      const opts = shuffle([{t:s.missing,c:true},...s.dist.map(t=>({t,c:false}))]);
+      return {
+        prompt: '次のプロンプトを評価し、最も致命的な欠陥を選びなさい。\n\n— プロンプト —\n' + s.p,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+];
+
+// -------------------- SECTION B: L2 業務活用判断 (5問 × 3点 = 15点) --------------------
+const BANK_B = [
+  // B1: 議事録活用
+  {
+    id:'B1', section:'B', skill:'議事録・タスク抽出', points:3,
+    build: ()=> {
+      const mt = pick(POOLS.meetingType);
+      const correct = `Geminiに「決定事項」「ToDo(担当・期限)」「未解決の論点」の3ブロックに分けて出力させ、不明な箇所は「不明」と書くよう指示する`;
+      const distractors = [
+        'すべての発言をそのまま要約させ、出力をDocsに貼り付けて参加者に共有する',
+        '文字起こしを読まずに、Geminiに「適当に良い感じの議事録にして」と依頼する',
+        '自分で1から議事録を書き、AIには関与させない方が安全である',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: `${mt}が終わり、Google Meetの文字起こしテキストがDocsに残っている。あなた(マネージャー)が15分以内に議事録を仕上げたい。最も生産性が高く、品質も担保できる進め方はどれか。`,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B2: メール・トーン
+  {
+    id:'B2', section:'B', skill:'メール・トーン調整', points:3,
+    build: ()=> {
+      const correct = 'AIに「事実ベース」「配慮厚め」「踏み込み」の3パターンの下書きを出させ、相手の状況を踏まえて自分で1つを選び、必要に応じて修正して送る';
+      const distractors = [
+        'AIに1パターンの完璧な下書きを作らせ、そのまま送信する',
+        'AIで下書きを作ったら、必ず一字一句変えずに送ることが「AI時代の効率化」である',
+        '言いにくい内容のメールは、AIに頼らず必ず自分の言葉だけで書く',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: '他部署のマネージャーへ、依頼期限が遅れている件を伝えるメールを書きたい。関係性は今後も維持したい。AIをどう使うのが最も適切か。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B3: 提案資料起案
+  {
+    id:'B3', section:'B', skill:'提案資料の起案', points:3,
+    build: ()=> {
+      const correct = 'AIに「結論→根拠→反論への備え→お願い」の構成案と、各スライドで含めるべき要素・想定質問を出させ、数値や固有事実は自分で埋める';
+      const distractors = [
+        'AIに最終的な完成スライド(数値も含む)をすべて作らせ、当日それをそのまま使う',
+        'AIには「起承転結で物語のように」と指示すれば経営会議向け資料として十分である',
+        'AIには資料作成を任せず、自分の手書きメモから一気にスライドを書き上げる',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: '来週の経営会議で「人員2名の増員」を提案する。10分提案+5分質疑。AIをどう活用するのが最も効果的か。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B4: 検証習慣
+  {
+    id:'B4', section:'B', skill:'検証習慣(複数生成・反証)', points:3,
+    build: ()=> {
+      const correct = '同じ質問をプロンプト表現を変えて2〜3回投げ、安定して同じ結論が出る部分を「信頼度高」、揺れる部分を「要追加検証」として扱う';
+      const distractors = [
+        '1回目の出力が論理的に見えれば、それで十分である',
+        'AIに「自信度パーセンテージ」を聞き、80%以上ならそのまま採用する',
+        'チームメンバー全員に同じ質問をしてもらい、過半数で多数決を取る',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: '重要な意思決定の参考にするため、AIに戦略仮説を出させた。出力の信頼度を高めるための最も効果的なアプローチはどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B5: ツール選択
+  {
+    id:'B5', section:'B', skill:'Workspaceツール選択', points:3,
+    build: ()=> {
+      const correct = 'Google Meetの自動文字起こしをDocsに保存 → Geminiサイドバーで要約とタスク抽出 → メンバーへの連絡はGmailのHelp me writeで下書き';
+      const distractors = [
+        'すべての作業をChatGPTの自分の個人契約アカウントで行う',
+        '文字起こしは紙にメモを取り、それをAIに口頭で読み上げて要約させる',
+        'Meet会議終了後、議事録は手書きで作成しAIには触れない',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: '1時間の会議の後、議事録の整理・タスクのアサインメール送付までを30分で済ませたい。最も合理的なツール選択はどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+];
+
+// -------------------- SECTION C: L3 マネジメント応用 (3問 × 5点 = 15点) --------------------
+const BANK_C = [
+  // C1: 1on1
+  {
+    id:'C1', section:'C', skill:'1on1へのAI活用', points:5,
+    build: ()=> {
+      const m = pick(POOLS.member);
+      const correct = `${m.alias}の特徴(${m.tenure}・${m.rank}・強み:${m.strength}・課題:${m.weak})を仮名のままAIに伝え、「論点5つ」「開いた問い3〜5個」「マネージャーが伝えるべきメッセージ1つ」を出力させ、当日のメモシートを準備する`;
+      const distractors = [
+        `${m.alias}の実名と人事評価点・過去の問題行動を含めてAIに渡し、対話スクリプトをそのまま読み上げる`,
+        `AIには頼らず、毎回その場の流れで1on1を進める方が本人との関係性を保てる`,
+        `AIに「今日の1on1で本人を泣かせる質問を作って」のような強い指示を出すと深い対話につながる`,
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: `来週、${m.alias}と1on1がある。${m.tenure}の${m.rank}で、${m.strength}が強み、${m.weak}に課題がある。AIをどう活用するのが最も適切か。`,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // C2: 評価コメント
+  {
+    id:'C2', section:'C', skill:'評価コメントへのAI活用', points:5,
+    build: ()=> {
+      const correct = 'AIには「事実→評価→期待」の3層構造での整形と、表現のチェックを依頼する。事実層の数値や固有エピソードは自分で記載し、AI出力は「型」として使い、本人との関係性を反映した「期待」層は最終的に自分の言葉で書き直す';
+      const distractors = [
+        'AIに過去の評価コメント全件を学習させ、出力をそのままコピーして上長に提出する',
+        '評価は機微情報のため、いかなる場合もAIに関わらせるべきではない',
+        'AIに「メンバー10名分の評価コメントを差別化して書き分けて」と一気に依頼し、出力をそのまま使う',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: '期末評価コメントを部下10名分書く必要がある。質を保ちつつ、時間を半減させたい。AIの最も適切な活用法はどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // C3: 組織課題の構造化
+  {
+    id:'C3', section:'C', skill:'組織課題の構造化', points:5,
+    build: ()=> {
+      const role = pick(POOLS.role);
+      const kpi = pick(POOLS.kpi);
+      const delta = pick(POOLS.delta);
+      const period = pick(POOLS.period);
+      const correct = '①AIにMECEなロジックツリーで原因を2階層分解させる、②筋の良い枝を自分で選び検証手段を提案させる、③検証結果を踏まえて打ち手を「効果×着手容易さ」で並べさせる、④最終的な打ち手は自分が判断する';
+      const distractors = [
+        'AIに「今すぐ正解の打ち手を3つだけ教えて」と依頼し、その内容を全社展開する',
+        'AIに過去5年分の社内データをすべて入力し、相関分析を任せて結論を出させる',
+        '組織課題はAIには理解できないので、AIを使わずに自分一人で考え抜く',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: `あなたは${role}のマネージャー。${period}で${kpi}が${delta}悪化している。AIをどう活用してチーム課題を構造化するのが最も適切か。`,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+];
+
+// -------------------- SECTION D: プロンプト記述 (2問 × 15点 = 30点) — AI評価 --------------------
+const BANK_D = [
+  // D1: 業務効率化プロンプト記述
+  {
+    id:'D1', section:'D', skill:'プロンプト設計力(5要素)', points:15,
+    build: ()=> {
+      const themes = [
+        '今週の週次定例の文字起こしから、決定事項・ToDo(担当/期限)・未解決の論点を整理する',
+        '取引先の役員にお詫びと再提案を含めた重要なメールを書く',
+        '来月の経営会議で「マーケ予算を20%増額する」提案資料の構成案を作る',
+        '直近のNPSコメント30件から、解約予兆になりそうな観点を抽出する',
+      ];
+      const t = pick(themes);
+      return {
+        prompt: `以下のタスクをAIに依頼するために、あなたが書く「初期プロンプト」を考えなさい。\n\n— タスク —\n${t}\n\n回答欄に、上記タスクのための完全なプロンプトを記述してください。`,
+        free: true,
+        rubric: [
+          '① 役割(Role)の指定があるか',
+          '② 背景(Context)が具体的に渡されているか',
+          '③ 依頼(Task)が明確か',
+          '④ 制約(Constraints)が示されているか',
+          '⑤ 出力形式(Format)が指定されているか',
+        ],
+        task: t,
+      };
+    }
+  },
+  // D2: マネジメント判断記述
+  {
+    id:'D2', section:'D', skill:'AI活用とマネジメント判断の線引き', points:15,
+    build: ()=> {
+      const m = pick(POOLS.member);
+      const scenarios = [
+        `${m.alias}(${m.tenure}・${m.rank})の今期評価コメントを書く必要がある。AIをどこまで使い、どこから自分で判断するか、200字以上300字以内で記述しなさい。「使う部分」「自分でやる部分」「リスクへの配慮」が含まれること。`,
+        `部下10名のうち3名が直近で離職の兆候を示している。AIをどのように活用してマネジメント対応を組み立てるか、200字以上300字以内で記述しなさい。「使う部分」「自分でやる部分」「情報セキュリティへの配慮」が含まれること。`,
+        `来期の組織改編で、自分のチームを2グループに分けることになった。グループ分けの素案作成にAIをどう活用し、何を自分で判断するか、200字以上300字以内で記述しなさい。「使う部分」「自分でやる部分」「メンバーへの説明責任」が含まれること。`,
+      ];
+      const s = pick(scenarios);
+      return {
+        prompt: s,
+        free: true,
+        rubric: [
+          '① AI活用箇所が具体的に書かれているか(準備・整形・素案 等)',
+          '② 自分で判断する領域が明確に線引きされているか',
+          '③ 情報セキュリティへの配慮(仮名化・実名NG)が言及されているか',
+          '④ 200〜300字の文字数・構成要件を満たしているか',
+          '⑤ 内容が一般論で終わらず、シナリオ固有の具体性があるか',
+        ],
+      };
+    }
+  },
+];
+
+// ========================================================================
+// STATE
+// ========================================================================
+let TEST = [];          // array of generated questions
+let answers = {};       // { qIdx: answerIndex or text }
+let curIdx = 0;
+let timerSec = 30*60;
+let timerHandle = null;
+let startedAt = null;
+let examinee = {name:'',role:''};
+
+// ========================================================================
+// FLOW
+// ========================================================================
+function startTest(){
+  examinee.name = document.getElementById('examineeName').value.trim() || '(未入力)';
+  examinee.role = document.getElementById('examineeRole').value.trim() || '(未入力)';
+  // generate test (instantiate each bank item's build())
+  TEST = [];
+  BANK_A.forEach(it=> TEST.push({...it, ...it.build()}));
+  BANK_B.forEach(it=> TEST.push({...it, ...it.build()}));
+  BANK_C.forEach(it=> TEST.push({...it, ...it.build()}));
+  BANK_D.forEach(it=> TEST.push({...it, ...it.build()}));
+  answers = {};
+  curIdx = 0;
+  startedAt = new Date();
+  timerSec = 30*60;
+  document.getElementById('qTotal').textContent = TEST.length;
+  document.getElementById('screen-start').classList.add('hide');
+  document.getElementById('screen-test').classList.remove('hide');
+  startTimer();
+  renderQ();
+}
+
+function startTimer(){
+  if(timerHandle) clearInterval(timerHandle);
+  updateTimer();
+  timerHandle = setInterval(()=>{
+    timerSec--;
+    updateTimer();
+    if(timerSec<=0){
+      clearInterval(timerHandle);
+      alert('時間切れです。自動提出します。');
+      submitTest();
+    }
+  },1000);
+}
+function updateTimer(){
+  const m=Math.floor(timerSec/60), s=timerSec%60;
+  const el = document.getElementById('timer');
+  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.classList.remove('warn','danger');
+  if(timerSec<=60) el.classList.add('danger');
+  else if(timerSec<=300) el.classList.add('warn');
+}
+
+function renderQ(){
+  const q = TEST[curIdx];
+  document.getElementById('qNow').textContent = curIdx+1;
+  document.getElementById('qSection').textContent = q.section;
+  document.getElementById('progressBar').style.width = ((curIdx+1)/TEST.length*100)+'%';
+
+  const cont = document.getElementById('questionContainer');
+  cont.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const head = document.createElement('div');
+  head.innerHTML = `<span class="tag ${q.section}">Section ${q.section}</span>
+    <span class="muted">問 ${curIdx+1} · 配点 ${q.points}点 · スキル:${q.skill}</span>`;
+  card.appendChild(head);
+
+  const qText = document.createElement('div');
+  qText.className = 'q-text';
+  qText.style.whiteSpace = 'pre-wrap';
+  qText.textContent = q.prompt;
+  card.appendChild(qText);
+
+  if(q.free){
+    // free response
+    const ta = document.createElement('textarea');
+    ta.placeholder = q.section==='D' && q.id==='D2' ? '200〜300字で記述してください。' : 'ここに回答を記述してください。';
+    ta.value = answers[curIdx] || '';
+    ta.oninput = ()=>{ answers[curIdx] = ta.value; updateNav(); };
+    card.appendChild(ta);
+
+    if(q.rubric){
+      const rb = document.createElement('div');
+      rb.className = 'callout info';
+      rb.innerHTML = '<b>評価観点(参考):</b><br>' + q.rubric.map(r=>'・'+r).join('<br>');
+      card.appendChild(rb);
+    }
+  } else {
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    q.options.forEach((t,i)=>{
+      const o = document.createElement('label');
+      o.className = 'option' + (answers[curIdx]===i?' selected':'');
+      o.innerHTML = `<span class="idx">${String.fromCharCode(65+i)}</span><span>${t}</span>`;
+      o.onclick = ()=>{ answers[curIdx]=i; renderQ(); };
+      opts.appendChild(o);
+    });
+    card.appendChild(opts);
+  }
+  cont.appendChild(card);
+
+  document.getElementById('prevBtn').disabled = curIdx===0;
+  document.getElementById('nextBtn').textContent = (curIdx===TEST.length-1)?'回答を提出 →':'次へ →';
+  updateNav();
+}
+
+function updateNav(){
+  const answered = TEST.filter((_,i)=>{
+    const a = answers[i];
+    return a!==undefined && a!==null && a!=='';
+  }).length;
+  document.getElementById('answerStatus').textContent = `回答済 ${answered}/${TEST.length}`;
+}
+
+function prevQ(){ if(curIdx>0){ curIdx--; renderQ(); window.scrollTo(0,0); } }
+function nextQ(){
+  if(curIdx<TEST.length-1){ curIdx++; renderQ(); window.scrollTo(0,0); }
+  else {
+    const unanswered = TEST.filter((_,i)=>{const a=answers[i];return a===undefined||a===null||a==='';}).length;
+    if(unanswered>0 && !confirm(`未回答が ${unanswered} 問あります。このまま提出しますか?`)) return;
+    submitTest();
+  }
+}
+
+function submitTest(){
+  if(timerHandle) clearInterval(timerHandle);
+  const finished = new Date();
+  const elapsed = Math.floor((finished-startedAt)/1000);
+  showResult(elapsed);
+}
+
+// ========================================================================
+// SCORING
+// ========================================================================
+function showResult(elapsedSec){
+  document.getElementById('screen-test').classList.add('hide');
+  document.getElementById('screen-result').classList.remove('hide');
+  window.scrollTo(0,0);
+
+  document.getElementById('resultName').textContent = examinee.name;
+  document.getElementById('resultRole').textContent = examinee.role;
+  const m=Math.floor(elapsedSec/60), s=elapsedSec%60;
+  document.getElementById('resultTime').textContent = `所要 ${m}分${String(s).padStart(2,'0')}秒 / 受験日時 ${startedAt.toLocaleString('ja-JP')}`;
+
+  let sA=0,sB=0,sC=0;
+  const perSkill = {};
+  const fbItems = [];
+
+  TEST.forEach((q,i)=>{
+    if(q.section==='D') return;
+    const ans = answers[i];
+    const correct = ans===q.correctIndex;
+    const got = correct? q.points : 0;
+    if(q.section==='A') sA+=got;
+    if(q.section==='B') sB+=got;
+    if(q.section==='C') sC+=got;
+    perSkill[q.skill] = perSkill[q.skill] || {got:0,max:0};
+    perSkill[q.skill].got += got;
+    perSkill[q.skill].max += q.points;
+    if(!correct){
+      fbItems.push({
+        section:q.section, idx:i+1, skill:q.skill,
+        prompt:q.prompt,
+        yourAns: ans!==undefined? q.options[ans] : '(未回答)',
+        correctAns: q.options[q.correctIndex],
+      });
+    }
+  });
+
+  const totalAuto = sA+sB+sC;
+  document.getElementById('scoreAuto').textContent = `${totalAuto} / 40`;
+  document.getElementById('scoreA').textContent = `${sA}/10`;
+  document.getElementById('scoreB').textContent = `${sB}/15`;
+  document.getElementById('scoreC').textContent = `${sC}/15`;
+
+  // verdict (auto portion only; final passes also require D≥15)
+  const vBox = document.getElementById('verdictBox');
+  if(totalAuto>=30){ // 30/40 from auto = 75% → likely pass even with mediocre D
+    vBox.innerHTML = '<span class="verdict pass">自動部分:基準達成</span><div class="muted" style="margin-top:4px;font-size:11px;">合格はセクションDの評価後に確定</div>';
+  } else if(totalAuto>=23){
+    vBox.innerHTML = '<span class="verdict review">自動部分:要D評価で確定</span>';
+  } else {
+    vBox.innerHTML = '<span class="verdict fail">自動部分:基準未達</span><div class="muted" style="margin-top:4px;font-size:11px;">セクションDが満点でも合格基準45点に届かない可能性</div>';
+  }
+
+  // skill breakdown
+  const sbEl = document.getElementById('skillBreakdown');
+  sbEl.innerHTML = '';
+  Object.entries(perSkill).forEach(([sk,v])=>{
+    const pct = v.max? (v.got/v.max*100):0;
+    const row = document.createElement('div');
+    row.className = 'score-row';
+    row.innerHTML = `<div>${sk}</div>
+      <div class="score-bar ${pct<60?'warn':''}"><div style="width:${pct}%"></div></div>
+      <div class="v">${v.got}/${v.max}</div>`;
+    sbEl.appendChild(row);
+  });
+
+  // feedback for wrong answers
+  const fbEl = document.getElementById('feedback');
+  if(fbItems.length===0){
+    fbEl.innerHTML = '<div class="callout good">セクションA〜Cはすべて正答です。素晴らしい!</div>';
+  } else {
+    fbEl.innerHTML = '<div class="muted" style="margin-bottom:10px;">不正解または未回答だった項目を整理しています。記載のスキル領域は重点復習を推奨します。</div>';
+    fbItems.forEach(it=>{
+      const div = document.createElement('div');
+      div.className = 'callout danger';
+      div.innerHTML = `<b>[${it.section}-${it.idx}] ${it.skill}</b><br>
+        <span class="muted">問:</span>${escapeHtml(it.prompt).replace(/\n/g,'<br>')}<br>
+        <span class="muted">あなたの回答:</span>${escapeHtml(it.yourAns)}<br>
+        <span class="muted">正答:</span><b>${escapeHtml(it.correctAns)}</b>`;
+      fbEl.appendChild(div);
+    });
+  }
+
+  // D evaluation prompt
+  renderEvalPrompt();
+}
+
+function renderEvalPrompt(){
+  const dQs = TEST.filter(q=>q.section==='D');
+  const dAns = dQs.map((q,i)=>{
+    const idxInTest = TEST.indexOf(q);
+    return {q, ans: answers[idxInTest] || '(未回答)'};
+  });
+
+  const prompt =
+`# 役割
+あなたは管理職昇格試験の評価者です。以下の受験者の「プロンプト記述」「マネジメント判断記述」回答を、与えられたルーブリックに従って厳密に採点してください。
+
+# 受験者
+- 氏名: ${examinee.name}
+- 所属: ${examinee.role}
+- 受験日時: ${startedAt.toLocaleString('ja-JP')}
+
+# 採点ルール
+- 各設問15点満点。ルーブリック5項目について、それぞれ 0(欠落) / 1(部分的) / 2(明示) / 3(十分に明示)で採点。ただし最大スコアは項目あたり3点で、5項目×3点=15点満点。
+- 合計15点満点 × 2問 = 30点満点。
+- 採点と同時に、各項目について「不足している点」「優れている点」を1行ずつコメントする。
+- 一般論で終わっている / 文字数要件を満たさない / 安全性配慮が欠落 などのケースは厳しく減点する。
+- 最終的に「合格(11点以上/15点中)」「要再受験(10点以下)」を各設問ごとに判定。
+
+# 出力フォーマット
+\`\`\`
+【D1 採点】
+ルーブリック1: x/3 — コメント
+ルーブリック2: x/3 — コメント
+ルーブリック3: x/3 — コメント
+ルーブリック4: x/3 — コメント
+ルーブリック5: x/3 — コメント
+小計: xx/15  判定: 合格/要再受験
+
+【D2 採点】
+(同様)
+
+【合計】 xx/30
+【総評(3〜5行)】
+(受験者への具体的な改善アドバイス)
+\`\`\`
+
+---
+
+# 設問D1 (テーマ: ${dQs[0]?.task || '—'})
+${dQs[0]?.prompt || ''}
+
+## ルーブリック
+${(dQs[0]?.rubric||[]).map((r,i)=>`R${i+1}. ${r}`).join('\n')}
+
+## 受験者の回答
+"""
+${dAns[0]?.ans || '(未回答)'}
+"""
+
+---
+
+# 設問D2
+${dQs[1]?.prompt || ''}
+
+## ルーブリック
+${(dQs[1]?.rubric||[]).map((r,i)=>`R${i+1}. ${r}`).join('\n')}
+
+## 受験者の回答
+"""
+${dAns[1]?.ans || '(未回答)'}
+"""
+
+---
+
+それでは採点を開始してください。`;
+
+  document.getElementById('evalPrompt').textContent = prompt;
+}
+
+function copyPrompt(){
+  const text = document.getElementById('evalPrompt').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ コピーしました';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 評価プロンプトをコピー'; btn.classList.remove('copied'); },2000);
+  });
+}
+
+function downloadJSON(){
+  const data = {
+    examinee, startedAt, finishedAt:new Date(),
+    questions: TEST.map((q,i)=>({
+      id:q.id, section:q.section, skill:q.skill, points:q.points,
+      prompt:q.prompt,
+      options:q.options, correctIndex:q.correctIndex,
+      answer: answers[i],
+      free: !!q.free,
+    })),
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (examinee.name||'examinee').replace(/[^\w\-]/g,'_');
+  a.href=url; a.download=`ai_assessment_${safeName}_${Date.now()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+
+</body>
+</html>
