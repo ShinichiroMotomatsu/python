@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>たのしい オセロ</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    background: linear-gradient(135deg, #ffe9a8 0%, #ffd0e8 100%);
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 8px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: clamp(20px, 4vw, 32px);
+    margin: 4px 0 8px;
+    color: #5a3a00;
+    text-shadow: 2px 2px 0 #fff;
+    letter-spacing: 0.1em;
+  }
+  /* Top bar */
+  .topbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 720px;
+    margin-bottom: 8px;
+  }
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 16px;
+    box-shadow: 0 3px 0 #d0a060;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: bold;
+  }
+  .score .stone {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: inline-block;
+  }
+  .stone.black { background: radial-gradient(circle at 35% 30%, #555, #000); border: 2px solid #222; }
+  .stone.white { background: radial-gradient(circle at 35% 30%, #fff, #ddd); border: 2px solid #aaa; }
+  .turn-indicator {
+    background: #fffae0;
+    border: 3px solid #ffc04a;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: clamp(14px, 2.6vw, 20px);
+    font-weight: bold;
+    color: #5a3a00;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .turn-indicator .stone { width: 24px; height: 24px; }
+  .turn-indicator.thinking { animation: pulse 1s infinite; }
+  @keyframes pulse {
+    50% { transform: scale(1.05); background: #fff3b0; }
+  }
+  /* Board */
+  .board-wrap {
+    position: relative;
+    width: min(92vw, 92vh - 220px, 560px);
+    aspect-ratio: 1 / 1;
+  }
+  .board {
+    width: 100%; height: 100%;
+    background: #2a8a44;
+    border: 8px solid #6a3a00;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 2px;
+    padding: 4px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+  }
+  .cell {
+    background: #3aa056;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .cell:active { background: #4cc068; }
+  .cell .disc {
+    width: 84%;
+    height: 84%;
+    border-radius: 50%;
+    transition: transform 0.4s, background 0.4s;
+    transform: scale(0);
+  }
+  .cell .disc.black {
+    background: radial-gradient(circle at 35% 30%, #666, #000 70%);
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .cell .disc.white {
+    background: radial-gradient(circle at 35% 30%, #fff, #d8d8d8 70%);
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .cell .disc.flip {
+    animation: flip 0.5s;
+  }
+  @keyframes flip {
+    0% { transform: scale(1) rotateY(0); }
+    50% { transform: scale(1) rotateY(90deg); }
+    100% { transform: scale(1) rotateY(180deg); }
+  }
+  /* Hint marker for valid moves */
+  .cell.valid::after {
+    content: "";
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: rgba(255, 255, 0, 0.55);
+    box-shadow: 0 0 8px rgba(255, 255, 100, 0.8);
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 0.5; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  /* Guide ranking */
+  .cell .guide-badge {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 24%; height: 24%;
+    min-width: 18px; min-height: 18px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+  .badge-best   { background: #ff4d4d; }
+  .badge-good   { background: #ffa500; }
+  .badge-ok     { background: #4fa3ff; }
+  .badge-bad    { background: #888; }
+
+  /* Advice panel */
+  .advice {
+    width: min(92vw, 560px);
+    margin-top: 8px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 8px 14px;
+    box-shadow: 0 3px 0 #d0a060;
+    font-size: clamp(14px, 2.6vw, 18px);
+    min-height: 48px;
+    color: #5a3a00;
+    line-height: 1.4;
+  }
+  .advice.hidden { display: none; }
+  .advice b { color: #d04030; }
+
+  /* Buttons */
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+    width: 100%;
+    max-width: 560px;
+  }
+  button {
+    font-family: inherit;
+    font-size: clamp(14px, 2.6vw, 18px);
+    font-weight: bold;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+    transition: transform 0.05s;
+    color: #fff;
+  }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.25); }
+  .btn-primary { background: #ff7a3d; }
+  .btn-toggle  { background: #999; }
+  .btn-toggle.on { background: #3cba54; }
+  .btn-secondary { background: #4a90e2; }
+
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .modal.hidden { display: none; }
+  .modal-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 90%;
+    width: 420px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .modal-box h2 {
+    margin: 0 0 12px;
+    color: #5a3a00;
+    font-size: 28px;
+  }
+  .modal-box p { font-size: 18px; color: #444; margin: 8px 0; }
+  .mode-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .mode-buttons button { padding: 16px; font-size: 20px; }
+
+  /* Result */
+  .result-emoji { font-size: 60px; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<h1>たのしい オセロ</h1>
+
+<div class="topbar">
+  <div class="score">
+    <span class="stone black"></span><span id="blackCount">2</span>
+  </div>
+  <div class="turn-indicator" id="turnIndicator">
+    <span class="stone black" id="turnStone"></span>
+    <span id="turnText">くろの ばん</span>
+  </div>
+  <div class="score">
+    <span class="stone white"></span><span id="whiteCount">2</span>
+  </div>
+</div>
+
+<div class="board-wrap">
+  <div class="board" id="board"></div>
+</div>
+
+<div class="advice hidden" id="advice">
+  ガイドを オンに すると、おすすめの ばしょを おしえるよ！
+</div>
+
+<div class="controls">
+  <button class="btn-toggle" id="guideBtn">ガイド：オフ</button>
+  <button class="btn-secondary" id="undoBtn">ひとつ もどす</button>
+  <button class="btn-primary" id="menuBtn">メニュー</button>
+</div>
+
+<!-- Menu modal -->
+<div class="modal" id="menuModal">
+  <div class="modal-box">
+    <h2>あそびかたを えらんでね</h2>
+    <p>どっちで あそぶ？</p>
+    <div class="mode-buttons">
+      <button class="btn-primary" data-mode="cpu-easy">コンピューターと あそぶ（やさしい）</button>
+      <button class="btn-primary" data-mode="cpu-normal">コンピューターと あそぶ（ふつう）</button>
+      <button class="btn-secondary" data-mode="pvp">ふたりで あそぶ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Result modal -->
+<div class="modal hidden" id="resultModal">
+  <div class="modal-box">
+    <h2 id="resultTitle">しゅうりょう！</h2>
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <p id="resultText"></p>
+    <div class="mode-buttons">
+      <button class="btn-primary" id="againBtn">もういちど あそぶ</button>
+      <button class="btn-secondary" id="changeBtn">モードを かえる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+//==============================================================
+// オセロ ゲーム
+//==============================================================
+const BLACK = 1, WHITE = 2, EMPTY = 0;
+const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+// セルの たちば（オセロセオリーの ひょうか）
+// 100=かど(コーナー), -20=Xマス(かどの ななめどなり), -15=Cマス(かどの となり)
+const POSITION_VALUE = [
+  [100, -15,  10,   5,   5,  10, -15, 100],
+  [-15, -20,  -2,  -2,  -2,  -2, -20, -15],
+  [ 10,  -2,   3,   1,   1,   3,  -2,  10],
+  [  5,  -2,   1,   1,   1,   1,  -2,   5],
+  [  5,  -2,   1,   1,   1,   1,  -2,   5],
+  [ 10,  -2,   3,   1,   1,   3,  -2,  10],
+  [-15, -20,  -2,  -2,  -2,  -2, -20, -15],
+  [100, -15,  10,   5,   5,  10, -15, 100],
+];
+
+let board = [];
+let currentPlayer = BLACK;
+let gameMode = null;        // 'cpu-easy', 'cpu-normal', 'pvp'
+let guideOn = false;
+let cpuColor = WHITE;       // コンピューターの いろ（CPUモード）
+let history = [];           // もどす よう
+let gameOver = false;
+let aiThinking = false;
+
+//-------------------------------------------------------------
+// しょきか
+//-------------------------------------------------------------
+function initBoard() {
+  board = Array.from({length: 8}, () => Array(8).fill(EMPTY));
+  board[3][3] = WHITE; board[4][4] = WHITE;
+  board[3][4] = BLACK; board[4][3] = BLACK;
+  currentPlayer = BLACK;
+  history = [];
+  gameOver = false;
+  aiThinking = false;
+}
+
+function inBounds(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+
+function opponent(p) { return p === BLACK ? WHITE : BLACK; }
+
+//-------------------------------------------------------------
+// ルール
+//-------------------------------------------------------------
+// ある マスに おいたら ひっくりかえる いし のリストを かえす
+function getFlips(b, r, c, player) {
+  if (b[r][c] !== EMPTY) return [];
+  const opp = opponent(player);
+  const all = [];
+  for (const [dr, dc] of DIRS) {
+    const line = [];
+    let nr = r + dr, nc = c + dc;
+    while (inBounds(nr, nc) && b[nr][nc] === opp) {
+      line.push([nr, nc]);
+      nr += dr; nc += dc;
+    }
+    if (line.length > 0 && inBounds(nr, nc) && b[nr][nc] === player) {
+      all.push(...line);
+    }
+  }
+  return all;
+}
+
+function getValidMoves(b, player) {
+  const moves = [];
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const flips = getFlips(b, r, c, player);
+      if (flips.length > 0) moves.push({ r, c, flips });
+    }
+  }
+  return moves;
+}
+
+function applyMove(b, r, c, player) {
+  const flips = getFlips(b, r, c, player);
+  if (flips.length === 0) return null;
+  const nb = b.map(row => row.slice());
+  nb[r][c] = player;
+  for (const [fr, fc] of flips) nb[fr][fc] = player;
+  return { board: nb, flips };
+}
+
+function countStones(b) {
+  let blk = 0, wht = 0;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    if (b[r][c] === BLACK) blk++;
+    else if (b[r][c] === WHITE) wht++;
+  }
+  return { black: blk, white: wht };
+}
+
+//-------------------------------------------------------------
+// オセロセオリーに もとづいた アドバイス
+//-------------------------------------------------------------
+function isCorner(r, c) {
+  return (r===0||r===7) && (c===0||c===7);
+}
+function isXSquare(r, c) {
+  return (r===1||r===6) && (c===1||c===6);
+}
+function isCSquare(r, c) {
+  // かどの たて・よこ となり
+  const corners = [[0,0],[0,7],[7,0],[7,7]];
+  for (const [cr, cc] of corners) {
+    if ((r===cr && Math.abs(c-cc)===1) || (c===cc && Math.abs(r-cr)===1)) return true;
+  }
+  return false;
+}
+function isEdge(r, c) {
+  return r===0 || r===7 || c===0 || c===7;
+}
+
+// てを ひょうかして、てんすう と りゆうを かえす
+function evaluateMove(b, move, player) {
+  const { r, c, flips } = move;
+  let score = POSITION_VALUE[r][c];
+  // ひっくりかえす まいすうも すこし くわえる（しょばんは すくないほうが よい）
+  const totalStones = countStones(b).black + countStones(b).white;
+  if (totalStones < 20) {
+    // じょばん：すくなく ひっくりかえす
+    score -= flips.length * 0.5;
+  } else if (totalStones > 50) {
+    // しゅうばん：おおく ひっくりかえす
+    score += flips.length * 2;
+  } else {
+    score += flips.length * 0.3;
+  }
+
+  // りゆうを かんがえる
+  let reason = "";
+  if (isCorner(r, c)) {
+    reason = "ここは <b>「かど」</b>！ ぜったいに ひっくりかえされない とくべつな ばしょだよ。";
+  } else if (isXSquare(r, c)) {
+    // かどが まだ あいて いたら きけん
+    const nearestCorner = [r<2?0:7, c<2?0:7];
+    if (b[nearestCorner[0]][nearestCorner[1]] === EMPTY) {
+      reason = "ここは <b>「Xマス」</b>… かどを あいてに とられちゃう かも。きを つけて！";
+      score -= 30;
+    } else {
+      reason = "Xマスだけど、かどは もう うまって いるから だいじょうぶ。";
+      score += 20;
+    }
+  } else if (isCSquare(r, c)) {
+    const corners = [[0,0],[0,7],[7,0],[7,7]];
+    let nearC = null;
+    for (const [cr, cc] of corners) {
+      if ((r===cr && Math.abs(c-cc)===1) || (c===cc && Math.abs(r-cr)===1)) { nearC = [cr,cc]; break; }
+    }
+    if (nearC && b[nearC[0]][nearC[1]] === EMPTY) {
+      reason = "ここは <b>「Cマス」</b>… かどの となりで あぶないよ。";
+      score -= 10;
+    } else {
+      reason = "Cマスだけど、かどが もう うまって いるから あんしん。";
+    }
+  } else if (isEdge(r, c)) {
+    reason = "ここは <b>「はじっこ」</b>！ ひっくりかえされにくい いい ばしょだよ。";
+  } else if (r>=2 && r<=5 && c>=2 && c<=5) {
+    if (flips.length <= 2) {
+      reason = "まんなかちかくに すこしだけ おくと、つぎが ゆうりに なるよ。";
+    } else {
+      reason = "たくさん ひっくりかえせるけど、じょばんは すくないほうが いいことも あるよ。";
+      if (totalStones < 30) score -= 2;
+    }
+  } else {
+    reason = `${flips.length}まい ひっくりかえせる ばしょだよ。`;
+  }
+
+  return { score, reason };
+}
+
+// てを ランクづけ（おすすめじゅん）
+function rankMoves(b, player) {
+  const moves = getValidMoves(b, player);
+  const evaluated = moves.map(m => {
+    const ev = evaluateMove(b, m, player);
+    return { ...m, score: ev.score, reason: ev.reason };
+  });
+  evaluated.sort((a, b) => b.score - a.score);
+  return evaluated;
+}
+
+//-------------------------------------------------------------
+// コンピューターの て
+//-------------------------------------------------------------
+function cpuChooseMove(difficulty) {
+  const ranked = rankMoves(board, currentPlayer);
+  if (ranked.length === 0) return null;
+  if (difficulty === 'cpu-easy') {
+    // やさしい：うえから 半分くらいの なかから ランダム、ときどき わざと へたな てを うつ
+    if (Math.random() < 0.35) {
+      return ranked[Math.floor(Math.random() * ranked.length)];
+    }
+    const top = ranked.slice(0, Math.max(2, Math.ceil(ranked.length / 2)));
+    return top[Math.floor(Math.random() * top.length)];
+  } else {
+    // ふつう：いちばん いい てを 70%、 のこり 30%は うえから 2~3ばんめ
+    if (ranked.length > 1 && Math.random() < 0.25) {
+      return ranked[Math.min(1 + Math.floor(Math.random()*2), ranked.length-1)];
+    }
+    return ranked[0];
+  }
+}
+
+//-------------------------------------------------------------
+// びゅー（がめんに かく）
+//-------------------------------------------------------------
+const boardEl = document.getElementById('board');
+const blackCountEl = document.getElementById('blackCount');
+const whiteCountEl = document.getElementById('whiteCount');
+const turnStoneEl = document.getElementById('turnStone');
+const turnTextEl = document.getElementById('turnText');
+const turnIndicator = document.getElementById('turnIndicator');
+const adviceEl = document.getElementById('advice');
+const guideBtn = document.getElementById('guideBtn');
+const undoBtn = document.getElementById('undoBtn');
+const menuBtn = document.getElementById('menuBtn');
+const menuModal = document.getElementById('menuModal');
+const resultModal = document.getElementById('resultModal');
+const resultTitle = document.getElementById('resultTitle');
+const resultText = document.getElementById('resultText');
+const resultEmoji = document.getElementById('resultEmoji');
+
+function buildBoard() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      const disc = document.createElement('div');
+      disc.className = 'disc';
+      cell.appendChild(disc);
+      cell.addEventListener('click', onCellClick);
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+function render(flippedCells = []) {
+  const counts = countStones(board);
+  blackCountEl.textContent = counts.black;
+  whiteCountEl.textContent = counts.white;
+
+  // ターン ひょうじ
+  const isCpuTurn = (gameMode && gameMode.startsWith('cpu') && currentPlayer === cpuColor);
+  turnStoneEl.className = 'stone ' + (currentPlayer === BLACK ? 'black' : 'white');
+  if (isCpuTurn && aiThinking) {
+    turnTextEl.textContent = 'コンピューターが かんがえちゅう…';
+    turnIndicator.classList.add('thinking');
+  } else {
+    if (gameMode === 'pvp') {
+      turnTextEl.textContent = (currentPlayer === BLACK ? 'くろ' : 'しろ') + 'の ばん';
+    } else if (isCpuTurn) {
+      turnTextEl.textContent = 'コンピューターの ばん';
+    } else {
+      turnTextEl.textContent = 'きみの ばん';
+    }
+    turnIndicator.classList.remove('thinking');
+  }
+
+  // ばんめんを かきなおす
+  const validMoves = !aiThinking && !gameOver && !(gameMode && gameMode.startsWith('cpu') && currentPlayer === cpuColor)
+    ? getValidMoves(board, currentPlayer)
+    : [];
+  let ranked = [];
+  if (guideOn && validMoves.length > 0 && !aiThinking && !gameOver) {
+    ranked = rankMoves(board, currentPlayer);
+  }
+
+  const cells = boardEl.children;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = cells[r * 8 + c];
+      const disc = cell.firstChild;
+      disc.className = 'disc';
+      cell.classList.remove('valid');
+      // バッジを はずす
+      const oldBadge = cell.querySelector('.guide-badge');
+      if (oldBadge) oldBadge.remove();
+
+      if (board[r][c] === BLACK) {
+        disc.classList.add('black');
+        if (flippedCells.some(([fr,fc]) => fr===r && fc===c)) disc.classList.add('flip');
+      } else if (board[r][c] === WHITE) {
+        disc.classList.add('white');
+        if (flippedCells.some(([fr,fc]) => fr===r && fc===c)) disc.classList.add('flip');
+      } else {
+        if (validMoves.some(m => m.r === r && m.c === c) && !guideOn) {
+          cell.classList.add('valid');
+        }
+        // ガイド バッジ
+        if (guideOn && ranked.length > 0) {
+          const rank = ranked.findIndex(m => m.r === r && m.c === c);
+          if (rank !== -1) {
+            const badge = document.createElement('div');
+            badge.className = 'guide-badge ';
+            let label = '';
+            if (rank === 0) { badge.classList.add('badge-best'); label = '◎'; }
+            else if (rank === 1) { badge.classList.add('badge-good'); label = '○'; }
+            else if (rank === 2) { badge.classList.add('badge-ok'); label = '△'; }
+            else { badge.classList.add('badge-bad'); label = ''; }
+            badge.textContent = label;
+            cell.appendChild(badge);
+          }
+        }
+      }
+    }
+  }
+
+  // アドバイス
+  if (guideOn && !gameOver && !aiThinking) {
+    if (ranked.length > 0 && !(gameMode && gameMode.startsWith('cpu') && currentPlayer === cpuColor)) {
+      const best = ranked[0];
+      const cols = ['あ','い','う','え','お','か','き','く'];
+      const rows = ['1','2','3','4','5','6','7','8'];
+      adviceEl.innerHTML = `🌟 おすすめは <b>${cols[best.c]}の${rows[best.r]}</b>！ ${best.reason}`;
+      adviceEl.classList.remove('hidden');
+    } else {
+      adviceEl.classList.add('hidden');
+    }
+  } else if (!guideOn) {
+    adviceEl.classList.add('hidden');
+  }
+}
+
+//-------------------------------------------------------------
+// クリック
+//-------------------------------------------------------------
+function onCellClick(e) {
+  if (gameOver || aiThinking) return;
+  // コンピューター の ターンは うけつけない
+  if (gameMode && gameMode.startsWith('cpu') && currentPlayer === cpuColor) return;
+
+  const r = +e.currentTarget.dataset.r;
+  const c = +e.currentTarget.dataset.c;
+  const flips = getFlips(board, r, c, currentPlayer);
+  if (flips.length === 0) {
+    // パッ という おとを ならす かわりに、ひかせる
+    e.currentTarget.style.background = '#e88';
+    setTimeout(() => e.currentTarget.style.background = '', 200);
+    return;
+  }
+  doMove(r, c);
+}
+
+function doMove(r, c) {
+  history.push({ board: board.map(row => row.slice()), player: currentPlayer });
+  const res = applyMove(board, r, c, currentPlayer);
+  if (!res) return;
+  board = res.board;
+  playSound('place');
+  render([[r,c], ...res.flips]);
+  nextTurn();
+}
+
+function nextTurn() {
+  const next = opponent(currentPlayer);
+  const nextMoves = getValidMoves(board, next);
+  const myMoves = getValidMoves(board, currentPlayer);
+  if (nextMoves.length > 0) {
+    currentPlayer = next;
+  } else if (myMoves.length > 0) {
+    // パス
+    showToast(`${next === BLACK ? 'くろ' : 'しろ'}は おける ばしょが ないので パス！`);
+    // currentPlayer そのまま
+  } else {
+    // りょうほう おけない → しゅうりょう
+    setTimeout(endGame, 600);
+    render();
+    return;
+  }
+  setTimeout(() => {
+    render();
+    maybeCpuMove();
+  }, 450);
+}
+
+function maybeCpuMove() {
+  if (gameOver) return;
+  if (gameMode && gameMode.startsWith('cpu') && currentPlayer === cpuColor) {
+    aiThinking = true;
+    render();
+    const move = cpuChooseMove(gameMode);
+    setTimeout(() => {
+      aiThinking = false;
+      if (move) doMove(move.r, move.c);
+      else { render(); nextTurn(); }
+    }, 800 + Math.random() * 600);
+  }
+}
+
+//-------------------------------------------------------------
+// しゅうりょう
+//-------------------------------------------------------------
+function endGame() {
+  gameOver = true;
+  const c = countStones(board);
+  let title, text, emoji;
+  if (c.black > c.white) {
+    title = 'くろの かち！';
+    emoji = currentPlayer; // not used
+  } else if (c.white > c.black) {
+    title = 'しろの かち！';
+  } else {
+    title = 'ひきわけ！';
+  }
+  // CPU モードなら きみが かったかを はんてい
+  if (gameMode && gameMode.startsWith('cpu')) {
+    const human = cpuColor === BLACK ? WHITE : BLACK;
+    if ((human === BLACK && c.black > c.white) || (human === WHITE && c.white > c.black)) {
+      title = 'きみの かち！';
+      emoji = '🏆';
+    } else if (c.black === c.white) {
+      title = 'ひきわけ！';
+      emoji = '🤝';
+    } else {
+      title = 'コンピューターの かち';
+      emoji = '😢';
+    }
+  } else {
+    emoji = c.black === c.white ? '🤝' : '🎉';
+  }
+  resultTitle.textContent = title;
+  resultEmoji.textContent = emoji;
+  resultText.innerHTML = `くろ <b>${c.black}</b> こ ／ しろ <b>${c.white}</b> こ`;
+  resultModal.classList.remove('hidden');
+}
+
+//-------------------------------------------------------------
+// トースト （パス おしらせ）
+//-------------------------------------------------------------
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `
+    position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 16px 24px;
+    border-radius: 16px; font-size: 20px; font-weight: bold; z-index: 200;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  `;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
+}
+
+//-------------------------------------------------------------
+// おと（かんたんな WebAudio）
+//-------------------------------------------------------------
+let audioCtx = null;
+function playSound(type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    if (type === 'place') {
+      o.frequency.value = 440;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+      o.start(); o.stop(audioCtx.currentTime + 0.2);
+    }
+  } catch(e) { /* おとが でなくても OK */ }
+}
+
+//-------------------------------------------------------------
+// ボタン
+//-------------------------------------------------------------
+guideBtn.addEventListener('click', () => {
+  guideOn = !guideOn;
+  guideBtn.textContent = 'ガイド：' + (guideOn ? 'オン' : 'オフ');
+  guideBtn.classList.toggle('on', guideOn);
+  render();
+});
+
+undoBtn.addEventListener('click', () => {
+  if (history.length === 0 || aiThinking) return;
+  // CPU モードでは ２て ぶん（じぶん＋CPU）もどす
+  if (gameMode && gameMode.startsWith('cpu')) {
+    const human = cpuColor === BLACK ? WHITE : BLACK;
+    while (history.length > 0) {
+      const last = history.pop();
+      board = last.board;
+      currentPlayer = last.player;
+      if (currentPlayer === human) break;
+    }
+  } else {
+    const last = history.pop();
+    board = last.board;
+    currentPlayer = last.player;
+  }
+  gameOver = false;
+  resultModal.classList.add('hidden');
+  render();
+});
+
+menuBtn.addEventListener('click', () => {
+  menuModal.classList.remove('hidden');
+});
+
+document.querySelectorAll('.mode-buttons button[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    gameMode = btn.dataset.mode;
+    // CPU モードなら きみは くろ（さきて）
+    cpuColor = WHITE;
+    initBoard();
+    menuModal.classList.add('hidden');
+    resultModal.classList.add('hidden');
+    render();
+    // CPU が しろなら、きみが さき
+  });
+});
+
+document.getElementById('againBtn').addEventListener('click', () => {
+  initBoard();
+  resultModal.classList.add('hidden');
+  render();
+  maybeCpuMove();
+});
+document.getElementById('changeBtn').addEventListener('click', () => {
+  resultModal.classList.add('hidden');
+  menuModal.classList.remove('hidden');
+});
+
+//-------------------------------------------------------------
+// スタート
+//-------------------------------------------------------------
+buildBoard();
+initBoard();
+render();
+// さいしょは メニュー
+menuModal.classList.remove('hidden');
+
+</script>
+</body>
+</html>
