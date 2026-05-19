@@ -103,9 +103,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>50分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全20問 / セクションA〜D / 109点満点</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 70/109 点(64%)以上</b> かつ <b>セクションD ≧ 36/60 点</b></td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>60分</b>(時間切れで自動提出)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全24問 / セクションA〜D / 132点満点</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 85/132 点(64%)以上</b> かつ <b>セクションD ≧ 45/75 点</b></td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
@@ -113,15 +113,15 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <h2>セクション構成と測定スキル</h2>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 5問 · 10点
+      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 6問 · 12点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティ</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span>
+        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティ</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span><span>NotebookLM の特性</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag B">Section B</span> <b>L2 業務活用判断</b> · 8問 · 24点
+      <span class="tag B">Section B</span> <b>L2 業務活用判断</b> · 10問 · 30点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>議事録・タスク抽出</span><span>メール・トーン調整</span><span>提案資料起案</span><span>検証習慣</span><span>ツール選択</span><span>資料レビュー・改善</span><span>業務テンプレ化(Gems)</span><span>自動化の境界判断</span>
+        <span>議事録・タスク抽出</span><span>メール・トーン調整</span><span>提案資料起案</span><span>検証習慣</span><span>ツール選択</span><span>資料レビュー・改善</span><span>業務テンプレ化(Gems)</span><span>自動化の境界判断</span><span>複数ソース横断分析(NotebookLM)</span><span>Gemini / NotebookLM 使い分け</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
@@ -131,9 +131,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 4問 · 60点
+      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 5問 · 75点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span>
+        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span>
       </div>
     </div>
   </div>
@@ -161,7 +161,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <span>セクション <b id="qSection">A</b></span>
     </div>
     <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div class="timer" id="timer">50:00</div>
+    <div class="timer" id="timer">60:00</div>
   </div>
 
   <div id="questionContainer"></div>
@@ -194,10 +194,10 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     </div>
 
     <div class="kpi">
-      <div class="b"><div class="v" id="scoreA">0/10</div><div class="l">A. L1 基礎理解</div></div>
-      <div class="b"><div class="v" id="scoreB">0/24</div><div class="l">B. L2 業務活用判断</div></div>
+      <div class="b"><div class="v" id="scoreA">0/12</div><div class="l">A. L1 基礎理解</div></div>
+      <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
-      <div class="b"><div class="v">—/60</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
+      <div class="b"><div class="v">—/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
     </div>
 
     <h2>スキル別到達度</h2>
@@ -404,6 +404,25 @@ const BANK_A = [
       const opts = shuffle([{t:s.missing,c:true},...s.dist.map(t=>({t,c:false}))]);
       return {
         prompt: '次のプロンプトを評価し、最も致命的な欠陥を選びなさい。\n\n— プロンプト —\n' + s.p,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // A6: NotebookLM の特性理解
+  {
+    id:'A6', section:'A', skill:'NotebookLM の特性理解', points:2,
+    build: ()=> {
+      const correct = 'ユーザーが指定したソース(PDF・Docs・URL・音声等)に回答範囲を限定し、出力には該当箇所への参照(出典)が併記される。ソース外の知識は使わない設計のため、ハルシネーションがGeminiの自由対話に比べて起きにくい';
+      const distractors = [
+        '言語モデルとしての推論能力が Gemini より大幅に強化されており、複雑な数値計算や論理推論を Gemini 単体より高精度に解ける専用モデルである',
+        'インターネット上の最新情報を自動的に取得・統合し、知識カットオフの制約を受けない形でリアルタイムの事実に基づいて回答する仕組みになっている',
+        '同じGoogle Workspace 契約下の全社員のDrive上のファイルを横断的に検索し、組織全体のナレッジから回答を組み立てる、社内検索エンジンとしての役割を担う',
+        '対話履歴の長さ(コンテキスト)が Gemini より大幅に大きいことが特徴で、長文の対話を続けることに特化したUIを持つ',
+      ];
+      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
+      return {
+        prompt: 'NotebookLM の特徴として最も正確な説明はどれか。',
         options: opts.map(o=>o.t),
         correctIndex: opts.findIndex(o=>o.c),
       };
@@ -624,6 +643,80 @@ const BANK_B = [
         prompt: s.ctx + '\n\nAI活用の設計として最も適切なものはどれか。',
         options: opts.map(o=>o.t),
         correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B9: NotebookLM 活用判断(複数ソース横断分析)
+  {
+    id:'B9', section:'B', skill:'複数ソース横断分析(NotebookLM)', points:3,
+    build: ()=> {
+      const scenes = [
+        {
+          ctx: `あなたはプロダクトマーケティングのマネージャー。来週のプロダクト戦略会議に向けて、競合5社それぞれの「直近1年の機能リリースノート」を整理する必要がある。手元には PDF が9本、Webリリース告知ページのURLが6本、計15ソース。自社製品が劣後している領域・優位な領域を明確にし、出典付きの比較表を会議で提示したい。`,
+          correct: '15のソース(PDF・URL)をすべて NotebookLM に登録し、「機能カテゴリ別の比較表」「自社が劣後している領域TOP5」「優位な領域TOP5」を出典(ソース内の該当箇所)付きで抽出させる。社内で議論する際に出典を辿れる状態にしておく',
+          dist: [
+            'Gemini の単発プロンプトで「主要SaaS競合5社の最新機能を比較して」と依頼し、AIが学習済みの範囲で出力させる。漏れている情報は会議後に人が手動で補完する',
+            '15ファイルすべての本文を1つのGoogle Docsに連結して貼り付け、Docs サイドバーの Gemini で要約と比較表を生成させる',
+            'PDF・URLを1ファイル(1URL)ずつGeminiに渡して個別に要約させ、5社分の要約を自分で読んで頭の中で統合し比較表を手で作る',
+            '競合情報は機密性が高いためAI系には一切入れず、自分で全15ソースを読み込み、手作業で比較表を作成する',
+          ]
+        },
+        {
+          ctx: `あなたは事業部長(配下4チーム)。前任の部長から「過去2年分の主要顧客10社との議事録・契約書・提案書(計約30ファイル)」を引き継いだ。来月から新任マネージャーが各顧客の担当に着任するため、顧客ごとに「過去の懸念事項の変遷」「未解決の論点」「次回提案で触れるべき点」を出典付きで整理して引き継ぎ資料を作りたい。`,
+          correct: '顧客ごとに NotebookLM のノートを分け、該当顧客のソース(議事録・契約書・提案書)だけをアップ。「懸念事項の時系列」「未解決論点」「次回提案で触れるべき点」を出典付きで抽出させ、各ノートを担当マネージャーと共有して本人が深掘り質問できる状態を作る',
+          dist: [
+            '全30ファイルを Google Drive 内の1フォルダにまとめ、Gemini にフォルダURLを渡して「主要10顧客それぞれの懸念点を時系列で整理して」と一度に依頼する',
+            'Geminiに10顧客分のテキストを1プロンプトに貼り付けて、すべての顧客の論点を一気に出力させる。出典は人が後から手動で照合する',
+            '機密性が高いため AI 系には入れず、引き継ぎ資料は新任マネージャー本人が30ファイルを読み込んで自力で作成する方式にする',
+            '各ファイルを1本ずつGeminiで要約し、得られた30本の要約を新任マネージャーに渡して、本人に統合してもらう',
+          ]
+        },
+        {
+          ctx: `あなたは事業企画担当のマネージャー。来期戦略の検討にあたり、業界アナリストレポート(英語含む)4本、自社の過去2四半期の取締役会資料6本、競合決算説明資料3本、計13ソースを束ねて「市場の構造変化と自社のポジショニング再定義」を整理したい。引用元を明示できる形で経営会議に出す必要がある。`,
+          correct: '13ソースを NotebookLM にアップし、「市場の構造変化を示すファクト」「自社の現在のポジショニング」「再定義の選択肢3案」を出典付きで抽出させる。出典が辿れることを利用して、経営会議の質疑で各主張の根拠を即座に提示できる状態にする',
+          dist: [
+            'まず Gemini で「最新のSaaS業界の構造変化について教えて」と聞き、その出力に手元の13ソースの断片を貼って肉付けする',
+            '13ソースを1つのDocsに連結し、Gemini Docs サイドバーで「市場分析と自社ポジショニングをまとめて」と依頼する',
+            '英語レポートは Gemini で和訳して人が読み、自社・競合資料は別途人が読み込んで統合する。AI には統合判断はさせない',
+            '13ソースを各々Geminiで個別要約し、得られた13本の要約だけを束ねて経営会議に出す',
+          ]
+        },
+      ];
+      const s = pick(scenes);
+      const opts = shuffle([{t:s.correct,c:true},...pickN(s.dist,3).map(t=>({t,c:false}))]);
+      return {
+        prompt: s.ctx + '\n\nAI活用として最も適切なものはどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B10: Gemini と NotebookLM の使い分け
+  {
+    id:'B10', section:'B', skill:'Gemini と NotebookLM の使い分け', points:3,
+    build: ()=> {
+      // NotebookLMが最適な業務 = 複数の指定ソースを横断し、出典付きで整理が必要
+      const nlmTasks = [
+        '過去2年分の月次経営会議資料(15本のスライド・Docs)を新任の事業部長に引き継ぐため、「経営課題の変遷」「過去の意思決定とその根拠」「未解決の重要論点」を出典付きで整理する',
+        '主要顧客5社のRFP(提案依頼書)PDFと、その回答資料・契約書(計18ファイル)を束ねて、顧客ごとの要求の傾向と過去回答の整合性を出典付きで抽出する',
+        '自社の社内向けナレッジドキュメント(Docs 30本)を新人向けFAQに整理し、各回答に「どのドキュメントの何ページか」を出典として併記する',
+      ];
+      // Gemini単発が最適な業務 = 単発・自由創作・対話・トーン調整・短時間
+      const geminiTasks = [
+        '来週の経営会議で「今期のKPI達成見込み」を経営層に説明するための、3枚のスライド原稿を一から書く',
+        '取引先の役員に送る、お詫びと再提案を兼ねた重要なメールを、複数のトーンで3パターン下書きする',
+        '部下の評価コメントを「事実→評価→期待」の3層構造で整形してもらい、表現の偏りをチェックする',
+        '1on1で深掘りする質問を、メンバー像を伝えて5つ生成させる',
+        '部下が書いた提案書ドラフトを、自分のチームのトーンに合わせて言い回しを統一する',
+        '思考の整理として「自分の戦略仮説への最も鋭い反論3つ」を AI に出させる',
+      ];
+      const nlm = pick(nlmTasks);
+      const gem = pickN(geminiTasks, 3);
+      const opts = shuffle([nlm, ...gem]);
+      return {
+        prompt: '次の業務のうち、Gemini の単発対話よりも NotebookLM の方が明らかに適しているものはどれか。',
+        options: opts,
+        correctIndex: opts.indexOf(nlm),
       };
     }
   },
@@ -860,6 +953,40 @@ const BANK_D = [
       };
     }
   },
+
+  // D5 (NEW): NotebookLM を活用した新任マネージャーオンボーディング設計
+  {
+    id:'D5', section:'D', skill:'NotebookLM を活用したオンボーディング設計', points:15,
+    build: ()=> {
+      const scenarios = [
+        {
+          title:'新任マネージャー3名のオンボーディング',
+          ctx:`あなたは法人営業部の部門長(配下4チーム・40名)。来月、新任マネージャーが3名同時に着任する(社外採用2名・社内異動1名)。3名にはそれぞれ別の担当チーム・別の主要顧客群がアサインされる。引き継ぎが必要な情報は計約30ファイル(過去2年の主要顧客との議事録、主要RFP・契約書、過去の提案資料、社内ナレッジドキュメント、評価制度の運用メモ)。立ち上がりを最短化し、着任後30日以内に各人が担当顧客の論点を語れる状態にしたい。引き継ぎに割ける部門長(あなた)の時間は各人2時間/週が上限。`,
+        },
+        {
+          title:'カスタマーサクセスチームへの顧客理解引き継ぎ',
+          ctx:`あなたはカスタマーサクセス部のマネージャー(部下6名)。半期に1度の顧客担当ローテーションで、3名の担当顧客が入れ替わる。引き継がれる側のCS担当は、過去1年分の議事録(顧客あたり平均15本)、QBR(四半期事業レビュー)資料、NPSコメント履歴、サポートチケットの主要案件記録を読み込む必要がある。3名 × 平均5顧客分の引き継ぎを、ローテーション完了の2週間前から始める。担当替え当日からの問い合わせ対応に支障を出したくない。`,
+        },
+        {
+          title:'新規事業企画チームへの過去PoC知見の引き継ぎ',
+          ctx:`あなたは新規事業開発の部長。過去3年で社内で立ち上げた新規事業PoC(概念実証)が8件あり、そのうち2件は本格事業化、4件は中止、2件は検討中。各PoCには議事録・調査資料・意思決定メモ・ピボット記録・最終報告書が残っている(計約45ファイル)。新たに発足する企画チーム(マネージャー1名+メンバー3名)に「過去のPoCで得た学びと避けるべきパターン」を体系的に引き継ぎたい。チームの稼働開始まで3週間。`,
+        },
+      ];
+      const s = pick(scenarios);
+      return {
+        prompt: `【業務状況】\n${s.ctx}\n\n【設問】\nこの引き継ぎを NotebookLM を中心に設計するとして、以下の5点を含めて 450〜650字で記述しなさい。\n\n1) NotebookLM のノート(ソースを束ねる単位)をどう構成・分割するか、その理由\n2) NotebookLM に任せる範囲(出典付き要約・FAQ生成・論点抽出 等)と、Gemini を併用する範囲(対話・トーン調整 等)、そして引き継ぎ対象者本人が自分で行うべき作業の切り分け\n3) 機密情報・人事情報・顧客固有情報の扱い(伏字化ルール・共有範囲設定)\n4) 「AI出力を読むだけ」で終わらせず、引き継ぎ対象者が主体的に理解する仕組み(例:本人が NotebookLM に質問する課題設計など)\n5) 引き継ぎの定着確認(着任後の到達度をどう測るか)`,
+        free: true,
+        rubric: [
+          'NotebookLM のノート構成(束ねる単位・分割の粒度)が論理的かつシナリオに適合しているか',
+          'NotebookLM / Gemini / 人 の役割分担が、各ツールの特性(出典付き / 自由生成 / 判断)を踏まえて切り分けられているか',
+          '機密情報の扱い(伏字化・共有範囲・アクセス権)が具体的に書かれているか',
+          '引き継ぎ対象者の主体的理解を促す仕組み(問いの提示・課題設計など)が示されているか',
+          '到達度の確認方法が具体的で、450〜650字の分量とシナリオ固有の数値・体制への適合がなされているか',
+        ],
+        task: s.title,
+      };
+    }
+  },
 ];
 
 // ========================================================================
@@ -868,7 +995,7 @@ const BANK_D = [
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-let timerSec = 50*60;
+let timerSec = 60*60;
 let timerHandle = null;
 let startedAt = null;
 let examinee = {name:'',role:''};
@@ -888,7 +1015,7 @@ function startTest(){
   answers = {};
   curIdx = 0;
   startedAt = new Date();
-  timerSec = 50*60;
+  timerSec = 60*60;
   document.getElementById('qTotal').textContent = TEST.length;
   document.getElementById('screen-start').classList.add('hide');
   document.getElementById('screen-test').classList.remove('hide');
