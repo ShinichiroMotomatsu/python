@@ -103,9 +103,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>30分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全15問 / セクションA〜D / 70点満点</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 45/70 点以上</b> かつ <b>セクションD ≧ 15/30 点</b></td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>35分</b>(時間切れで自動提出)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全18問 / セクションA〜D / 79点満点</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 51/79 点(64%)以上</b> かつ <b>セクションD ≧ 15/30 点</b></td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
@@ -119,9 +119,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag B">Section B</span> <b>L2 業務活用判断</b> · 5問 · 15点
+      <span class="tag B">Section B</span> <b>L2 業務活用判断</b> · 8問 · 24点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>議事録・タスク抽出</span><span>メール・トーン調整</span><span>提案資料起案</span><span>検証習慣</span><span>ツール選択</span>
+        <span>議事録・タスク抽出</span><span>メール・トーン調整</span><span>提案資料起案</span><span>検証習慣</span><span>ツール選択</span><span>資料レビュー・改善</span><span>業務テンプレ化(Gems)</span><span>自動化の境界判断</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
@@ -161,7 +161,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <span>セクション <b id="qSection">A</b></span>
     </div>
     <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div class="timer" id="timer">30:00</div>
+    <div class="timer" id="timer">35:00</div>
   </div>
 
   <div id="questionContainer"></div>
@@ -495,6 +495,115 @@ const BANK_B = [
       };
     }
   },
+  // B6: 資料作成 — レビュー観点・改善指摘
+  {
+    id:'B6', section:'B', skill:'資料作成(レビュー・改善)', points:3,
+    build: ()=> {
+      const scenes = [
+        {
+          ctx: '提案資料のドラフトをDocsで作成し終えた。提出前にAIにレビューしてもらいたい。',
+          correct: 'AIに「想定読者(経営層)」「提案の結論」「資料の目的」を伝え、各スライドについて「結論が冒頭に置かれているか」「数値の根拠が明示されているか」「想定される反論」を観点に指摘させる',
+          dist: [
+            'AIに「この資料を一言でもっと良くして」と依頼し、出力された一文をそのまま冒頭に貼る',
+            'AIに「誤字脱字だけチェックして」と指示し、論理構造のレビューは依頼しない',
+            'AIに資料全文を渡し、判断を任せきって「修正版をそのまま出力して」と依頼する',
+          ]
+        },
+        {
+          ctx: '長めの戦略ドキュメント(15ページ)を経営層向けに3枚サマリへ圧縮したい。',
+          correct: '「想定読者・所要時間・必ず残すべき要素(結論/根拠/リスク)」をAIに伝え、3枚構成の骨子を出させ、各スライドの「含めるべきデータ」を埋める作業は自分で行う',
+          dist: [
+            'AIに「3ページに短くして」と依頼し、出力された内容をそのまま使う',
+            '3枚に圧縮するのはAIには無理なので、自分で1からまとめ直す',
+            'AIに「重要そうな箇所だけ抜き出して」と依頼し、抜き出された箇所を順に並べる',
+          ]
+        },
+        {
+          ctx: '同じ提案を「経営層向け」「現場メンバー向け」「クライアント向け」の3バージョンに作り分けたい。',
+          correct: 'まず「3つの読者の関心事と判断軸」をAIに整理させてから、共通の構成案を確定。その上で読者別に「強調点・用語のレベル・除外する論点」を切り替えてAIに展開させ、最後にトーンを人がそろえる',
+          dist: [
+            'AIに「3パターン作って」と一回で依頼し、出力をそのまま3つの会議で使う',
+            '読者別に作り分けるのは非効率なので、最も格式の高い経営層版を全員に配る',
+            '3バージョンを別々のAIスレッドで完全に独立して作る(統一性は気にしない)',
+          ]
+        },
+      ];
+      const s = pick(scenes);
+      const opts = shuffle([{t:s.correct,c:true},...s.dist.map(t=>({t,c:false}))]);
+      return {
+        prompt: s.ctx + ' AIの最も適切な活用法はどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B7: 業務自動化 — Gems/テンプレ化
+  {
+    id:'B7', section:'B', skill:'業務自動化(Gems・テンプレ化)', points:3,
+    build: ()=> {
+      const tasks = [
+        '毎週月曜朝に、先週の Meet 文字起こしから「決定事項・ToDo・未解決論点」を抽出する',
+        '毎回の 1on1 前に、メンバー像と直近の状況を入れると論点と問いを出してくれる',
+        '日々届くNPSコメントを「賞賛 / 改善要望 / 解約リスク」に自動分類する',
+        '週次の商談レビューで、Sheetsの案件データから「停滞中の案件と停滞理由仮説」を出させる',
+      ];
+      const t = pick(tasks);
+      const correct = `Geminiの「Gems(カスタム指示)」として「役割・前提・出力フォーマット・禁止事項」をテンプレ化し、毎回必要な情報だけ差し込んで実行できるようにする。共有設定はチーム内に限定し、機密項目は仮名化のルールも記載する`;
+      const distractors = [
+        '毎回ゼロからプロンプトを書く方が出力品質が上がるので、テンプレ化はしない',
+        '自分のローカルにExcelで全プロンプトを保管し、必要なときだけ手作業でコピペする',
+        '個人契約のChatGPTにマイGPTsを作り、業務情報を保存して使い回す',
+      ];
+      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
+      return {
+        prompt: `「${t}」という業務を、毎週ほぼ同じ手順で繰り返している。AIで自動化・テンプレ化する際、最も適切な進め方はどれか。`,
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
+  // B8: 業務自動化の境界 — やりすぎリスク / AI vs スクリプトの切り分け
+  {
+    id:'B8', section:'B', skill:'自動化の境界判断', points:3,
+    build: ()=> {
+      const scenes = [
+        {
+          ctx: '営業の日次活動報告(訪問件数・商談ステータス)を、AIが自動でメンバーから集めて部長に要約報告する仕組みを作ろうとしている。',
+          correct: '報告の「集計・整形・サマリ起案」はAIに任せ、「目立つ異常値の解釈」と「メンバーへのフィードバック」は必ずマネージャーが行う。完全自動配信は不可とし、マネージャー承認後に部長へ送る運用にする',
+          dist: [
+            '完全自動化が望ましいので、AI生成のレポートをそのまま毎朝部長に自動送信する',
+            'マネージャーの目を介すと遅延するため、AIが直接メンバーへフィードバックする',
+            '自動化の意味がないため、すべて手作業に戻す',
+          ]
+        },
+        {
+          ctx: '毎週、Sheetsの売上データから定型グラフを5本作る作業がある。AIで自動化したい。',
+          correct: 'グラフの定型処理は Apps Script や関数で自動化し、AIには「グラフから見える示唆を文章化する」「先週との差分の解釈案を出す」など解釈面を任せる。「自動化に向く処理」と「AIに向く処理」を切り分ける',
+          dist: [
+            'すべての処理をAIに任せ、グラフ画像の生成までAIにやらせる',
+            '完全自動化は危険なため、グラフは引き続き全て手作業で作る',
+            '自動化はせず、AIには毎回その場で「いい感じにグラフ作って」とだけ伝える',
+          ]
+        },
+        {
+          ctx: 'メンバーから上がってくる稟議申請を、AIで「自動承認/差し戻し/要相談」に分類しようとしている。',
+          correct: 'AIには「論点の整理と分類の提案」までを任せ、最終判断はマネージャーが行う。AI出力には判断根拠を併記させ、後日の説明責任に耐える形で記録を残す',
+          dist: [
+            '効率化のため、AIが「自動承認」と判定したものはマネージャーの確認なしで通す',
+            'AIには稟議内容が理解できないため、すべて手作業のままにする',
+            'AIに「常に自動承認」と指示し、差し戻しゼロの組織にする',
+          ]
+        },
+      ];
+      const s = pick(scenes);
+      const opts = shuffle([{t:s.correct,c:true},...s.dist.map(t=>({t,c:false}))]);
+      return {
+        prompt: s.ctx + ' AI活用の設計として最も適切なものはどれか。',
+        options: opts.map(o=>o.t),
+        correctIndex: opts.findIndex(o=>o.c),
+      };
+    }
+  },
 ];
 
 // -------------------- SECTION C: L3 マネジメント応用 (3問 × 5点 = 15点) --------------------
@@ -571,6 +680,10 @@ const BANK_D = [
         '取引先の役員にお詫びと再提案を含めた重要なメールを書く',
         '来月の経営会議で「マーケ予算を20%増額する」提案資料の構成案を作る',
         '直近のNPSコメント30件から、解約予兆になりそうな観点を抽出する',
+        '15ページの戦略ドキュメントを、経営会議向け3枚サマリに圧縮するための構成案を作る',
+        '毎週繰り返している「週次商談レビューの準備資料」を、AIで半自動化するためのGems(カスタム指示)を設計する',
+        '同じ提案を「経営層向け」「現場メンバー向け」「クライアント向け」の3バージョンに作り分ける',
+        '営業日次報告の「集計→サマリ→部長への報告草案作成」を半自動化するワークフローを設計する',
       ];
       const t = pick(themes);
       return {
@@ -619,7 +732,7 @@ const BANK_D = [
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-let timerSec = 30*60;
+let timerSec = 35*60;
 let timerHandle = null;
 let startedAt = null;
 let examinee = {name:'',role:''};
@@ -639,7 +752,7 @@ function startTest(){
   answers = {};
   curIdx = 0;
   startedAt = new Date();
-  timerSec = 30*60;
+  timerSec = 35*60;
   document.getElementById('qTotal').textContent = TEST.length;
   document.getElementById('screen-start').classList.add('hide');
   document.getElementById('screen-test').classList.remove('hide');
@@ -762,18 +875,17 @@ function showResult(elapsedSec){
   const m=Math.floor(elapsedSec/60), s=elapsedSec%60;
   document.getElementById('resultTime').textContent = `所要 ${m}分${String(s).padStart(2,'0')}秒 / 受験日時 ${startedAt.toLocaleString('ja-JP')}`;
 
-  let sA=0,sB=0,sC=0;
+  const sec = {A:{got:0,max:0},B:{got:0,max:0},C:{got:0,max:0},D:{got:0,max:0}};
   const perSkill = {};
   const fbItems = [];
 
   TEST.forEach((q,i)=>{
+    sec[q.section].max += q.points;
     if(q.section==='D') return;
     const ans = answers[i];
     const correct = ans===q.correctIndex;
     const got = correct? q.points : 0;
-    if(q.section==='A') sA+=got;
-    if(q.section==='B') sB+=got;
-    if(q.section==='C') sC+=got;
+    sec[q.section].got += got;
     perSkill[q.skill] = perSkill[q.skill] || {got:0,max:0};
     perSkill[q.skill].got += got;
     perSkill[q.skill].max += q.points;
@@ -787,20 +899,32 @@ function showResult(elapsedSec){
     }
   });
 
-  const totalAuto = sA+sB+sC;
-  document.getElementById('scoreAuto').textContent = `${totalAuto} / 40`;
-  document.getElementById('scoreA').textContent = `${sA}/10`;
-  document.getElementById('scoreB').textContent = `${sB}/15`;
-  document.getElementById('scoreC').textContent = `${sC}/15`;
+  const totalAuto = sec.A.got + sec.B.got + sec.C.got;
+  const maxAuto = sec.A.max + sec.B.max + sec.C.max;
+  const maxAll = maxAuto + sec.D.max;
+  const passThreshold = Math.ceil(maxAll * 0.64); // 全体64%以上で合格
+  const dMinThreshold = Math.ceil(sec.D.max * 0.5); // セクションD最低5割
 
-  // verdict (auto portion only; final passes also require D≥15)
+  document.getElementById('scoreAuto').textContent = `${totalAuto} / ${maxAuto}`;
+  document.getElementById('scoreA').textContent = `${sec.A.got}/${sec.A.max}`;
+  document.getElementById('scoreB').textContent = `${sec.B.got}/${sec.B.max}`;
+  document.getElementById('scoreC').textContent = `${sec.C.got}/${sec.C.max}`;
+  const dCell = document.querySelector('#screen-result .kpi .b:nth-child(4) .v');
+  if(dCell) dCell.textContent = `—/${sec.D.max}`;
+
+  // verdict: 必要なDスコア = passThreshold - totalAuto
+  const dNeeded = Math.max(0, passThreshold - totalAuto);
   const vBox = document.getElementById('verdictBox');
-  if(totalAuto>=30){ // 30/40 from auto = 75% → likely pass even with mediocre D
-    vBox.innerHTML = '<span class="verdict pass">自動部分:基準達成</span><div class="muted" style="margin-top:4px;font-size:11px;">合格はセクションDの評価後に確定</div>';
-  } else if(totalAuto>=23){
-    vBox.innerHTML = '<span class="verdict review">自動部分:要D評価で確定</span>';
+  if(dNeeded === 0){
+    vBox.innerHTML = `<span class="verdict pass">自動部分のみで合格基準達成</span>
+      <div class="muted" style="margin-top:4px;font-size:11px;">合格確定にはセクションD≧${dMinThreshold}/${sec.D.max}点が必要</div>`;
+  } else if(dNeeded <= sec.D.max - dMinThreshold){
+    vBox.innerHTML = `<span class="verdict review">合格にはセクションDで <b>${dNeeded}/${sec.D.max}</b> 点以上が必要</span>`;
+  } else if(dNeeded <= sec.D.max){
+    vBox.innerHTML = `<span class="verdict review">合格にはセクションDで <b>${dNeeded}/${sec.D.max}</b> 点以上(高難度)</span>`;
   } else {
-    vBox.innerHTML = '<span class="verdict fail">自動部分:基準未達</span><div class="muted" style="margin-top:4px;font-size:11px;">セクションDが満点でも合格基準45点に届かない可能性</div>';
+    vBox.innerHTML = `<span class="verdict fail">自動部分:基準未達</span>
+      <div class="muted" style="margin-top:4px;font-size:11px;">セクションDが満点でも合格基準${passThreshold}点に届かない</div>`;
   }
 
   // skill breakdown
