@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaSビジネス管理職のためのAI活用研修 — カリキュラム & 教材</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-primary:#1a73e8;        /* Google Blue */
+  --c-primary-dark:#174ea6;
+  --c-accent:#34a853;         /* Google Green */
+  --c-warn:#fbbc04;           /* Google Yellow */
+  --c-danger:#ea4335;         /* Google Red */
+  --c-ink:#202124;
+  --c-ink-2:#5f6368;
+  --c-bg:#f8f9fa;
+  --c-card:#ffffff;
+  --c-line:#dadce0;
+}
+html,body{margin:0;padding:0;height:100%;font-family:'Noto Sans JP',sans-serif;color:var(--c-ink);background:#e5e7eb;overflow:hidden;}
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  padding:48px 64px 80px;
+  background:var(--c-card);
+  display:none;flex-direction:column;
+  overflow:auto;
+}
+.slide.active{display:flex;}
+.slide-num{position:absolute;bottom:18px;right:24px;font-size:12px;color:var(--c-ink-2);font-family:'JetBrains Mono',monospace;}
+.brand{position:absolute;top:18px;right:24px;font-size:12px;color:var(--c-ink-2);}
+.brand b{color:var(--c-primary);}
+h1.slide-h1{font-size:34px;font-weight:700;color:var(--c-ink);margin:0 0 6px;}
+h1.slide-h1 .module-tag{display:inline-block;background:var(--c-primary);color:#fff;font-size:14px;padding:3px 10px;border-radius:4px;margin-right:12px;vertical-align:middle;font-weight:600;}
+.subtitle{color:var(--c-ink-2);font-size:15px;margin-bottom:24px;border-bottom:1px solid var(--c-line);padding-bottom:14px;}
+h2.section{font-size:18px;font-weight:700;color:var(--c-primary-dark);margin:16px 0 10px;border-left:4px solid var(--c-primary);padding-left:10px;}
+p,li{font-size:15px;line-height:1.75;}
+ul.bul{list-style:none;padding:0;margin:0;}
+ul.bul li{padding:4px 0 4px 22px;position:relative;}
+ul.bul li::before{content:"";position:absolute;left:6px;top:14px;width:6px;height:6px;background:var(--c-primary);border-radius:50%;}
+.card{background:var(--c-bg);border:1px solid var(--c-line);border-radius:8px;padding:16px;}
+.card h3{font-size:15px;font-weight:700;margin:0 0 8px;color:var(--c-primary-dark);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.kpi{background:#fff;border:1px solid var(--c-line);border-radius:8px;padding:12px;text-align:center;}
+.kpi .v{font-size:28px;font-weight:800;color:var(--c-primary);}
+.kpi .l{font-size:12px;color:var(--c-ink-2);}
+.callout{border-left:4px solid var(--c-warn);background:#fffbe6;padding:12px 16px;border-radius:0 6px 6px 0;font-size:14px;}
+.callout.danger{border-color:var(--c-danger);background:#fdecea;}
+.callout.good{border-color:var(--c-accent);background:#e6f4ea;}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}
+.tag.l1{background:#e8f0fe;color:#1967d2;}
+.tag.l2{background:#e6f4ea;color:#137333;}
+.tag.l3{background:#fce8e6;color:#a50e0e;}
+.tag.basic{background:#e8eaed;color:#5f6368;}
+.tag.advanced{background:#fef7e0;color:#b06000;}
+table.tt{width:100%;border-collapse:collapse;font-size:13px;}
+table.tt th,table.tt td{border:1px solid var(--c-line);padding:8px 10px;text-align:left;vertical-align:top;}
+table.tt th{background:#f1f3f4;font-weight:600;color:var(--c-ink);}
+table.tt td.t-time{font-family:'JetBrains Mono',monospace;width:110px;color:var(--c-ink-2);white-space:nowrap;}
+.prompt{
+  background:#0b1021;color:#e6e6e6;border-radius:8px;padding:14px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.65;white-space:pre-wrap;
+  border:1px solid #1f2547;max-height:62vh;overflow:auto;
+}
+.prompt .pp{color:#7ee787;}    /* var slot */
+.prompt .pc{color:#79c0ff;}    /* directive */
+.prompt .pn{color:#ffa657;}    /* number */
+.prompt .pq{color:#d2a8ff;}    /* quote */
+.checkbox{display:flex;align-items:flex-start;gap:8px;font-size:13px;margin:4px 0;}
+.checkbox::before{content:"";display:inline-block;width:14px;height:14px;border:1.5px solid var(--c-ink-2);border-radius:3px;margin-top:4px;flex-shrink:0;}
+.flow{display:flex;align-items:stretch;gap:8px;margin:12px 0;}
+.flow .step{flex:1;background:#fff;border:1px solid var(--c-line);border-radius:8px;padding:10px;text-align:center;font-size:13px;}
+.flow .step b{display:block;color:var(--c-primary);font-size:12px;margin-bottom:4px;}
+.arrow{display:flex;align-items:center;color:var(--c-ink-2);font-size:18px;}
+
+/* Title slide */
+.slide.title{background:linear-gradient(135deg,#174ea6 0%,#1a73e8 60%,#34a853 130%);color:#fff;justify-content:center;align-items:flex-start;}
+.slide.title h1{font-size:48px;font-weight:800;margin:0 0 12px;line-height:1.25;}
+.slide.title h2{font-size:22px;font-weight:300;color:#d8e3f8;margin:0 0 36px;}
+.slide.title .meta{font-size:14px;color:#cfdcf3;display:flex;gap:24px;margin-top:auto;}
+.slide.title .meta b{color:#fff;}
+
+/* Section divider */
+.slide.divider{background:#174ea6;color:#fff;justify-content:center;align-items:center;text-align:center;}
+.slide.divider .mtag{font-size:14px;letter-spacing:6px;color:#9ec0ff;margin-bottom:12px;}
+.slide.divider h1{font-size:54px;font-weight:800;margin:0;}
+.slide.divider p{font-size:16px;color:#cfdcf3;margin-top:14px;max-width:680px;}
+
+/* Nav */
+.nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
+  background:rgba(255,255,255,0.92);border:1px solid var(--c-line);border-radius:999px;padding:6px 12px;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:50;}
+.nav button{border:none;background:#f1f3f4;color:var(--c-ink);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;}
+.nav button:hover{background:#e3e6ea;}
+.nav .counter{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--c-ink-2);min-width:60px;text-align:center;}
+.toc-btn{position:fixed;top:14px;left:14px;background:#fff;border:1px solid var(--c-line);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;z-index:50;}
+.toc-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:100;}
+.toc-modal.show{display:flex;}
+.toc-inner{background:#fff;width:min(720px,90vw);max-height:80vh;overflow:auto;border-radius:10px;padding:24px 28px;}
+.toc-inner h3{font-size:18px;font-weight:700;margin:0 0 12px;color:var(--c-primary-dark);}
+.toc-inner ol{list-style:none;padding:0;margin:0;column-count:2;column-gap:24px;}
+.toc-inner li{padding:5px 0;font-size:13px;cursor:pointer;break-inside:avoid;}
+.toc-inner li:hover{color:var(--c-primary);}
+.toc-inner li .n{display:inline-block;width:28px;color:var(--c-ink-2);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.toc-inner li.sec{font-weight:700;color:var(--c-primary-dark);margin-top:8px;}
+.kbd{display:inline-block;padding:1px 6px;border:1px solid var(--c-line);border-radius:3px;font-size:11px;font-family:'JetBrains Mono',monospace;background:#fafafa;}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--c-ink-2);margin-top:6px;}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;}
+
+@media print{
+  html,body{overflow:visible;background:#fff;}
+  .deck{height:auto;}
+  .slide{display:flex!important;position:relative;page-break-after:always;height:auto;min-height:100vh;}
+  .nav,.toc-btn{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<button class="toc-btn" onclick="document.getElementById('toc').classList.add('show')">≡ 目次</button>
+
+<div class="toc-modal" id="toc" onclick="if(event.target.id==='toc')this.classList.remove('show')">
+  <div class="toc-inner">
+    <h3>目次 / Table of Contents</h3>
+    <ol id="tocList"></ol>
+  </div>
+</div>
+
+<div class="deck" id="deck">
+
+<!-- ========================= 1. TITLE ========================= -->
+<section class="slide title active" data-toc="表紙">
+  <div style="margin-top:auto"></div>
+  <div style="font-size:13px;color:#9ec0ff;letter-spacing:4px;margin-bottom:18px;">SAAS BUSINESS MANAGER · AI ENABLEMENT</div>
+  <h1>AIで変える、<br>マネジメントの生産性</h1>
+  <h2>SaaSビジネスサイド管理職のためのAI活用研修<br>カリキュラム & ハンズオン教材</h2>
+  <div class="meta">
+    <span>対象：<b>部下10名規模のマネージャー</b></span>
+    <span>形式：<b>1日 集合研修(7h)</b></span>
+    <span>ツール：<b>Gemini in Google Workspace</b></span>
+  </div>
+</section>
+
+<!-- ========================= 2. AGENDA ========================= -->
+<section class="slide" data-toc="本書の構成">
+  <h1 class="slide-h1">本書の構成</h1>
+  <p class="subtitle">この資料1本で「設計書」「講義スライド」「ハンズオン用プロンプト」「講師ガイド」までを兼ねます。</p>
+  <div class="grid-2" style="gap:18px;">
+    <div class="card"><h3>Part 1. カリキュラム設計</h3>
+      <ul class="bul"><li>研修目的とゴール</li><li>身につけるスキルの全体像</li><li>1日タイムテーブル</li><li>ハンズオンの設計思想</li></ul></div>
+    <div class="card"><h3>Part 2. 講義スライド(M0–M6)</h3>
+      <ul class="bul"><li>M0 オリエン / 自己診断</li><li>M1 基礎リテラシー</li><li>M2 プロンプトと壁打ち</li><li>M3 業務効率化</li><li>M4 1on1・フィードバック</li><li>M5 組織課題・育成</li><li>M6 活用宣言</li></ul></div>
+    <div class="card"><h3>Part 3. ハンズオン用プロンプト集</h3>
+      <ul class="bul"><li>各モジュールごとに <b>AI壁打ち型プロンプト</b> を収録</li><li>受講者がGeminiにそのまま貼って進められる</li><li>AIが擬似講師として進行・評価まで担う</li></ul></div>
+    <div class="card"><h3>Part 4. 運営ガイド</h3>
+      <ul class="bul"><li>講師(ファシリテーター)向けガイド</li><li>受講者向け事前案内</li><li>想定Q&A / トラブル対応</li></ul></div>
+  </div>
+</section>
+
+<!-- ========================= 3. PURPOSE ========================= -->
+<section class="slide" data-toc="研修の目的">
+  <h1 class="slide-h1">研修の目的</h1>
+  <p class="subtitle">「使ってみた」で止めず、マネジメント業務の <b>意思決定・育成・効率化</b> にAIを組み込むことをゴールとする。</p>
+  <div class="grid-3">
+    <div class="kpi"><div class="v">×1.5</div><div class="l">個人の主要業務スループット<br><span style="font-size:10px">(議事録/資料/メール作成等)</span></div></div>
+    <div class="kpi"><div class="v">−30%</div><div class="l">1on1・フィードバック準備時間<br><span style="font-size:10px">同等以上の質を維持</span></div></div>
+    <div class="kpi"><div class="v">+1</div><div class="l">部下1人あたり週次の<br>「考える時間」を創出</div></div>
+  </div>
+  <h2 class="section">研修ゴール(受講後の状態)</h2>
+  <ul class="bul">
+    <li><b>自分の業務</b>:議事録要約・メール起案・資料構成案・データ整理を、Gemini連携機能で日常的に回せる</li>
+    <li><b>1on1とフィードバック</b>:メンバーの状況と事実を渡せば、論点・問い・コメント素案がAIから引き出せる</li>
+    <li><b>組織マネジメント</b>:チーム課題・スキルマップ・育成プランをAIと壁打ちしながら構造化できる</li>
+    <li><b>判断力</b>:AI出力をそのまま使う/手直しする/捨てる の判断軸を言語化できる</li>
+  </ul>
+</section>
+
+<!-- ========================= 4. BEFORE/AFTER ========================= -->
+<section class="slide" data-toc="Before / After">
+  <h1 class="slide-h1">受講者像の Before / After</h1>
+  <p class="subtitle">「ChatGPTを触ったことはあるが、業務に組み込めていない」管理職が典型。</p>
+  <div class="grid-2">
+    <div class="card" style="border-left:4px solid var(--c-danger);background:#fdf2f0;">
+      <h3 style="color:#a50e0e">Before — ありがちな状態</h3>
+      <ul class="bul">
+        <li>会議のたびに自分で議事録を書いている</li>
+        <li>1on1の準備に毎回30分〜1h消費</li>
+        <li>評価コメントが「印象」ベースで似た文章になる</li>
+        <li>AIに何度か触ったが、出力が浅くて使えなかった</li>
+        <li>セキュリティが不安で、業務情報を入れられない</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--c-accent);background:#eaf6ee;">
+      <h3 style="color:#137333">After — 研修後の状態</h3>
+      <ul class="bul">
+        <li>Google Meetの自動文字起こしからタスク抽出が標準フロー</li>
+        <li>1on1準備はメンバー別Gemにテンプレ化(15分以内)</li>
+        <li>評価コメントを「事実→評価→期待」の3層で整える</li>
+        <li>壁打ちの3モードを使い分け、深い出力を引き出せる</li>
+        <li>入れていい情報/ダメな情報の判断軸を持っている</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 5. SKILL MAP (SVG) ========================= -->
+<section class="slide" data-toc="スキル全体像">
+  <h1 class="slide-h1">身につけるAIスキルの全体像</h1>
+  <p class="subtitle">3階層で整理 — 上に行くほど「マネジメント固有の応用力」、下に行くほど「全社員共通の土台」。</p>
+
+  <svg viewBox="0 0 1000 420" style="width:100%;max-width:980px;margin:0 auto;display:block;">
+    <!-- L3 -->
+    <rect x="120" y="20" width="760" height="110" rx="10" fill="#fce8e6" stroke="#ea4335" stroke-width="1.5"/>
+    <text x="140" y="50" font-size="16" font-weight="700" fill="#a50e0e">L3  マネジメント応用スキル</text>
+    <text x="140" y="76" font-size="13" fill="#5f6368">1on1・フィードバック・評価コメント / 組織課題の構造化と意思決定 / 人材育成プラン設計</text>
+    <text x="140" y="98" font-size="12" fill="#5f6368" font-style="italic">→ 部下10名のマネジメントで AI を「思考の相棒・準備の壁打ち」として使い切る</text>
+
+    <!-- L2 -->
+    <rect x="80" y="150" width="840" height="110" rx="10" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
+    <text x="100" y="180" font-size="16" font-weight="700" fill="#137333">L2  業務効率化スキル</text>
+    <text x="100" y="206" font-size="13" fill="#5f6368">議事録要約・タスク抽出 / 資料・メール・提案書ドラフト / 会議準備・想定問答 / 簡易データ集計</text>
+    <text x="100" y="228" font-size="12" fill="#5f6368" font-style="italic">→ Gemini in Workspace の各機能を組み合わせ、日常業務のサイクルタイムを短縮</text>
+
+    <!-- L1 -->
+    <rect x="40" y="280" width="920" height="120" rx="10" fill="#e8f0fe" stroke="#1a73e8" stroke-width="1.5"/>
+    <text x="60" y="310" font-size="16" font-weight="700" fill="#1967d2">L1  基礎リテラシー</text>
+    <text x="60" y="336" font-size="13" fill="#5f6368">LLM の仕組み・得意/不得意の理解 / プロンプトの型(5要素)/ ハルシネーション対策 / 情報セキュリティ判断軸</text>
+    <text x="60" y="358" font-size="12" fill="#5f6368" font-style="italic">→ 全モジュール共通の土台。誤用・事故を防ぎ、出力品質の天井を上げる</text>
+    <text x="60" y="382" font-size="11" fill="#5f6368">※ 半日コースに圧縮する場合は L1 + L2 もしくは L1 + L4(マネジメント応用)のサブセットで提供可能</text>
+  </svg>
+
+  <div class="legend">
+    <span><i style="background:#1a73e8"></i> L1 基礎</span>
+    <span><i style="background:#34a853"></i> L2 業務効率化</span>
+    <span><i style="background:#ea4335"></i> L3 マネジメント応用</span>
+  </div>
+</section>
+
+<!-- ========================= 6. TIMETABLE ========================= -->
+<section class="slide" data-toc="1日タイムテーブル">
+  <h1 class="slide-h1">1日タイムテーブル(7時間)</h1>
+  <p class="subtitle">基礎(L1) → 業務効率化(L2) → マネジメント応用(L3) → 統合 の流れ。</p>
+  <table class="tt">
+    <thead><tr><th>時間</th><th>モジュール</th><th>区分</th><th>主な内容</th><th>形式</th></tr></thead>
+    <tbody>
+      <tr><td class="t-time">09:00–09:30</td><td><b>M0</b> オリエン / 自己診断</td><td><span class="tag basic">基礎</span></td><td>研修ゴール提示・AI習熟度自己診断</td><td>講義+診断</td></tr>
+      <tr><td class="t-time">09:30–10:30</td><td><b>M1</b> AI基礎リテラシー</td><td><span class="tag l1">L1</span></td><td>LLMの仕組み・限界・ハルシネーション対策・情報セキュリティ</td><td>講義+クイズ</td></tr>
+      <tr><td class="t-time">10:30–11:45</td><td><b>M2</b> プロンプトと壁打ち作法</td><td><span class="tag l1">L1</span></td><td>5要素の型/壁打ち3モード/ハンズオン①</td><td>ハンズオン</td></tr>
+      <tr><td class="t-time">11:45–12:45</td><td colspan="4" style="text-align:center;color:var(--c-ink-2);">— 昼休憩 —</td></tr>
+      <tr><td class="t-time">12:45–14:00</td><td><b>M3</b> 業務効率化ハンズオン</td><td><span class="tag l2">L2</span></td><td>議事録・メール・資料(Gmail/Docs/Meet/Slides 連携)/ハンズオン②</td><td>ハンズオン</td></tr>
+      <tr><td class="t-time">14:00–15:15</td><td><b>M4</b> 1on1・フィードバック設計</td><td><span class="tag l3">L3</span></td><td>1on1準備/SBI/評価コメント/ハンズオン③</td><td>ハンズオン</td></tr>
+      <tr><td class="t-time">15:15–15:30</td><td colspan="4" style="text-align:center;color:var(--c-ink-2);">— 休憩 —</td></tr>
+      <tr><td class="t-time">15:30–16:30</td><td><b>M5</b> 組織課題・人材育成</td><td><span class="tag l3">L3</span></td><td>イシューツリー/スキルマップ/育成プラン/ハンズオン④</td><td>ハンズオン</td></tr>
+      <tr><td class="t-time">16:30–17:00</td><td><b>M6</b> 明日からの活用宣言</td><td><span class="tag basic">統合</span></td><td>自部署展開プラン作成・全体共有</td><td>ワーク+共有</td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:14px;">
+    <b>半日(4h)版を選ぶ場合の推奨サブセット:</b>
+    M0 → M1 → M2 → M3 (業務効率化重視)/ あるいは M0 → M1要約 → M4 → M5 (マネジメント応用重視)
+  </div>
+</section>
+
+<!-- ========================= 7. HANDS-ON DESIGN ========================= -->
+<section class="slide" data-toc="ハンズオン設計思想">
+  <h1 class="slide-h1">ハンズオンの設計思想 — 「AI壁打ち型」</h1>
+  <p class="subtitle">講師1人で30名を回しても、AIが擬似講師として各受講者の隣に立つ設計。</p>
+
+  <div class="flow">
+    <div class="step"><b>STEP 1</b>ワークブックから<br><b>初期プロンプト</b>をコピー</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>STEP 2</b>Geminiに貼付け<br>空欄を自分の状況で埋める</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>STEP 3</b>AIが<b>進行役・壁打ち相手・評価者</b><br>の3役で対話を進める</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>STEP 4</b>AIが出力する<br><b>振り返りサマリ</b>をワークシートに転記</div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px;">
+    <div class="card"><h3>講師(ファシリテーター)の役割</h3>
+      <ul class="bul">
+        <li>全体タイムキープと節目の解説</li>
+        <li>各受講者のAI出力を覗き「深掘り質問」だけ投げる</li>
+        <li>3名に1名、ハマっている人を見つけ補助</li>
+      </ul>
+    </div>
+    <div class="card"><h3>受講者の役割</h3>
+      <ul class="bul">
+        <li>自分の本物の業務状況をAIに渡す(秘匿情報は伏字化)</li>
+        <li>AIの問いに正直に答える、わからなければ「わからない」と返す</li>
+        <li>最後に「自分の言葉」でサマリを残す(コピペ禁止)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout good" style="margin-top:14px;">
+    <b>原則:</b>「ハンズオン用初期プロンプト」は<b>AI壁打ちのプロトコル</b>。受講者が自由対話する前に必ず最初にこれを貼る。
+  </div>
+</section>
+
+<!-- ========================= 8. DIVIDER M0 ========================= -->
+<section class="slide divider" data-toc="── M0 オリエン">
+  <div class="mtag">MODULE 0</div>
+  <h1>オリエンテーション</h1>
+  <p>研修の地図を共有し、自分の「いま」を把握する</p>
+</section>
+
+<!-- ========================= 9. M0 ========================= -->
+<section class="slide" data-toc="M0 自己診断">
+  <h1 class="slide-h1"><span class="module-tag">M0</span>AI習熟度 自己診断</h1>
+  <p class="subtitle">各項目をYes / No / なんとなく の3段階で。研修後にもう一度実施し、伸びを可視化。</p>
+  <div class="grid-2">
+    <div class="card"><h3>L1 基礎(Yes が3つ未満なら要学習)</h3>
+      <div class="checkbox">LLMが「確率的に次の単語を予測している」ことを説明できる</div>
+      <div class="checkbox">ハルシネーションの具体例を1つ挙げられる</div>
+      <div class="checkbox">社内秘情報を入れていいか/ダメかの判断基準を持っている</div>
+      <div class="checkbox">プロンプトに「役割・制約・出力形式」を入れる習慣がある</div>
+      <div class="checkbox">出力が浅い時、自分で深掘り質問を返している</div>
+    </div>
+    <div class="card"><h3>L2 業務効率化</h3>
+      <div class="checkbox">議事録の要約をAIに任せたことがある</div>
+      <div class="checkbox">メール下書きをAIに作らせ、自分で整えて送ったことがある</div>
+      <div class="checkbox">提案資料の構成案をAIに出させたことがある</div>
+      <div class="checkbox">Sheetsで関数や集計をGeminiに相談したことがある</div>
+    </div>
+    <div class="card"><h3>L3 マネジメント応用</h3>
+      <div class="checkbox">1on1の準備にAIを使ったことがある</div>
+      <div class="checkbox">評価コメントの草案をAIに出させたことがある</div>
+      <div class="checkbox">チーム課題の整理にAIで壁打ちしたことがある</div>
+      <div class="checkbox">部下に「AIをこう使うといい」と教えたことがある</div>
+    </div>
+    <div class="card"><h3>所要</h3>
+      <p style="font-size:13px">5分。ワークシートに記入し、研修終了時(M6)に再記入欄あり。「研修前→後の伸び」を 3つ宣言します。</p>
+      <div class="callout" style="margin-top:8px;">講師Tips: 「いまL2が弱い人が今日の主役」と伝えると場が和みます。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 10. DIVIDER M1 ========================= -->
+<section class="slide divider" data-toc="── M1 基礎リテラシー">
+  <div class="mtag">MODULE 1</div>
+  <h1>AI基礎リテラシー</h1>
+  <p>LLMの仕組みを「ざっくり正しく」理解し、得意/不得意・ハルシネーション・セキュリティを押さえる(60分)</p>
+</section>
+
+<!-- ========================= 11. M1 LLM mechanism ========================= -->
+<section class="slide" data-toc="M1 LLMの仕組み">
+  <h1 class="slide-h1"><span class="module-tag">M1</span>LLM は「確率的に次の単語を選ぶ」モデル</h1>
+  <p class="subtitle">完璧な知識ベースではなく、入力に対して<b>もっともらしい続き</b>を生成する装置。</p>
+
+  <svg viewBox="0 0 940 220" style="width:100%;max-width:940px;display:block;margin:6px auto;">
+    <rect x="20" y="40" width="200" height="140" rx="10" fill="#e8f0fe" stroke="#1a73e8"/>
+    <text x="120" y="100" font-size="14" font-weight="700" text-anchor="middle" fill="#1967d2">入力</text>
+    <text x="120" y="124" font-size="12" text-anchor="middle" fill="#5f6368">「会議の議事録を</text>
+    <text x="120" y="140" font-size="12" text-anchor="middle" fill="#5f6368">要約して」</text>
+
+    <path d="M220 110 L320 110" stroke="#5f6368" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="320" y="20" width="300" height="180" rx="10" fill="#fff" stroke="#5f6368" stroke-dasharray="4 3"/>
+    <text x="470" y="48" font-size="14" font-weight="700" text-anchor="middle" fill="#202124">LLM の中身(抽象化)</text>
+    <text x="470" y="78" font-size="12" text-anchor="middle" fill="#5f6368">膨大な文章で学習した</text>
+    <text x="470" y="96" font-size="12" text-anchor="middle" fill="#5f6368">「単語と単語の繋がりやすさ」のパターン</text>
+    <rect x="345" y="118" width="80" height="50" rx="6" fill="#e6f4ea" stroke="#34a853"/>
+    <text x="385" y="148" font-size="11" text-anchor="middle" fill="#137333">パターンA</text>
+    <rect x="435" y="118" width="80" height="50" rx="6" fill="#fef7e0" stroke="#fbbc04"/>
+    <text x="475" y="148" font-size="11" text-anchor="middle" fill="#b06000">パターンB</text>
+    <rect x="525" y="118" width="80" height="50" rx="6" fill="#fce8e6" stroke="#ea4335"/>
+    <text x="565" y="148" font-size="11" text-anchor="middle" fill="#a50e0e">パターンC</text>
+
+    <path d="M620 110 L720 110" stroke="#5f6368" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="720" y="40" width="200" height="140" rx="10" fill="#e6f4ea" stroke="#34a853"/>
+    <text x="820" y="100" font-size="14" font-weight="700" text-anchor="middle" fill="#137333">出力</text>
+    <text x="820" y="124" font-size="12" text-anchor="middle" fill="#5f6368">確率的に「もっとも</text>
+    <text x="820" y="140" font-size="12" text-anchor="middle" fill="#5f6368">それらしい」文章を生成</text>
+
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5f6368"/></marker></defs>
+  </svg>
+
+  <h2 class="section">3つの含意</h2>
+  <ul class="bul">
+    <li><b>同じ入力でも出力が揺れる</b> — 確率モデルだから。重要な判断は複数回生成して見比べる</li>
+    <li><b>知らないことも自然に答える</b> — 「らしさ」を優先するため、事実と異なる出力(ハルシネーション)が起きる</li>
+    <li><b>入力の質が出力の質を決める</b> — 文脈・制約・出力形式を渡すほど、確率の山が「狙った方向」に寄る</li>
+  </ul>
+</section>
+
+<!-- ========================= 12. M1 strengths/weaknesses ========================= -->
+<section class="slide" data-toc="M1 得意/不得意マップ">
+  <h1 class="slide-h1"><span class="module-tag">M1</span>AIの得意/不得意マップ</h1>
+  <p class="subtitle">「任せていい仕事」と「人が判断すべき仕事」を見分ける目を持つ。</p>
+
+  <svg viewBox="0 0 980 380" style="width:100%;max-width:980px;display:block;margin:0 auto;">
+    <line x1="490" y1="20" x2="490" y2="360" stroke="#dadce0"/>
+    <line x1="20" y1="190" x2="960" y2="190" stroke="#dadce0"/>
+    <text x="490" y="14" font-size="11" text-anchor="middle" fill="#5f6368">創造性 高</text>
+    <text x="490" y="376" font-size="11" text-anchor="middle" fill="#5f6368">創造性 低(定型処理)</text>
+    <text x="22" y="194" font-size="11" fill="#5f6368">情報の正確性 低 ←</text>
+    <text x="958" y="194" font-size="11" text-anchor="end" fill="#5f6368">→ 情報の正確性 高</text>
+
+    <!-- Quadrant 1: high accuracy, low creativity = 任せる -->
+    <rect x="500" y="200" width="450" height="155" rx="8" fill="#e6f4ea" opacity="0.4"/>
+    <text x="510" y="220" font-size="13" font-weight="700" fill="#137333">★ 積極的に任せる</text>
+    <text x="510" y="240" font-size="11" fill="#5f6368">・議事録の要約・タスク抽出</text>
+    <text x="510" y="256" font-size="11" fill="#5f6368">・メール定型文の下書き</text>
+    <text x="510" y="272" font-size="11" fill="#5f6368">・テキストの言い換え・トーン調整</text>
+    <text x="510" y="288" font-size="11" fill="#5f6368">・スプレッドシートの関数提案</text>
+    <text x="510" y="304" font-size="11" fill="#5f6368">・社内資料の構成案作成</text>
+
+    <!-- Quadrant 2: high accuracy, high creativity = 共同 -->
+    <rect x="500" y="25" width="450" height="155" rx="8" fill="#e8f0fe" opacity="0.4"/>
+    <text x="510" y="45" font-size="13" font-weight="700" fill="#1967d2">◎ 一緒に考える(壁打ち)</text>
+    <text x="510" y="65" font-size="11" fill="#5f6368">・戦略・施策アイデアの発散</text>
+    <text x="510" y="81" font-size="11" fill="#5f6368">・1on1の論点設計</text>
+    <text x="510" y="97" font-size="11" fill="#5f6368">・組織課題のイシューツリー化</text>
+    <text x="510" y="113" font-size="11" fill="#5f6368">・育成プランの草案</text>
+    <text x="510" y="129" font-size="11" fill="#5f6368">・批判的レビュー(自分の案を叩いてもらう)</text>
+
+    <!-- Quadrant 3: low accuracy, low creativity = 不要 -->
+    <rect x="30" y="200" width="455" height="155" rx="8" fill="#f1f3f4" opacity="0.6"/>
+    <text x="40" y="220" font-size="13" font-weight="700" fill="#5f6368">— あえて使わなくていい</text>
+    <text x="40" y="240" font-size="11" fill="#5f6368">・正確な数値計算(電卓が確実)</text>
+    <text x="40" y="256" font-size="11" fill="#5f6368">・社内固有情報の検索(専用DBがあるなら)</text>
+
+    <!-- Quadrant 4: low accuracy, high creativity = 危険 -->
+    <rect x="30" y="25" width="455" height="155" rx="8" fill="#fce8e6" opacity="0.4"/>
+    <text x="40" y="45" font-size="13" font-weight="700" fill="#a50e0e">⚠ そのまま使うと危険</text>
+    <text x="40" y="65" font-size="11" fill="#5f6368">・社外向け数値・固有名詞を含む文書</text>
+    <text x="40" y="81" font-size="11" fill="#5f6368">・最新の市況・競合動向(知識カットオフあり)</text>
+    <text x="40" y="97" font-size="11" fill="#5f6368">・人事評価の最終文面(必ず本人の目で)</text>
+    <text x="40" y="113" font-size="11" fill="#5f6368">・法務・契約文言(必ず専門家確認)</text>
+  </svg>
+</section>
+
+<!-- ========================= 13. M1 hallucination ========================= -->
+<section class="slide" data-toc="M1 ハルシネーション">
+  <h1 class="slide-h1"><span class="module-tag">M1</span>ハルシネーション対策 — 検証3原則</h1>
+  <p class="subtitle">「AIが堂々と嘘をつく」現象は、原理上ゼロにできない。検証を仕組み化する。</p>
+
+  <div class="grid-3">
+    <div class="card"><h3>① 出典分離</h3>
+      <p style="font-size:13px;">「事実」と「AIの解釈」を必ず分ける。<br>
+      プロンプトに「事実部分には [F]、解釈には [I] を付けて出力して」と指示。</p>
+    </div>
+    <div class="card"><h3>② 複数生成</h3>
+      <p style="font-size:13px;">重要な判断は同じ問いを<b>2〜3回</b>聞き、差分を見る。<br>
+      表現が安定しない部分は不確実性が高い。</p>
+    </div>
+    <div class="card"><h3>③ 反証要求</h3>
+      <p style="font-size:13px;">「この出力に対する<b>3つの反論</b>を挙げて」と続けて指示。<br>
+      賛同しか返ってこないAIは要注意。</p>
+    </div>
+  </div>
+
+  <h2 class="section">高リスクな質問パターン</h2>
+  <div class="grid-2">
+    <div class="card" style="border-left:4px solid var(--c-danger);">
+      <h3 style="color:#a50e0e">特に幻覚を起こしやすい</h3>
+      <ul class="bul">
+        <li>具体的な数値・統計を聞く(「日本のSaaS市場は何兆円?」)</li>
+        <li>固有名詞のスペル・URL・引用元</li>
+        <li>過去の特定の人物・出来事の詳細</li>
+        <li>知識カットオフ以降の最新情報</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--c-accent);">
+      <h3 style="color:#137333">比較的安全な使い方</h3>
+      <ul class="bul">
+        <li>こちらが渡したテキストの要約・整形・分類</li>
+        <li>論理構造のチェック・抜け漏れ指摘</li>
+        <li>表現の言い換え・トーン調整</li>
+        <li>こちらの考えに対する批判・反論の生成</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 14. M1 security ========================= -->
+<section class="slide" data-toc="M1 情報セキュリティ">
+  <h1 class="slide-h1"><span class="module-tag">M1</span>情報セキュリティの判断軸</h1>
+  <p class="subtitle">「会社が法人契約しているGemini」は学習に使われない設定。とはいえ「何でもOK」ではない。</p>
+
+  <table class="tt">
+    <thead><tr><th style="width:18%">分類</th><th style="width:32%">具体例</th><th>原則</th></tr></thead>
+    <tbody>
+      <tr><td><b>① 公開情報</b></td><td>プレスリリース・公開Webコンテンツ・自社サービスサイトの文言</td><td>入力OK。出力結果も共有可。</td></tr>
+      <tr><td><b>② 社内一般情報</b></td><td>会議のアジェンダ・自分のメモ・社内向けドキュメントの構成</td><td>業務契約のGeminiにのみ入力可。出力は社外共有時に再確認。</td></tr>
+      <tr><td><b>③ 社外秘・機密</b></td><td>未公開財務情報・契約書・顧客固有情報・採用候補者の個人情報</td><td><b>原則入力しない</b>。やむを得ない場合は固有名詞・数値を伏字化。</td></tr>
+      <tr><td><b>④ 個人情報・人事情報</b></td><td>メンバーの実名・評価・健康・給与情報</td><td><b>必ず仮名化</b>。「メンバーA(入社3年目・主任)」のように。</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger" style="margin-top:14px;">
+    <b>1on1・人事系のハンズオン(M4)では、必ずメンバー名を伏字(A/B/Cやイニシャル)で進めてください。</b>
+  </div>
+  <div class="callout good" style="margin-top:10px;">
+    <b>判断に迷ったら:</b>「これが万一そのまま外に出ても問題ないか?」を自問。問題があるなら、抽象化または固有情報を抜く。
+  </div>
+</section>
+
+<!-- ========================= 15. DIVIDER M2 ========================= -->
+<section class="slide divider" data-toc="── M2 プロンプトと壁打ち">
+  <div class="mtag">MODULE 2</div>
+  <h1>プロンプトの型と<br>壁打ち作法</h1>
+  <p>5要素の型と、壁打ちの3モード(発散・構造化・批判)を使い分ける(75分)</p>
+</section>
+
+<!-- ========================= 16. M2 5 elements ========================= -->
+<section class="slide" data-toc="M2 プロンプト5要素">
+  <h1 class="slide-h1"><span class="module-tag">M2</span>良いプロンプトの5要素</h1>
+  <p class="subtitle">「役割 / 背景 / 依頼 / 制約 / 出力形式」 — どれか1つを意識的に厚くするだけで、出力品質は跳ね上がる。</p>
+
+  <div class="grid-2" style="align-items:flex-start;">
+    <div>
+      <table class="tt">
+        <thead><tr><th>要素</th><th>役割</th><th>例</th></tr></thead>
+        <tbody>
+          <tr><td>① 役割<br>(Role)</td><td>AIの立ち位置を固定する</td><td>「SaaS企業のVP of Sales として」</td></tr>
+          <tr><td>② 背景<br>(Context)</td><td>状況・前提を共有する</td><td>「ARR 10億円、CSが弱い」</td></tr>
+          <tr><td>③ 依頼<br>(Task)</td><td>具体的に何をしてほしいか</td><td>「来期のKPIツリーを起案」</td></tr>
+          <tr><td>④ 制約<br>(Constraints)</td><td>条件・観点・除外事項</td><td>「販管費は据置・営業人員追加なし」</td></tr>
+          <tr><td>⑤ 出力形式<br>(Format)</td><td>長さ・構造・トーン</td><td>「マークダウン表で、3案併記」</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="section" style="margin-top:0;">Before / After 例</h2>
+      <div class="card" style="border-left:4px solid var(--c-danger);background:#fdf2f0;margin-bottom:10px;">
+        <h3 style="color:#a50e0e">Before</h3>
+        <p style="font-size:13px;">「来期のKPIを考えて」</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--c-accent);background:#eaf6ee;">
+        <h3 style="color:#137333">After</h3>
+        <p style="font-size:13px;">「あなたは <b>SaaS企業のVP of Sales</b>。当社はARR10億円・CS弱め。<b>来期のKPIツリーを3案</b>起案して。条件:営業人員追加なし。<b>マークダウン表</b>形式で、各案の<b>狙い・リスク</b>も併記」</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout good" style="margin-top:14px;">
+    <b>覚え方:</b>「<b>ヤク</b>(役割)<b>ハイ</b>(背景)に<b>イ</b>(依頼)っぱい<b>セ</b>(制約)って<b>シュ</b>(出力)」と語呂で覚える。
+  </div>
+</section>
+
+<!-- ========================= 17. M2 3 modes ========================= -->
+<section class="slide" data-toc="M2 壁打ちの3モード">
+  <h1 class="slide-h1"><span class="module-tag">M2</span>壁打ちの3モード</h1>
+  <p class="subtitle">同じテーマでも、AIに依頼するモードを切り替えることで引き出せる価値が変わる。</p>
+
+  <div class="grid-3">
+    <div class="card" style="border-top:4px solid #1a73e8;">
+      <h3>① 発散モード(Diverge)</h3>
+      <p style="font-size:13px;"><b>目的:</b>選択肢を増やす<br>
+      <b>合図ワード:</b>「○つ案を挙げて」「角度を変えて」「ありえない案も含めて」<br>
+      <b>使う場面:</b>戦略の初期検討、施策のブレスト、1on1の問いの洗い出し</p>
+    </div>
+    <div class="card" style="border-top:4px solid #34a853;">
+      <h3>② 構造化モード(Structure)</h3>
+      <p style="font-size:13px;"><b>目的:</b>情報を整理する<br>
+      <b>合図ワード:</b>「分類して」「フレームに当てはめて」「優先順位を付けて」<br>
+      <b>使う場面:</b>会議メモの構造化、課題の整理、評価コメントの3層化</p>
+    </div>
+    <div class="card" style="border-top:4px solid #ea4335;">
+      <h3>③ 批判モード(Critique)</h3>
+      <p style="font-size:13px;"><b>目的:</b>自分の案を叩く<br>
+      <b>合図ワード:</b>「反論を3つ」「最も致命的な弱点は?」「経営会議で質問されそうな点」<br>
+      <b>使う場面:</b>提案前の最終チェック、意思決定のリスク洗い出し</p>
+    </div>
+  </div>
+
+  <h2 class="section">使い分けの黄金パターン</h2>
+  <div class="flow">
+    <div class="step"><b>1. 発散</b>選択肢を10案出す</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2. 構造化</b>3〜5案に絞り、比較表に</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3. 批判</b>選んだ案への反論を引き出す</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4. 人間が決める</b>批判を踏まえて自分の意思で判断</div>
+  </div>
+
+  <div class="callout" style="margin-top:14px;">
+    <b>注意:</b>AIは依頼者に同調しがち。批判モードを必ず1回挟むだけで、意思決定の質が変わります。
+  </div>
+</section>
+
+<!-- ========================= 18. M2 HANDS-ON ========================= -->
+<section class="slide" data-toc="M2 ハンズオン①">
+  <h1 class="slide-h1"><span class="module-tag">M2</span>ハンズオン① — 自分の業務課題で3モード壁打ち</h1>
+  <p class="subtitle">所要45分 / Gemini(gemini.google.com もしくはWorkspaceサイドバー)で実施</p>
+
+  <h2 class="section">手順</h2>
+  <ol style="font-size:14px;padding-left:20px;">
+    <li>下のプロンプトをコピーしてGeminiに貼り付け、【 】の中を自分の状況で埋める</li>
+    <li>送信後、AIの指示に従って対話を進める(発散→構造化→批判の順)</li>
+    <li>最後にAIに「振り返りサマリを出して」と依頼し、ワークシートに転記</li>
+  </ol>
+
+  <h2 class="section">初期プロンプト(コピペ用)</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは私の<span class="pp">「思考の壁打ち相手」</span>です。私の業務課題に対して、<span class="pn">3つのモード</span>を順に使って、深い検討を引き出してください。
+
+<span class="pc"># 私の状況</span>
+- 役割: <span class="pp">【SaaS企業の○○部 マネージャー、部下10名】</span>
+- 今困っていること: <span class="pp">【例: チームの新規商談数が3ヶ月連続で目標未達。原因を整理して打ち手を考えたい】</span>
+- 制約: <span class="pp">【例: 増員不可、追加予算なし、3ヶ月以内に改善着手】</span>
+
+<span class="pc"># 進め方</span>
+<span class="pn">【モード1:発散】</span>
+まず「考えられる原因」を、視点を変えて<span class="pn">10個</span>挙げてください。
+ありえなさそうな仮説も含めて構いません。
+
+<span class="pn">【モード2:構造化】</span>
+次に、私が選んだ仮説(私が番号で答えます)を起点に、
+「原因の構造」を<span class="pp">ロジックツリー</span>形式で2階層分解してください。
+
+<span class="pn">【モード3:批判】</span>
+最後に、私が考えた打ち手(私が文章で書きます)について、
+<span class="pn">「経営会議で出そうな3つの反論」</span>を出してください。
+
+<span class="pc"># 最後</span>
+すべて終わったら、以下のフォーマットで<span class="pp">振り返りサマリ</span>を出力してください。
+- 今日扱った課題:
+- 採用した仮説:
+- 採用した打ち手:
+- 残った論点(次回考えるべきこと):
+
+それでは、まず【モード1】からお願いします。
+</div>
+
+  <h2 class="section" style="margin-top:14px;">ワークシート(完了後に記入)</h2>
+  <div class="grid-3">
+    <div class="card"><h3>気づき</h3><p style="font-size:12px;color:#5f6368;">壁打ち中に「自分一人では出なかった視点」を1つ書く</p></div>
+    <div class="card"><h3>明日試すこと</h3><p style="font-size:12px;color:#5f6368;">この壁打ちで決まった、具体的な次の一手</p></div>
+    <div class="card"><h3>AIに任せきれなかった部分</h3><p style="font-size:12px;color:#5f6368;">最終的に自分の判断で覆した/補完した点</p></div>
+  </div>
+</section>
+
+<!-- ========================= 19. DIVIDER M3 ========================= -->
+<section class="slide divider" data-toc="── M3 業務効率化">
+  <div class="mtag">MODULE 3</div>
+  <h1>業務効率化ハンズオン</h1>
+  <p>Gmail・Docs・Meet・Slides に組み込まれた Gemini を、マネージャーの日常で使い切る(75分)</p>
+</section>
+
+<!-- ========================= 20. M3 Workspace map ========================= -->
+<section class="slide" data-toc="M3 Workspace機会マップ">
+  <h1 class="slide-h1"><span class="module-tag">M3</span>Gemini in Workspace の使いどころマップ</h1>
+  <p class="subtitle">「どこで・何を・どう頼むか」をマネージャーの一日に沿って整理。</p>
+
+  <table class="tt">
+    <thead><tr><th style="width:13%">ツール</th><th style="width:22%">マネージャー業務</th><th>Geminiにやらせること</th><th style="width:18%">時間削減目安</th></tr></thead>
+    <tbody>
+      <tr><td><b>Gmail</b></td><td>受信メールの捌き / 返信下書き</td><td>長文メールの要約・Action抽出/返信トーン調整/「Help me write」で下書き起案</td><td>1日 20〜30分</td></tr>
+      <tr><td><b>Google Meet</b></td><td>会議/1on1の議事</td><td>自動文字起こし→Geminiに「決定事項とToDoだけ抜いて」/「次回までの宿題リスト化」</td><td>1会議 10〜15分</td></tr>
+      <tr><td><b>Docs</b></td><td>提案書/週報/レビュー資料</td><td>構成案の起案/長文ドキュメントの要約/想定質問の生成/トーン統一</td><td>1資料 30〜60分</td></tr>
+      <tr><td><b>Sheets</b></td><td>KPIモニタリング/簡易分析</td><td>関数の提案/列のグルーピング/データのパターン抽出/簡易グラフ提案</td><td>1分析 20〜40分</td></tr>
+      <tr><td><b>Slides</b></td><td>社内プレゼン</td><td>アウトラインからスライド生成/イメージ案/話者ノート起案</td><td>1スライド 5〜10分</td></tr>
+      <tr><td><b>Gems</b></td><td>繰り返し業務のテンプレ化</td><td>「1on1準備アシスタント」「議事録整形アシスタント」を1度作って使い回し</td><td>毎回30分→3分</td></tr>
+      <tr><td><b>NotebookLM</b></td><td>複数資料の横断理解</td><td>競合資料・社内ドキュメントを束ねて「比較して」「論点を抜いて」</td><td>調査時間半減</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>研修方針:</b> 今日は <b>Meet → Gmail → Docs</b> の3点をハンズオンで体験。SheetsとSlidesは事後課題で。
+  </div>
+</section>
+
+<!-- ========================= 21. M3 HANDS-ON A ========================= -->
+<section class="slide" data-toc="M3 HO② A 議事録">
+  <h1 class="slide-h1"><span class="module-tag">M3</span>ハンズオン②-A : 議事録から要約・タスク抽出</h1>
+  <p class="subtitle">所要15分 / 題材は事前配布の「サンプル会議トランスクリプト」 or 自分のMeet録画文字起こし</p>
+
+  <h2 class="section">手順</h2>
+  <ol style="font-size:14px;padding-left:20px;">
+    <li>Google Docs に文字起こしテキストを貼り付ける(または該当Docを開く)</li>
+    <li>右側の「Geminiに質問」サイドバーを開き、下のプロンプトを貼る</li>
+    <li>出力を確認 → 不足があれば追記指示</li>
+  </ol>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは経験豊富な議事録ライターです。
+
+<span class="pc"># 入力</span>
+このドキュメントの内容を題材とします。
+
+<span class="pc"># 依頼</span>
+以下の<span class="pn">4ブロック</span>に分けて出力してください。
+<span class="pn">1.</span> <span class="pp">会議のサマリ</span>(3行以内、何のための会議で何が決まったか)
+<span class="pn">2.</span> <span class="pp">決定事項</span>(箇条書き、必ず「誰が決めたか」を併記)
+<span class="pn">3.</span> <span class="pp">ToDo</span>(担当者 / 期限 / 内容 の表形式。期限が明示されていない場合は「未定」と記載)
+<span class="pn">4.</span> <span class="pp">論点・未解決事項</span>(次回持ち越しの議題)
+
+<span class="pc"># 制約</span>
+- 発言者が特定できない部分は「不明」と書くこと
+- 推測で補完しない(推測が必要な場合は明示)
+- 出力はマークダウン形式
+</div>
+
+  <div class="callout" style="margin-top:14px;">
+    <b>応用:</b>続けて「この会議で<b>言われなかったが、本来詰めるべきだった論点</b>を3つ指摘して」と聞くと、抜け漏れチェックに使えます。
+  </div>
+</section>
+
+<!-- ========================= 22. M3 HANDS-ON B ========================= -->
+<section class="slide" data-toc="M3 HO② B メール">
+  <h1 class="slide-h1"><span class="module-tag">M3</span>ハンズオン②-B : メールの下書き・トーン調整</h1>
+  <p class="subtitle">所要15分 / Gmailの「Help me write」もしくはGeminiサイドバーで実施</p>
+
+  <h2 class="section">プロンプト(難しい依頼を、角を立てずに伝えるメール)</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは「言いにくいことを、関係性を保ちながら丁寧に伝える」プロのビジネスライターです。
+
+<span class="pc"># 状況</span>
+- 宛先: <span class="pp">【他部署の同等職位のマネージャー】</span>
+- 関係性: <span class="pp">【協力関係。今後も連携が必要】</span>
+- 伝えたいこと(率直版): <span class="pp">【例:依頼していた○○のレビューがすでに2週間遅れている。今週中に返してほしい】</span>
+- 避けたい印象: 高圧的・嫌味・責めるトーン
+
+<span class="pc"># 依頼</span>
+上記を、以下の<span class="pn">3パターン</span>のトーンでメール本文を書いてください。
+- パターンA: <span class="pp">フラット・事実ベース</span>(感情を入れず期限と背景のみ)
+- パターンB: <span class="pp">配慮を厚め</span>(相手の状況を慮る一文を入れる)
+- パターンC: <span class="pp">少し踏み込む</span>(遅延が及ぼす業務影響を明示)
+
+<span class="pc"># 制約</span>
+- 各パターン200字以内
+- 件名も併記
+- 「お忙しいところ恐れ入りますが」等の常套句は1回まで
+</div>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>体験ポイント:</b> 3パターンを並べて読み比べると、自分の<b>普段のトーンの偏り</b>に気づきます。「自分は無意識にパターンBに寄りがち」など。
+  </div>
+</section>
+
+<!-- ========================= 23. M3 HANDS-ON C ========================= -->
+<section class="slide" data-toc="M3 HO② C 資料">
+  <h1 class="slide-h1"><span class="module-tag">M3</span>ハンズオン②-C : 提案資料の構成案作成</h1>
+  <p class="subtitle">所要20分 / Google Docs上で、来週の社内提案の構成をAIと固める</p>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたはSaaS企業の経営会議向け資料を量産してきた、戦略コンサル出身の参謀です。
+
+<span class="pc"># 状況</span>
+- 提案の場: <span class="pp">【例:来週の経営会議(参加者:CEO/CFO/CTO/事業部長)】</span>
+- 提案テーマ: <span class="pp">【例:カスタマーサクセス部の人員2名増員】</span>
+- 結論: <span class="pp">【例:来期Q2までに2名増員、初年度コスト1,800万、回収はQ4以降】</span>
+- 想定される反対意見: <span class="pp">【例:今は採用凍結中、CSの定量効果が見えづらい】</span>
+
+<span class="pc"># 依頼</span>
+<span class="pn">1.</span> 経営会議で<span class="pp">10分で説明・5分で質疑</span>に耐える構成案を、スライド単位で<span class="pn">7〜10枚</span>提案
+<span class="pn">2.</span> 各スライドに「タイトル / 含めるべき要素 / 想定される質問」を併記
+<span class="pn">3.</span> 反対意見への先回り反論(<span class="pp">FAQスライド</span>として最後に追加)
+
+<span class="pc"># 制約</span>
+- 数値は私が後で埋めるため「ここに○○の数値」とプレースホルダで構わない
+- 起承転結より<span class="pp">「結論→根拠→反論への備え→お願い」</span>の順で
+- マークダウン表形式で出力
+</div>
+
+  <div class="callout" style="margin-top:14px;">
+    <b>応用:</b>続けて「<b>このうち反対派の○○役員が最も突っ込んできそうな箇所</b>を予想し、想定問答を5問作って」と聞くと、当日のリハーサル素材になる。
+  </div>
+</section>
+
+<!-- ========================= 24. DIVIDER M4 ========================= -->
+<section class="slide divider" data-toc="── M4 1on1・フィードバック">
+  <div class="mtag">MODULE 4</div>
+  <h1>1on1・フィードバック<br>設計ハンズオン</h1>
+  <p>マネジメントの中核業務にAIを組み込む。ただし「人が判断する領域」の線も引く(75分)</p>
+</section>
+
+<!-- ========================= 25. M4 use cases ========================= -->
+<section class="slide" data-toc="M4 使いどころ">
+  <h1 class="slide-h1"><span class="module-tag">M4</span>1on1・人材育成での AI 使いどころと NG ライン</h1>
+  <p class="subtitle">「準備」と「整形」は任せる。「対話そのもの」と「最終判断」は手放さない。</p>
+
+  <div class="grid-2">
+    <div class="card" style="border-left:4px solid var(--c-accent);background:#eaf6ee;">
+      <h3 style="color:#137333">✅ AIに任せて生産性が上がる領域</h3>
+      <ul class="bul">
+        <li>1on1の<b>論点</b>と<b>深掘り質問</b>を、メンバー像を伝えて出させる</li>
+        <li>フィードバックの<b>SBI整形</b>(状況-行動-影響に整える)</li>
+        <li>評価コメントの<b>3層化</b>(事実→評価→期待)の素案</li>
+        <li>育成プランの<b>スキルマップ</b>と学習リソース案</li>
+        <li>採用面接の<b>質問設計</b>と評価観点の整理</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--c-danger);background:#fdf2f0;">
+      <h3 style="color:#a50e0e">❌ AIに任せてはいけない領域</h3>
+      <ul class="bul">
+        <li>1on1の<b>その場の対話</b>(画面を見ながらやらない)</li>
+        <li>評価の<b>最終判断</b>とランク決め</li>
+        <li>厳しいフィードバックの<b>口頭での伝え方</b>(本人の様子を見て決めること)</li>
+        <li>メンバーの<b>個人情報・健康・家庭事情</b>の入力</li>
+        <li>退職判断・人事処分などの<b>センシティブな決定</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout danger" style="margin-top:14px;">
+    <b>絶対ルール:</b> M4のハンズオンでは <b>実名を使わない</b>。「メンバーA(入社3年目・主任・営業職)」のように、特徴だけ抽象化して入力すること。
+  </div>
+</section>
+
+<!-- ========================= 26. M4 1on1 prompt ========================= -->
+<section class="slide" data-toc="M4 1on1準備プロンプト">
+  <h1 class="slide-h1"><span class="module-tag">M4</span>ハンズオン③-A : 1on1 準備プロンプト</h1>
+  <p class="subtitle">所要20分 / 自分が来週1on1する予定のメンバー1人を想定して実施</p>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは経験豊富なエグゼクティブコーチです。私(マネージャー)が来週行う<span class="pp">1on1</span>の準備を手伝ってください。
+
+<span class="pc"># メンバー像(個人情報は伏字化済み)</span>
+- 仮名: <span class="pp">【メンバーA】</span>
+- 職種・等級: <span class="pp">【例:法人営業・入社3年目・主任】</span>
+- 強み: <span class="pp">【例:顧客との関係構築。新規アポ獲得が同期トップ】</span>
+- 課題: <span class="pp">【例:大型案件のクロージング苦手、案件管理が雑】</span>
+- 直近の状況・気になる兆候: <span class="pp">【例:最近会議で発言が減った、商談化率が下がっている】</span>
+- 前回1on1で話したこと: <span class="pp">【例:Q3の重点アカウント3社の戦略を一緒に作った】</span>
+
+<span class="pc"># 依頼</span>
+以下の流れで進めてください。私が応答するのを待って、次に進んでください。
+
+<span class="pn">STEP 1</span>: 上記情報から、今回の1on1で<span class="pp">扱うべき論点を5つ</span>挙げ、私に番号で選ばせてください。
+<span class="pn">STEP 2</span>: 私が選んだ論点について、本人が自分で考え始められる<span class="pp">「開いた問い」を3〜5個</span>提案してください。
+   ※「Yes/Noで終わる質問」「誘導尋問」は禁止。
+<span class="pn">STEP 3</span>: もし本人が「特に問題ない」と答えた場合に、<span class="pp">もう一段深掘りする問い</span>を2つ提案してください。
+<span class="pn">STEP 4</span>: 最後に「今回の1on1で<span class="pp">私(マネージャー)が伝えるべきメッセージ</span>」を1つだけ提案してください(伝えすぎを防ぐため)。
+
+<span class="pc"># 最終出力</span>
+全STEP完了後、<span class="pp">1on1当日のメモシート</span>(論点 / 主な問い / 私が伝えるメッセージ / 観察ポイント)をマークダウンで出力。
+</div>
+</section>
+
+<!-- ========================= 27. M4 SBI ========================= -->
+<section class="slide" data-toc="M4 SBI フィードバック">
+  <h1 class="slide-h1"><span class="module-tag">M4</span>ハンズオン③-B : フィードバックを SBI に整える</h1>
+  <p class="subtitle">所要15分 / 「言いたいこと(粗い形)」を SBI(状況-行動-影響)に整形させる</p>
+
+  <h2 class="section">SBIモデル(復習)</h2>
+  <div class="grid-3">
+    <div class="card"><h3>Situation</h3><p style="font-size:13px;">いつ・どこで・どんな場面か(主観なし)</p></div>
+    <div class="card"><h3>Behavior</h3><p style="font-size:13px;">何をした/しなかったか(事実、第三者でも確認可)</p></div>
+    <div class="card"><h3>Impact</h3><p style="font-size:13px;">それが何にどう影響したか(チーム・顧客・本人)</p></div>
+  </div>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは管理職向け<span class="pp">SBIフィードバック</span>整形のプロです。
+
+<span class="pc"># 入力(私が伝えたいこと、まだ粗い)</span>
+<span class="pp">【例: 先週のクライアント定例で、メンバーAが顧客の要望を聞いた瞬間に「できません」と即答してしまい、その後の関係がギクシャクしている。本人にちゃんと伝えたい】</span>
+
+<span class="pc"># 依頼</span>
+<span class="pn">1.</span> 上記を SBI モデルに整形してください(箇条書きで Situation / Behavior / Impact)
+<span class="pn">2.</span> その上で、<span class="pp">本人に話す時のスクリプト</span>を3パターン提示してください
+   - パターンA: 端的・事実中心(2分で伝える版)
+   - パターンB: 本人の考えを引き出す問い掛け中心
+   - パターンC: 期待を込めて、次の機会への提案を入れる版
+<span class="pn">3.</span> 最後に、<span class="pp">伝える際に避けるべき言い回し</span>を3つ警告として出してください
+   (例:「いつも〜」「みんな言ってるよ」など)
+</div>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>体験ポイント:</b> 3パターンを横並びで読むと、自分が無意識に使っている「角の立つ表現」が浮かび上がります。
+  </div>
+</section>
+
+<!-- ========================= 28. M4 evaluation ========================= -->
+<section class="slide" data-toc="M4 評価コメント3層化">
+  <h1 class="slide-h1"><span class="module-tag">M4</span>ハンズオン③-C : 評価コメントの3層化</h1>
+  <p class="subtitle">所要15分 / 「事実 → 評価 → 期待」の3層に整え、再現性のある評価コメントを作る</p>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは管理職の評価コメント執筆を支援するライティングコーチです。
+
+<span class="pc"># 入力</span>
+- 期間: <span class="pp">【例:2026年上期】</span>
+- メンバー像: <span class="pp">【例:メンバーA・営業3年目・主任】</span>
+- 期初目標: <span class="pp">【例:新規ARR 6,000万、重点アカウント3社の深耕】</span>
+- 結果: <span class="pp">【例:新規ARR 7,200万(達成120%)、重点アカウントは1社で大型受注、2社は伸び悩み】</span>
+- 過程の印象的な行動: <span class="pp">【例:大型案件でテックタッチを巻き込むなど、自分から越境した】</span>
+- 課題として残っているもの: <span class="pp">【例:商談中盤の握りが甘く、終盤で要件が膨らむ傾向】</span>
+
+<span class="pc"># 依頼</span>
+評価コメントを以下の<span class="pn">3層構造</span>で出力してください。各層は<span class="pp">3〜5文</span>。
+
+<span class="pn">【層1 事実】</span> 期初目標に対する結果と、特筆すべき行動(数値・固有事実中心)
+<span class="pn">【層2 評価】</span> その事実を踏まえた、強みと課題の整理(主観ベースで構わないが、根拠は層1を引用)
+<span class="pn">【層3 期待】</span> 次期に期待する役割と、具体的な成長目標案
+
+<span class="pc"># 制約</span>
+- 抽象的な賞賛(「素晴らしい」「とても良い」のみ)は禁止。必ず具体的な事実とセットで
+- 課題は「成長余地」として、対立構造にならない言い方で
+- 最後に、私(評価者)に対する<span class="pp">「本人と話す前に再確認すべきこと」3点</span>を別途出力
+</div>
+
+  <div class="callout danger" style="margin-top:14px;">
+    <b>必ず:</b>出力をそのまま提出しない。<b>事実層を自分で必ず検証</b>すること(AIが推測で数値を補完する場合あり)。
+  </div>
+</section>
+
+<!-- ========================= 29. M4 risk experience ========================= -->
+<section class="slide" data-toc="M4 リスク演習">
+  <h1 class="slide-h1"><span class="module-tag">M4</span>意図的リスク演習 — そのまま使うと何が起きるか</h1>
+  <p class="subtitle">所要10分 / グループ討議</p>
+
+  <h2 class="section">演習</h2>
+  <p>先のハンズオンで生成された<b>評価コメント</b>を、まったく手直しせずに上長にレビュー依頼したと仮定して、以下を議論してください。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>議題1: 何が問題になりうるか</h3>
+      <ul class="bul">
+        <li>事実誤認の混入</li>
+        <li>本人が読んだ時の違和感(「自分のことを見ていない感」)</li>
+        <li>他メンバーと文体・表現が酷似してしまうリスク</li>
+        <li>評価の<b>説明責任</b>を自分が果たせなくなるリスク</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>議題2: ではどう使うか</h3>
+      <ul class="bul">
+        <li>AIは<b>「型」と「漏れチェック」だけ</b>に使う</li>
+        <li>固有事実は必ず<b>自分で記載・検証</b></li>
+        <li>「期待」層は<b>自分の言葉で書き直す</b>(本人との関係性を反映)</li>
+        <li>出力前に「これ、上長に質問されたら答えられるか?」を自問</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>気づきの言語化:</b> グループで「自分は今日からAI出力をどこまで信用するか」を1文で書き出して共有。
+  </div>
+</section>
+
+<!-- ========================= 30. DIVIDER M5 ========================= -->
+<section class="slide divider" data-toc="── M5 組織課題・育成">
+  <div class="mtag">MODULE 5</div>
+  <h1>組織課題の構造化と<br>人材育成プランニング</h1>
+  <p>チーム全体に視野を広げ、課題分解とメンバー育成計画をAIと一緒に作る(60分)</p>
+</section>
+
+<!-- ========================= 31. M5 issue tree ========================= -->
+<section class="slide" data-toc="M5 イシューツリー">
+  <h1 class="slide-h1"><span class="module-tag">M5</span>ハンズオン④-A : チーム課題のイシューツリー化</h1>
+  <p class="subtitle">所要25分 / 自分のチームで今いちばん気になっている課題を1つ持ち込む</p>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは戦略コンサル出身のシニアマネージャー。<span class="pp">MECEなロジックツリー</span>でチーム課題を構造化するのが得意です。
+
+<span class="pc"># 私のチームと課題</span>
+- チーム: <span class="pp">【例:法人営業チーム・10名・SMB中心】</span>
+- 課題(現象として観察されること): <span class="pp">【例:新規商談の質が下がっている。具体的には、商談化はしているが受注率が直近3ヶ月で40%→25%】</span>
+- これまで試したこと: <span class="pp">【例:ターゲット見直し、提案テンプレ刷新】</span>
+- やってないこと/制約: <span class="pp">【例:メンバー個別の同行は時間が取れていない】</span>
+
+<span class="pc"># 進め方</span>
+
+<span class="pn">STEP 1</span>: <span class="pp">「なぜ受注率が下がっているのか」</span>を MECE に <span class="pn">2階層</span>分解してください。
+  - 第1階層は<span class="pp">3〜5</span>カテゴリで(例:商談相手の質 / 商談プロセスの質 / クロージング力 など)
+  - 第2階層は各カテゴリの<span class="pp">具体的な仮説</span>を2〜3個ずつ
+  - 出力はインデント付きの箇条書きで
+
+<span class="pn">STEP 2</span>: 私が「最も筋が良さそう」と感じた枝(私が番号で答えます)について、
+  <span class="pp">それを検証するための問い・データ</span>を3つ提案してください。
+
+<span class="pn">STEP 3</span>: 検証の結果(私が文章で答えます)を踏まえ、
+  <span class="pp">来週から着手できる打ち手</span>を3つ、「効果の大きさ × 着手の容易さ」マトリクスで評価してください。
+
+<span class="pc"># 制約</span>
+- 私の前提を疑う仮説も必ず入れること(「そもそも目標設定が高すぎる可能性」など)
+- 一般論で終わらず、私の状況に即した具体性を出すこと
+</div>
+</section>
+
+<!-- ========================= 32. M5 skill map ========================= -->
+<section class="slide" data-toc="M5 スキルマップ・育成">
+  <h1 class="slide-h1"><span class="module-tag">M5</span>ハンズオン④-B : スキルマップと育成プラン</h1>
+  <p class="subtitle">所要20分 / メンバーは仮名で。職務だけ正確に。</p>
+
+  <h2 class="section">プロンプト</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは人材開発の専門家です。チーム単位のスキルマップと、個人別の育成プラン草案を作るのを手伝ってください。
+
+<span class="pc"># チーム構成(仮名化)</span>
+- 対象職種: <span class="pp">【例:法人営業】</span>
+- 期待される主要スキル: <span class="pp">【例:新規開拓 / ヒアリング / 提案設計 / クロージング / 案件管理 / 顧客深耕】</span>
+- メンバー一覧(仮名 / 等級 / 在籍年数 / 強み / 育成課題):
+  <span class="pp">A / 主任 / 3年 / 新規開拓◎ / クロージング△</span>
+  <span class="pp">B / 一般 / 2年 / 提案設計◎ / 新規開拓△</span>
+  <span class="pp">C / 主任 / 5年 / 顧客深耕◎ / 提案テンプレ依存</span>
+  <span class="pp">…(計10名)</span>
+
+<span class="pc"># 依頼</span>
+<span class="pn">STEP 1</span> 上記からチームの<span class="pp">スキルマップ</span>を表形式(列=メンバー、行=スキル、◎○△で記入)で出力
+<span class="pn">STEP 2</span> マップを見て、<span class="pp">チーム全体の弱点(穴)を2つ</span>指摘
+<span class="pn">STEP 3</span> 弱点を埋めるための<span class="pp">3つの打ち手</span>を提案
+   - 個人育成 / メンバー間の相互学習 / 採用 の組み合わせで
+<span class="pn">STEP 4</span> 私が「育成最優先」と指定したメンバー(私が仮名で答えます)について、
+   <span class="pp">3ヶ月の育成プラン</span>を出力
+   - 月次の到達目標 / アクション / メンタリングポイント / 振り返り指標
+</div>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>応用:</b>「<b>このプランで本人が達成できなかった場合の、別ルート</b>を3案考えて」と続けると、本人と一緒に納得感のあるプランが作れる。
+  </div>
+</section>
+
+<!-- ========================= 33. DIVIDER M6 ========================= -->
+<section class="slide divider" data-toc="── M6 活用宣言">
+  <div class="mtag">MODULE 6</div>
+  <h1>明日からの活用宣言</h1>
+  <p>研修で得たものを「自分の業務」と「チーム展開」に翻訳する(30分)</p>
+</section>
+
+<!-- ========================= 34. M6 declaration ========================= -->
+<section class="slide" data-toc="M6 個人活用宣言">
+  <h1 class="slide-h1"><span class="module-tag">M6</span>個人としての活用宣言</h1>
+  <p class="subtitle">所要15分 / ワークシートに記入 → 3名グループで共有</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>① 業務に組み込む3つの行動</h3>
+      <p style="font-size:13px;color:#5f6368;">いつ・どのツールで・何をAIに任せるかを具体的に書く。<br>例:「毎週月曜の朝、先週のMeetトランスクリプトからToDoを抽出する」</p>
+      <div class="checkbox">行動1:</div>
+      <div class="checkbox">行動2:</div>
+      <div class="checkbox">行動3:</div>
+    </div>
+    <div class="card">
+      <h3>② 手放さない3つの判断</h3>
+      <p style="font-size:13px;color:#5f6368;">これだけはAIに渡さず自分でやり続けることを明示。<br>例:「メンバーの厳しいフィードバックを伝える場面での言葉選び」</p>
+      <div class="checkbox">判断1:</div>
+      <div class="checkbox">判断2:</div>
+      <div class="checkbox">判断3:</div>
+    </div>
+  </div>
+
+  <h2 class="section">プロンプト(AIに宣言の壁打ちもしてもらう)</h2>
+  <div class="prompt"><span class="pc"># 役割</span>
+あなたは私の「実行コミットの壁打ち相手」。
+
+<span class="pc"># 私の宣言(下書き)</span>
+<span class="pp">【上記の3つの行動と3つの判断をここに貼る】</span>
+
+<span class="pc"># 依頼</span>
+<span class="pn">1.</span> この宣言は<span class="pp">3ヶ月後に実行されている状態</span>として、具体性が十分か診断してください(各項目に〇△×と理由)
+<span class="pn">2.</span> 続かなさそうな項目に対して、<span class="pp">「続けるための仕掛け」</span>を1つずつ提案してください(リマインダ・テンプレ化・他者との約束 など)
+<span class="pn">3.</span> 最後に、私が3ヶ月後に自己評価するための<span class="pp">3つのチェック質問</span>を作ってください
+</div>
+</section>
+
+<!-- ========================= 35. M6 team ========================= -->
+<section class="slide" data-toc="M6 チーム展開アイデア">
+  <h1 class="slide-h1"><span class="module-tag">M6</span>チーム10名への展開アイデア</h1>
+  <p class="subtitle">所要15分 / 自分が学んだことを、部下にどう伝染させるか</p>
+
+  <div class="grid-3">
+    <div class="card"><h3>L1 まず全員に渡すもの</h3>
+      <ul class="bul">
+        <li>「入れていい情報/ダメな情報」のチートシート1枚</li>
+        <li>議事録要約プロンプト(ハンズオン②-A)</li>
+        <li>メール下書きプロンプト(ハンズオン②-B)</li>
+      </ul>
+    </div>
+    <div class="card"><h3>L2 チーム運営に組み込むこと</h3>
+      <ul class="bul">
+        <li>Meetの自動文字起こしを「常時ON」に</li>
+        <li>週次ミーティングのアジェンダを Gems でテンプレ化</li>
+        <li>提案資料は「AI構成案→人間が肉付け」のフローを既定に</li>
+      </ul>
+    </div>
+    <div class="card"><h3>L3 自分のマネジメントに残すこと</h3>
+      <ul class="bul">
+        <li>1on1準備に専用Gemを作って固定運用</li>
+        <li>月次の1on1ログをAIに要約させ、メンバーの変化を可視化</li>
+        <li>四半期に1度「自分のフィードバックの偏り」をAIに分析させる</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="section">3ヶ月後のチェック(セルフ)</h2>
+  <ul class="bul">
+    <li>チームのうち <b>過半数</b> が、議事録要約をAIで回している</li>
+    <li>自分の1on1準備時間が、<b>研修前の70%以下</b> になっている</li>
+    <li>「AIに任せて失敗した」エピソードを <b>少なくとも1つ</b> チーム内で共有している(失敗を歓迎する文化づくり)</li>
+  </ul>
+</section>
+
+<!-- ========================= 36. APPENDIX prompt index ========================= -->
+<section class="slide divider" data-toc="── 巻末 運営資料">
+  <div class="mtag">APPENDIX</div>
+  <h1>運営資料</h1>
+  <p>講師ガイド / 受講者事前案内 / プロンプト一覧 / 想定Q&A</p>
+</section>
+
+<!-- ========================= 37. APPENDIX prompt index ========================= -->
+<section class="slide" data-toc="付録 プロンプト索引">
+  <h1 class="slide-h1">付録A : 収録プロンプト索引</h1>
+  <p class="subtitle">受講者は配布Doc(または本資料のスライドページ)からコピー&ペーストで使用。</p>
+  <table class="tt">
+    <thead><tr><th>#</th><th>モジュール</th><th>プロンプト名</th><th>用途</th><th>所要</th></tr></thead>
+    <tbody>
+      <tr><td>P-01</td><td>M2</td><td>3モード壁打ちプロンプト</td><td>業務課題の発散→構造化→批判</td><td>45分</td></tr>
+      <tr><td>P-02</td><td>M3</td><td>議事録 要約・タスク抽出</td><td>Docsトランスクリプトの整理</td><td>15分</td></tr>
+      <tr><td>P-03</td><td>M3</td><td>メール 3トーン下書き</td><td>言いにくいメールを3パターンで</td><td>15分</td></tr>
+      <tr><td>P-04</td><td>M3</td><td>経営会議向け提案 構成案</td><td>10分提案資料の骨子作り</td><td>20分</td></tr>
+      <tr><td>P-05</td><td>M4</td><td>1on1 準備アシスタント</td><td>論点・問い・伝言メモの作成</td><td>20分</td></tr>
+      <tr><td>P-06</td><td>M4</td><td>SBIフィードバック整形</td><td>粗いFBを3スクリプトに</td><td>15分</td></tr>
+      <tr><td>P-07</td><td>M4</td><td>評価コメント3層化</td><td>事実→評価→期待で起案</td><td>15分</td></tr>
+      <tr><td>P-08</td><td>M5</td><td>イシューツリー化</td><td>チーム課題のMECE分解</td><td>25分</td></tr>
+      <tr><td>P-09</td><td>M5</td><td>スキルマップ&育成プラン</td><td>チーム可視化と個別育成案</td><td>20分</td></tr>
+      <tr><td>P-10</td><td>M6</td><td>活用宣言 壁打ち</td><td>3ヶ月後の自分への約束</td><td>15分</td></tr>
+    </tbody>
+  </table>
+  <div class="callout good" style="margin-top:14px;">
+    <b>配布方法の推奨:</b> Google Docsに10本のプロンプトを並べたファイルを作成し、研修開始時にリンク共有(参加者は自分のドライブにコピー)。
+  </div>
+</section>
+
+<!-- ========================= 38. FACILITATOR GUIDE ========================= -->
+<section class="slide" data-toc="付録 講師ガイド">
+  <h1 class="slide-h1">付録B : 講師(ファシリテーター)ガイド</h1>
+  <p class="subtitle">運営者1名で20〜30名を回す前提。AIが「もう1人の講師」として並走するイメージ。</p>
+
+  <h2 class="section">事前準備チェックリスト</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>環境</h3>
+      <div class="checkbox">参加者全員のGoogleアカウントでGeminiが利用可能なことを確認</div>
+      <div class="checkbox">プロンプト集Docを共有(コメント可で配布、各自コピー)</div>
+      <div class="checkbox">ハンズオン題材(サンプル議事録テキスト)をDocs配布</div>
+      <div class="checkbox">M4の前に「実名NG・仮名でやる」を口頭で再強調</div>
+    </div>
+    <div class="card">
+      <h3>運営</h3>
+      <div class="checkbox">各ハンズオン開始時、最初の3分で全員が初期プロンプト送信できているか巡回</div>
+      <div class="checkbox">ハマっている人を発見したら「最後の出力の続きに○○と聞いてみて」と促す</div>
+      <div class="checkbox">節目で「印象的な出力が出た人?」と挙手で1〜2例を全体共有</div>
+      <div class="checkbox">M5終了時に「自分のGemを作りたい人」を確認し、希望者にM6で実演</div>
+    </div>
+  </div>
+
+  <h2 class="section">時間が押した時の優先度</h2>
+  <ol style="font-size:14px;padding-left:20px;">
+    <li><b>削っていい:</b> M3-C(提案資料) → M3-Bと類似スキルで代替可</li>
+    <li><b>絶対残す:</b> M4-A(1on1) → 本研修の核</li>
+    <li><b>圧縮可:</b> M5-Bのスキルマップ → 個人ワークではなく講師がデモ実演</li>
+    <li><b>必ず残す:</b> M6 → 持ち帰り行動を言語化しないと研修の効果が消える</li>
+  </ol>
+</section>
+
+<!-- ========================= 39. PARTICIPANT GUIDE ========================= -->
+<section class="slide" data-toc="付録 受講者事前案内">
+  <h1 class="slide-h1">付録C : 受講者向け事前案内</h1>
+  <p class="subtitle">研修3〜5日前に配布想定。「持ち物」「心構え」「事前ワーク」をシンプルに。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>持ち物・準備</h3>
+      <ul class="bul">
+        <li>ノートPC(Google Chrome推奨)</li>
+        <li>会社のGoogleアカウントでログイン済み</li>
+        <li>事前にGemini(gemini.google.com)に1度ログインしておく</li>
+        <li>イヤホン(必要に応じて音声入力テスト用)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>事前ワーク(任意)</h3>
+      <ul class="bul">
+        <li>来週の1on1相手1名を頭に浮かべておく(M4で使う)</li>
+        <li>自分のチームで今いちばん気になっている課題を1つメモ(M5で使う)</li>
+        <li>直近1週間のMeetの録画 or 議事録テキストを1本用意(M3で使うと自分ごとになる)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="section">心構え</h2>
+  <div class="card">
+    <ul class="bul">
+      <li>「使えなさそう」と感じても <b>3往復は会話を続ける</b> こと。1発目では真価が出ないのがLLM</li>
+      <li>機密情報・実名は <b>入れない</b>。仮名と抽象化で十分な学びは得られる</li>
+      <li>AIの出力に <b>違和感があれば必ず言葉にして残す</b>。それが「人が判断すべき領域」の発見になる</li>
+      <li>ハンズオンは「正解を出す場」ではなく「<b>自分の使い方を作る場</b>」</li>
+    </ul>
+  </div>
+
+  <div class="callout good" style="margin-top:14px;">
+    <b>受講後のフォロー:</b> 研修30日後と90日後に「活用宣言の達成度」セルフチェックリンクを配信予定。
+  </div>
+</section>
+
+<!-- ========================= 40. FAQ ========================= -->
+<section class="slide" data-toc="付録 想定Q&A">
+  <h1 class="slide-h1">付録D : 想定 Q&A</h1>
+  <p class="subtitle">受講者からよく出る疑問への、講師の回答テンプレ。</p>
+
+  <table class="tt">
+    <thead><tr><th style="width:30%">質問</th><th>回答の方向性</th></tr></thead>
+    <tbody>
+      <tr><td>機密情報を入れて大丈夫ですか?</td><td>会社契約のGeminiは学習に使われない設定だが、4分類のガイドライン(M1)で判断。個人情報・実名・人事情報は原則NG、仮名化を徹底。</td></tr>
+      <tr><td>AIが間違ったらどう責任を取るのか?</td><td>AIは「下書き工場」。最終責任は出力を使った人にある。だからこそ「事実と解釈の分離」「複数生成」「反証要求」の3原則を仕組み化する。</td></tr>
+      <tr><td>同じプロンプトでも毎回違う答えが出ます</td><td>確率モデルだから当然(M1で扱う)。重要な判断は3回生成して、安定している部分=信頼度高、揺れる部分=要検証 と捉える。</td></tr>
+      <tr><td>1on1まで任せたら、自分が要らなくなりませんか?</td><td>任せているのは「準備」と「整形」だけ。<b>対話そのものと最終判断</b>は人がやる。むしろ準備が楽になることで、対話の質に集中できる。</td></tr>
+      <tr><td>うちのチームメンバーは興味ない人が多い…</td><td>強制せず、まず「議事録要約」だけ全員に渡す。生産性向上を体感したメンバーが自然に他の使い方を広げる。マネージャーが見える形で使うのが最大のメッセージ。</td></tr>
+      <tr><td>Geminiでなく ChatGPT を使いたい人がいます</td><td>本研修はGemini前提だが、プロンプトは他LLMでも基本動作する。個人契約のChatGPTには会社情報を入れない、を徹底。</td></tr>
+      <tr><td>研修後、定着させるには?</td><td>(1) プロンプト集を社内ナレッジ化 (2) 月次の「AI活用事例LT」(失敗例歓迎) (3) 90日後にセルフチェック (4) マネージャーが部下に「これAIに聞いてみた?」を口癖に</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========================= 41. CLOSING ========================= -->
+<section class="slide title" data-toc="クロージング">
+  <div style="margin-top:auto"></div>
+  <div style="font-size:13px;color:#9ec0ff;letter-spacing:4px;margin-bottom:18px;">END OF CURRICULUM</div>
+  <h1>AIは「もう1人の<br>マネジメント参謀」</h1>
+  <h2>研修で得た型を、明日の1on1から使い始めてください</h2>
+  <div class="meta" style="margin-top:auto;">
+    <span>キーボード:<b>←/→</b> でページ送り、<b>←</b>で戻る</span>
+    <span>左上の <b>≡ 目次</b> から任意のページにジャンプできます</span>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)" title="前へ (←)">‹</button>
+  <span class="counter" id="counter">1 / 1</span>
+  <button onclick="go(1)" title="次へ (→)">›</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const counter = document.getElementById('counter');
+const tocList = document.getElementById('tocList');
+let cur = 0;
+
+// build TOC
+slides.forEach((s,i)=>{
+  const label = s.dataset.toc || `Slide ${i+1}`;
+  const li = document.createElement('li');
+  if(label.startsWith('──')){
+    li.className = 'sec';
+    li.innerHTML = `<span class="n"></span>${label.replace('──','').trim()}`;
+  } else {
+    li.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span>${label}`;
+  }
+  li.onclick = ()=>{ show(i); document.getElementById('toc').classList.remove('show'); };
+  tocList.appendChild(li);
+});
+
+function show(n){
+  if(n<0) n=0;
+  if(n>=slides.length) n=slides.length-1;
+  slides[cur].classList.remove('active');
+  cur=n;
+  slides[cur].classList.add('active');
+  slides[cur].scrollTop = 0;
+  counter.textContent = `${cur+1} / ${slides.length}`;
+  history.replaceState(null,'',`#p${cur+1}`);
+}
+function go(d){ show(cur+d); }
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') { e.preventDefault(); go(1); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp') { e.preventDefault(); go(-1); }
+  else if(e.key==='Home') show(0);
+  else if(e.key==='End') show(slides.length-1);
+  else if(e.key==='Escape') document.getElementById('toc').classList.remove('show');
+});
+
+// hash jump
+const m = location.hash.match(/^#p(\d+)$/);
+if(m){ const n = parseInt(m[1],10)-1; if(n>=0 && n<slides.length){ slides[0].classList.remove('active'); slides[n].classList.add('active'); cur=n; } }
+counter.textContent = `${cur+1} / ${slides.length}`;
+</script>
+
+</body>
+</html>
