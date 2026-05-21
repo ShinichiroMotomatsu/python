@@ -47,6 +47,7 @@ button:disabled{opacity:.4;cursor:not-allowed;}
 .tag.B{background:#e6f4ea;color:#137333;}
 .tag.C{background:#fce8e6;color:#a50e0e;}
 .tag.D{background:#fef7e0;color:#b06000;}
+.tag.E{background:#ede7f6;color:#5e35b1;}
 .q-text{font-size:15px;line-height:1.85;margin:8px 0 14px;}
 .q-text .blank{background:#fffbe6;border-bottom:2px solid #fbbc04;padding:0 4px;font-weight:600;}
 .options{display:flex;flex-direction:column;gap:8px;}
@@ -54,7 +55,10 @@ button:disabled{opacity:.4;cursor:not-allowed;}
 .option:hover{border-color:var(--c-primary);background:#f8fafc;}
 .option.selected{border-color:var(--c-primary);background:#e8f0fe;box-shadow:inset 0 0 0 1px var(--c-primary);}
 .option .idx{font-weight:700;color:var(--c-primary);font-family:'JetBrains Mono',monospace;margin-right:4px;min-width:18px;}
-.option input[type=radio]{display:none;}
+.option input[type=radio],.option input[type=checkbox]{display:none;}
+.option .check{display:inline-block;width:18px;height:18px;border:2px solid var(--c-line);border-radius:4px;margin-right:8px;flex-shrink:0;position:relative;background:#fff;}
+.option.selected .check{background:var(--c-primary);border-color:var(--c-primary);}
+.option.selected .check::after{content:"✓";color:#fff;position:absolute;top:-3px;left:2px;font-size:14px;font-weight:bold;}
 .callout{border-left:4px solid var(--c-warn);background:#fffbe6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px;margin:10px 0;}
 .callout.good{border-color:var(--c-accent);background:#e6f4ea;}
 .callout.danger{border-color:var(--c-danger);background:#fdecea;}
@@ -103,9 +107,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>60分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全24問 / セクションA〜D / 132点満点</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 85/132 点(64%)以上</b> かつ <b>セクションD ≧ 45/75 点</b></td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>70分</b>(時間切れで自動提出)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全29問 / セクションA〜E / 152点満点</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 98/152 点(64%)以上</b> かつ <b>セクションD ≧ 45/75 点</b></td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
@@ -136,6 +140,13 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
         <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span>
       </div>
     </div>
+    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;grid-column:span 2;background:#faf7ff;">
+      <span class="tag E">Section E</span> <b>複数選択(該当をすべて選べ)</b> · 5問 · 20点
+      <div class="skill-pills" style="margin-top:8px;">
+        <span>情報セキュリティ判断</span><span>ハルシネーション対策の実践</span><span>プロンプト5要素の網羅</span><span>NotebookLM 適合業務の見極め</span><span>1on1への正しいAI活用</span>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--c-danger);"><b>採点ルール:</b> 各問とも正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば0点(部分点なし)。</div>
+    </div>
   </div>
 
   <h2>受験者情報・提出先</h2>
@@ -164,7 +175,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <span>セクション <b id="qSection">A</b></span>
     </div>
     <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div class="timer" id="timer">60:00</div>
+    <div class="timer" id="timer">70:00</div>
   </div>
 
   <div id="questionContainer"></div>
@@ -196,11 +207,12 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
 
-    <div class="kpi">
+    <div class="kpi" style="grid-template-columns:repeat(5,1fr);">
       <div class="b"><div class="v" id="scoreA">0/12</div><div class="l">A. L1 基礎理解</div></div>
       <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
-      <div class="b"><div class="v">—/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
+      <div class="b"><div class="v" id="scoreE">0/20</div><div class="l">E. 複数選択</div></div>
+      <div class="b"><div class="v" id="scoreD">—/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
     </div>
 
     <h2>スキル別到達度</h2>
@@ -1003,13 +1015,133 @@ const BANK_D = [
   },
 ];
 
+// -------------------- SECTION E: 複数選択(該当をすべて選べ) (5問 × 4点 = 20点) --------------------
+// 採点: 過不足ゼロのときのみ満点。1つでも誤りがあれば0点(strict)。
+const BANK_E = [
+  // E1: 情報セキュリティ — Gemini に入力してよいものを全て選ぶ
+  {
+    id:'E1', section:'E', skill:'情報セキュリティの境界(複数選択)', points:4, multiSelect:true,
+    build: ()=> {
+      const pool = [
+        { t:'すでに公開済みのプレスリリースのドラフト(修正要望のため再推敲したい)', c:true },
+        { t:'部下の評価コメント素案(メンバー名は「メンバーA・主任・営業3年目」に仮名化済み、KPIと観察行動のみ含む)', c:true },
+        { t:'今しがた終わった社内週次定例の Meet 文字起こし(参加者の発言・社内固有名詞を含むが、社外秘情報・人事評価情報は含まない)', c:true },
+        { t:'未締結のNDAに基づき取引先から共有された、相手企業の未発表ロードマップを含む資料', c:false },
+        { t:'部下10名の実名・等級・人事評価点・健康面の不調有無を表形式でまとめた人事データ', c:false },
+        { t:'採用候補者の履歴書PDF(氏名・大学名・前職企業名を含む)', c:false },
+        { t:'来週発表予定で社内法務レビュー前の、M&A対象企業名を含むプレスリリース原文', c:false },
+        { t:'自分宛ての社内メール(取引先固有情報や人事情報は含まない)の要約依頼', c:true },
+      ];
+      const sel = pickN(pool, 6);
+      const opts = shuffle(sel);
+      return {
+        prompt: '会社契約の Google Workspace(Gemini Pro 含む。社内利用の入力は学習に使われない設定)の業務利用において、Gemini に入力してよいものを次の中から<b>すべて選びなさい</b>。',
+        options: opts.map(o=>o.t),
+        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+      };
+    }
+  },
+  // E2: ハルシネーション対策として有効な行動
+  {
+    id:'E2', section:'E', skill:'ハルシネーション対策の実践(複数選択)', points:4, multiSelect:true,
+    build: ()=> {
+      const pool = [
+        { t:'回答に含まれる固有名詞・数値を、一次情報源(公式IR・公式サイト・原典)で裏取りしてから引用する', c:true },
+        { t:'同じ問いをプロンプト表現を変えて複数回投げ、安定して出てくる結論と揺れる結論を切り分ける', c:true },
+        { t:'「この出力に対する最も鋭い反論を3つ」と続けて出させ、反論で崩れない部分のみを採用候補とする', c:true },
+        { t:'AI出力で「事実」と「解釈・推測」を分けて記述させ(例:[F]/[I]タグ)、人がそれぞれを別に検証する', c:true },
+        { t:'AIに「この回答の確信度をパーセンテージで出して」と聞き、80%以上の項目だけを採用する', c:false },
+        { t:'AIに「出典URLを併記して」と頼み、URLが返ってきたものを信頼できる出力とみなす', c:false },
+        { t:'別のLLMサービスにも同じ質問を投げ、両者の回答が一致したら相互検証ができたものとして採用する', c:false },
+        { t:'回答に詳細な数値・日付・固有名詞が多く含まれていれば、AIが内部で検証した結果と判断してよい', c:false },
+      ];
+      const sel = pickN(pool, 6);
+      const opts = shuffle(sel);
+      return {
+        prompt: 'AIのハルシネーション(事実と異なる「もっともらしい出力」)への対策として<b>有効な行動をすべて選びなさい</b>。',
+        options: opts.map(o=>o.t),
+        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+      };
+    }
+  },
+  // E3: 良いプロンプトに含めるべき要素
+  {
+    id:'E3', section:'E', skill:'プロンプト5要素の網羅(複数選択)', points:4, multiSelect:true,
+    build: ()=> {
+      const pool = [
+        { t:'AIに与える「役割」の指定(例:法人営業マネージャーとして / 戦略コンサル出身として)', c:true },
+        { t:'依頼の「背景・前提情報」(自社の状況・関係者・過去の経緯)', c:true },
+        { t:'具体的な「依頼内容」(何を、いくつ、どの粒度で出してほしいか)', c:true },
+        { t:'「制約条件」(禁止事項・観点・分量・トーンの指定)', c:true },
+        { t:'「出力形式」の指定(マークダウン表/箇条書き/見出し構成 等)', c:true },
+        { t:'AIへの褒め言葉(「あなたは優秀な」「業界トップの」等の修飾)', c:false },
+        { t:'AIに自信を持たせるための「不確実なことも断定的に書いて」という指示', c:false },
+        { t:'AIに気を遣わせる「お時間あるときに無理なくお願いします」のような丁寧な前置き', c:false },
+      ];
+      const sel = pickN(pool, 6);
+      const opts = shuffle(sel);
+      return {
+        prompt: '業務向けの良いプロンプトに<b>必ず含めるべき要素をすべて選びなさい</b>。',
+        options: opts.map(o=>o.t),
+        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+      };
+    }
+  },
+  // E4: NotebookLM が向く業務
+  {
+    id:'E4', section:'E', skill:'NotebookLM 適合業務の判断(複数選択)', points:4, multiSelect:true,
+    build: ()=> {
+      const pool = [
+        { t:'競合5社の機能リリースノートPDF・URL計15ソースを束ねて、自社の劣後/優位領域を出典付きで整理する', c:true },
+        { t:'過去2年分の主要顧客との議事録30本から、懸念事項の変遷と未解決論点を出典付きで時系列整理する', c:true },
+        { t:'前任部長が残した経営会議資料15本を、新任部長への引き継ぎのため「過去の意思決定とその根拠」として出典付きで整理する', c:true },
+        { t:'業界アナリストレポート8本と自社の過去取締役会資料5本を束ね、市場の構造変化と自社ポジショニングを出典付きで整理する', c:true },
+        { t:'来週の経営会議で説明する3枚の提案スライドを、自分の頭にあるストーリーから一から起案する', c:false },
+        { t:'取引先役員に送るお詫びと再提案を兼ねた1通のメールを、3パターンのトーンで下書きする', c:false },
+        { t:'部下の評価コメントを「事実→評価→期待」の3層構造に整形し、表現の偏りをチェックする', c:false },
+        { t:'1on1で深掘りするための開いた問いを、メンバー像と直近の状況を伝えて5つ生成させる', c:false },
+      ];
+      const sel = pickN(pool, 6);
+      const opts = shuffle(sel);
+      return {
+        prompt: 'Gemini の単発対話よりも <b>NotebookLM の方が明らかに適している業務</b>をすべて選びなさい。',
+        options: opts.map(o=>o.t),
+        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+      };
+    }
+  },
+  // E5: 1on1へのAI活用 — 適切な姿勢
+  {
+    id:'E5', section:'E', skill:'1on1への適切なAI活用(複数選択)', points:4, multiSelect:true,
+    build: ()=> {
+      const pool = [
+        { t:'メンバーを仮名化(例:メンバーA・入社3年目・主任)し、強み・課題・直近の兆候を伝えて、論点5つを出させる', c:true },
+        { t:'メンバーが「自分で考え始める」開いた問いを3〜5個出させる(Yes/Noで終わる質問・誘導尋問は禁止と指示する)', c:true },
+        { t:'AI出力を踏まえつつ、当日メンバーに伝えるメッセージは1つに絞って自分で決める', c:true },
+        { t:'前回1on1のメモを仮名化したうえで Gemini に渡し、今回扱うべきフォローアップ論点を整理させる', c:true },
+        { t:'メンバーの実名・人事評価点・健康面の懸念・過去の問題行動を Gemini に渡し、対応スクリプトを生成させる', c:false },
+        { t:'AIが生成した「想定される対話の全文(マネージャー側・本人側双方の発言)」を当日台本としてそのまま読み上げる', c:false },
+        { t:'Gemini に「本人を泣かせる質問」「本音を強引に引き出す尋問形式の問い」を生成させ、当日鋭く詰める', c:false },
+        { t:'AIが「最も適切」と判定したフィードバック文をそのまま暗記し、本人の様子を見ずに伝える', c:false },
+      ];
+      const sel = pickN(pool, 6);
+      const opts = shuffle(sel);
+      return {
+        prompt: '1on1への AI 活用として <b>適切な姿勢をすべて選びなさい</b>。',
+        options: opts.map(o=>o.t),
+        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+      };
+    }
+  },
+];
+
 // ========================================================================
 // STATE
 // ========================================================================
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-let timerSec = 60*60;
+let timerSec = 70*60;
 let timerHandle = null;
 let startedAt = null;
 let examinee = {name:'',role:'',evaluatorEmail:'',email:''};
@@ -1037,11 +1169,12 @@ function startTest(){
   BANK_A.forEach(it=> TEST.push({...it, ...it.build()}));
   BANK_B.forEach(it=> TEST.push({...it, ...it.build()}));
   BANK_C.forEach(it=> TEST.push({...it, ...it.build()}));
+  BANK_E.forEach(it=> TEST.push({...it, ...it.build()}));
   BANK_D.forEach(it=> TEST.push({...it, ...it.build()}));
   answers = {};
   curIdx = 0;
   startedAt = new Date();
-  timerSec = 60*60;
+  timerSec = 70*60;
   document.getElementById('qTotal').textContent = TEST.length;
   document.getElementById('screen-start').classList.add('hide');
   document.getElementById('screen-test').classList.remove('hide');
@@ -1089,9 +1222,18 @@ function renderQ(){
 
   const qText = document.createElement('div');
   qText.className = 'q-text';
-  qText.style.whiteSpace = 'pre-wrap';
-  qText.textContent = q.prompt;
+  // allow <b> tags but escape everything else, then preserve newlines as <br>
+  qText.innerHTML = escapeHtml(q.prompt).replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>').replace(/\n/g,'<br>');
   card.appendChild(qText);
+
+  if(q.multiSelect){
+    const hint = document.createElement('div');
+    hint.className = 'callout';
+    hint.style.borderColor = '#5e35b1';
+    hint.style.background = '#ede7f6';
+    hint.innerHTML = `<b>複数選択 — 該当する選択肢を<u>すべて</u>選んでください。</b> 過不足があると0点になります(部分点なし)。`;
+    card.appendChild(hint);
+  }
 
   if(q.free){
     // free response
@@ -1107,13 +1249,31 @@ function renderQ(){
       rb.innerHTML = '<b>評価観点(参考):</b><br>' + q.rubric.map(r=>'・'+r).join('<br>');
       card.appendChild(rb);
     }
+  } else if(q.multiSelect){
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    const selectedSet = new Set(Array.isArray(answers[curIdx])?answers[curIdx]:[]);
+    q.options.forEach((t,i)=>{
+      const o = document.createElement('label');
+      o.className = 'option' + (selectedSet.has(i)?' selected':'');
+      o.innerHTML = `<span class="check"></span><span class="idx">${String.fromCharCode(65+i)}</span><span>${escapeHtml(t)}</span>`;
+      o.onclick = (e)=>{
+        e.preventDefault();
+        const cur = new Set(Array.isArray(answers[curIdx])?answers[curIdx]:[]);
+        if(cur.has(i)) cur.delete(i); else cur.add(i);
+        answers[curIdx] = [...cur].sort((a,b)=>a-b);
+        renderQ();
+      };
+      opts.appendChild(o);
+    });
+    card.appendChild(opts);
   } else {
     const opts = document.createElement('div');
     opts.className = 'options';
     q.options.forEach((t,i)=>{
       const o = document.createElement('label');
       o.className = 'option' + (answers[curIdx]===i?' selected':'');
-      o.innerHTML = `<span class="idx">${String.fromCharCode(65+i)}</span><span>${t}</span>`;
+      o.innerHTML = `<span class="idx">${String.fromCharCode(65+i)}</span><span>${escapeHtml(t)}</span>`;
       o.onclick = ()=>{ answers[curIdx]=i; renderQ(); };
       opts.appendChild(o);
     });
@@ -1126,11 +1286,14 @@ function renderQ(){
   updateNav();
 }
 
+function isAnswered(a){
+  if(a===undefined || a===null || a==='') return false;
+  if(Array.isArray(a)) return a.length>0;
+  return true;
+}
+
 function updateNav(){
-  const answered = TEST.filter((_,i)=>{
-    const a = answers[i];
-    return a!==undefined && a!==null && a!=='';
-  }).length;
+  const answered = TEST.filter((_,i)=>isAnswered(answers[i])).length;
   document.getElementById('answerStatus').textContent = `回答済 ${answered}/${TEST.length}`;
 }
 
@@ -1138,7 +1301,7 @@ function prevQ(){ if(curIdx>0){ curIdx--; renderQ(); window.scrollTo(0,0); } }
 function nextQ(){
   if(curIdx<TEST.length-1){ curIdx++; renderQ(); window.scrollTo(0,0); }
   else {
-    const unanswered = TEST.filter((_,i)=>{const a=answers[i];return a===undefined||a===null||a==='';}).length;
+    const unanswered = TEST.filter((_,i)=>!isAnswered(answers[i])).length;
     if(unanswered>0 && !confirm(`未回答が ${unanswered} 問あります。このまま提出しますか?`)) return;
     submitTest();
   }
@@ -1164,7 +1327,7 @@ function showResult(elapsedSec){
   const m=Math.floor(elapsedSec/60), s=elapsedSec%60;
   document.getElementById('resultTime').textContent = `所要 ${m}分${String(s).padStart(2,'0')}秒 / 受験日時 ${startedAt.toLocaleString('ja-JP')}`;
 
-  const sec = {A:{got:0,max:0},B:{got:0,max:0},C:{got:0,max:0},D:{got:0,max:0}};
+  const sec = {A:{got:0,max:0},B:{got:0,max:0},C:{got:0,max:0},D:{got:0,max:0},E:{got:0,max:0}};
   const perSkill = {};
   const fbItems = [];
 
@@ -1172,7 +1335,20 @@ function showResult(elapsedSec){
     sec[q.section].max += q.points;
     if(q.section==='D') return;
     const ans = answers[i];
-    const correct = ans===q.correctIndex;
+    let correct = false;
+    let yourAnsText = '(未回答)';
+    let correctAnsText = '';
+    if(q.multiSelect){
+      const userSet = new Set(Array.isArray(ans)?ans:[]);
+      const correctSet = new Set(q.correctIndices);
+      correct = userSet.size===correctSet.size && [...userSet].every(x=>correctSet.has(x));
+      yourAnsText = userSet.size>0 ? [...userSet].sort((a,b)=>a-b).map(x=>`${String.fromCharCode(65+x)}. ${q.options[x]}`).join(' / ') : '(未回答)';
+      correctAnsText = [...correctSet].sort((a,b)=>a-b).map(x=>`${String.fromCharCode(65+x)}. ${q.options[x]}`).join(' / ');
+    } else {
+      correct = ans===q.correctIndex;
+      yourAnsText = ans!==undefined? `${String.fromCharCode(65+ans)}. ${q.options[ans]}` : '(未回答)';
+      correctAnsText = `${String.fromCharCode(65+q.correctIndex)}. ${q.options[q.correctIndex]}`;
+    }
     const got = correct? q.points : 0;
     sec[q.section].got += got;
     perSkill[q.skill] = perSkill[q.skill] || {got:0,max:0};
@@ -1182,14 +1358,14 @@ function showResult(elapsedSec){
       fbItems.push({
         section:q.section, idx:i+1, skill:q.skill,
         prompt:q.prompt,
-        yourAns: ans!==undefined? q.options[ans] : '(未回答)',
-        correctAns: q.options[q.correctIndex],
+        yourAns: yourAnsText,
+        correctAns: correctAnsText,
       });
     }
   });
 
-  const totalAuto = sec.A.got + sec.B.got + sec.C.got;
-  const maxAuto = sec.A.max + sec.B.max + sec.C.max;
+  const totalAuto = sec.A.got + sec.B.got + sec.C.got + sec.E.got;
+  const maxAuto = sec.A.max + sec.B.max + sec.C.max + sec.E.max;
   const maxAll = maxAuto + sec.D.max;
   const passThreshold = Math.ceil(maxAll * 0.64); // 全体64%以上で合格
   const dMinThreshold = Math.ceil(sec.D.max * 0.5); // セクションD最低5割
@@ -1198,8 +1374,8 @@ function showResult(elapsedSec){
   document.getElementById('scoreA').textContent = `${sec.A.got}/${sec.A.max}`;
   document.getElementById('scoreB').textContent = `${sec.B.got}/${sec.B.max}`;
   document.getElementById('scoreC').textContent = `${sec.C.got}/${sec.C.max}`;
-  const dCell = document.querySelector('#screen-result .kpi .b:nth-child(4) .v');
-  if(dCell) dCell.textContent = `—/${sec.D.max}`;
+  document.getElementById('scoreE').textContent = `${sec.E.got}/${sec.E.max}`;
+  document.getElementById('scoreD').textContent = `—/${sec.D.max}`;
 
   // verdict: 必要なDスコア = passThreshold - totalAuto
   const dNeeded = Math.max(0, passThreshold - totalAuto);
@@ -1390,10 +1566,11 @@ function buildEmailBody(){
     `受験日時: ${startedAt.toLocaleString('ja-JP')}`,
     `所要時間: ${m}分${String(s).padStart(2,'0')}秒`,
     '',
-    '【自動採点結果(セクションA〜C)】',
+    '【自動採点結果(セクションA・B・C・E)】',
     `セクションA (L1 基礎理解)       : ${r.sec.A.got}/${r.sec.A.max}`,
     `セクションB (L2 業務活用判断)   : ${r.sec.B.got}/${r.sec.B.max}`,
     `セクションC (L3 マネジメント応用): ${r.sec.C.got}/${r.sec.C.max}`,
+    `セクションE (複数選択)          : ${r.sec.E.got}/${r.sec.E.max}`,
     `─────────────────────────`,
     `自動採点 小計                    : ${r.totalAuto}/${r.maxAuto}`,
     `セクションD (プロンプト記述)    : AI評価未実施 (満点 ${r.sec.D.max})`,
@@ -1434,11 +1611,12 @@ function buildResultsText(){
   lines.push('--------------------------------------------------------');
   lines.push('セクション別 自動採点結果');
   lines.push('--------------------------------------------------------');
-  lines.push(`A. L1 基礎理解        : ${r.sec.A.got}/${r.sec.A.max}`);
-  lines.push(`B. L2 業務活用判断    : ${r.sec.B.got}/${r.sec.B.max}`);
+  lines.push(`A. L1 基礎理解         : ${r.sec.A.got}/${r.sec.A.max}`);
+  lines.push(`B. L2 業務活用判断     : ${r.sec.B.got}/${r.sec.B.max}`);
   lines.push(`C. L3 マネジメント応用 : ${r.sec.C.got}/${r.sec.C.max}`);
-  lines.push(`自動採点 小計          : ${r.totalAuto}/${r.maxAuto}`);
-  lines.push(`D. プロンプト記述      : AI評価未実施 (満点 ${r.sec.D.max})`);
+  lines.push(`E. 複数選択           : ${r.sec.E.got}/${r.sec.E.max}`);
+  lines.push(`自動採点 小計           : ${r.totalAuto}/${r.maxAuto}`);
+  lines.push(`D. プロンプト記述       : AI評価未実施 (満点 ${r.sec.D.max})`);
   lines.push('');
   lines.push(`合格基準: 総合 ${r.passThreshold}/${r.maxAll} 点 (64%) 以上 かつ セクションD ≧ ${r.dMinThreshold}/${r.sec.D.max} 点`);
   lines.push(`現状: ${r.verdictText}`);
@@ -1452,20 +1630,35 @@ function buildResultsText(){
   });
   lines.push('');
   lines.push('--------------------------------------------------------');
-  lines.push('セクションA〜C 全設問の詳細');
+  lines.push('セクションA・B・C・E 全設問の詳細');
   lines.push('--------------------------------------------------------');
   TEST.forEach((q,i)=>{
     if(q.section==='D') return;
     const ans = answers[i];
-    const isCorrect = ans===q.correctIndex;
+    let isCorrect;
+    let correctSet, userSet;
+    if(q.multiSelect){
+      userSet = new Set(Array.isArray(ans)?ans:[]);
+      correctSet = new Set(q.correctIndices);
+      isCorrect = userSet.size===correctSet.size && [...userSet].every(x=>correctSet.has(x));
+    } else {
+      isCorrect = ans===q.correctIndex;
+    }
     lines.push('');
-    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点 / ${isCorrect?'○ 正答':'× 誤答'}`);
-    lines.push(`問題: ${q.prompt.replace(/\n/g,'\n      ')}`);
+    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点 / ${isCorrect?'○ 正答':'× 誤答'}${q.multiSelect?' (複数選択・strict採点)':''}`);
+    lines.push(`問題: ${q.prompt.replace(/<\/?b>/g,'').replace(/\n/g,'\n      ')}`);
     q.options.forEach((o,j)=>{
-      const mark = j===q.correctIndex? '★正解': (j===ans? '← 受験者の回答':'');
+      let mark = '';
+      if(q.multiSelect){
+        const correctMark = correctSet.has(j) ? '★正解' : '';
+        const userMark = userSet.has(j) ? '← 選択' : '';
+        mark = [correctMark, userMark].filter(Boolean).join(' / ');
+      } else {
+        mark = j===q.correctIndex? '★正解': (j===ans? '← 受験者の回答':'');
+      }
       lines.push(`  ${String.fromCharCode(65+j)}. ${o}  ${mark}`);
     });
-    if(ans===undefined) lines.push('  (未回答)');
+    if(!isAnswered(ans)) lines.push('  (未回答)');
   });
   lines.push('');
   lines.push('--------------------------------------------------------');
