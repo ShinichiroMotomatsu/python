@@ -107,9 +107,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>70分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全24問 / セクションA〜D / 132点満点(<b>選択問題はすべて複数選択・strict採点</b>)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 85/132 点(64%)以上</b> かつ <b>セクションD ≧ 38/75 点</b></td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>80分</b>(時間切れで自動提出)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全25問 / セクションA〜D / 147点満点(<b>選択問題はすべて複数選択・strict採点</b>)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 95/147 点(64%)以上</b> かつ <b>セクションD ≧ 45/90 点</b></td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
@@ -135,9 +135,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 5問 · 75点
+      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 6問 · 90点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span>
+        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span><span>顧客ヒアリング→ Slides 提案</span>
       </div>
     </div>
   </div>
@@ -171,7 +171,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <span>セクション <b id="qSection">A</b></span>
     </div>
     <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div class="timer" id="timer">70:00</div>
+    <div class="timer" id="timer">80:00</div>
   </div>
 
   <div id="questionContainer"></div>
@@ -207,7 +207,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <div class="b"><div class="v" id="scoreA">0/12</div><div class="l">A. L1 基礎理解</div></div>
       <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
-      <div class="b"><div class="v" id="scoreD">—/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
+      <div class="b"><div class="v" id="scoreD">—/90</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
     </div>
 
     <h2>スキル別到達度</h2>
@@ -811,6 +811,106 @@ const BANK_D = [
       };
     }
   },
+
+  // D6: 顧客ヒアリングを踏まえ、導入障壁を先回り解消する Google Slides 提案
+  {
+    id:'D6', section:'D', skill:'顧客ヒアリングからの障壁先回り Slides 提案', points:15,
+    build: ()=> {
+      const scenarios = [
+        {
+          title:'製造業X社向け プロジェクト管理SaaSの本提案',
+          ctx:`あなたは法人向けプロジェクト管理SaaSの営業マネージャー。昨日、見込み顧客X社(従業員300名・製造業)のキーパーソン3名(IT部長・現場部長・経営企画部長)に対する1.5時間のヒアリングを実施した。
+
+【ポジティブシグナル】
+- 現場の業務効率向上ニーズは強い(現状は Excel + Slack で属人化)
+- 来期に向けた業務改革のテーマとして経営層も認識
+- 競合製品との比較検討は始まったところ
+
+【顧客側の導入障壁(ヒアリングで明示)】
+1. IT部長:既存基幹システム(Salesforce + 社内開発の生産管理)との連携が不明で、新たな"サイロ"を増やすことを懸念
+2. 現場部長:40-50代メンバーは過去のツール導入で挫折経験があり、「また使われない高い箱物」になる懸念を強く表明
+3. 経営企画部長:1年以内の ROI 根拠が経営会議で説明できないと予算承認が下りない。3年契約は本音では避けたい
+4. 全員:競合B社を引き合いに「同業他社で先行している」と発言、当社プロダクトの差別化が伝わっていない
+
+【手元の素材】
+- ヒアリングの文字起こし(Google Meet録画 → Docs)
+- 自社の標準提案デック(20スライド・汎用版)
+- 競合B社の公開資料
+- 自社の他社事例3件(同業の製造業事例は1件)
+
+【提案の場】
+- 1週間後にX社オフィスで 45分プレゼン + 15分質疑
+- 出席者:上記3名 + CFO(初顔合わせ・最終決裁者)
+- 目的:PoC(2ヶ月・5名規模)への合意を得ること`
+        },
+        {
+          title:'地方銀行Y社向け セキュリティSaaSの本提案',
+          ctx:`あなたは情報セキュリティSaaS(脅威検知プラットフォーム)の営業マネージャー。先週、地方銀行Y社(従業員500名)の CISO・情シス課長・経営企画担当役員 の3名と2時間の本格ヒアリングを実施した。
+
+【ポジティブシグナル】
+- 直近の業界規制強化により、年内のセキュリティ強化が経営課題
+- 既存の境界型防御は限界と CISO 自身が認識
+- 競合検討は始まったばかり
+
+【顧客側の導入障壁(明示された懸念)】
+1. CISO:金融業特有のコンプライアンス監査(FISC等)対応の証跡管理に不安
+2. 情シス課長:既存の SIEM・EDR・ファイアウォール との連携で運用が複雑化し、アラート過多で現場が疲弊する未来を強く嫌う
+3. 経営企画担当役員:他行で導入失敗事例の報道があり「あの製品ではない」と確認を求められた。経営層は機能性能より「事故が起きたときの責任の所在」を重視
+4. 全員:従業員500名規模に対し「過剰スペックでないか」「我々の規模に本当に合うのか」の不安を表明
+
+【手元の素材】
+- ヒアリング録画文字起こし
+- 自社の標準提案資料(エンタープライズ向け25スライド)
+- 同規模(従業員300-700名)金融業の導入事例2件
+- 監査対応の技術ホワイトペーパー
+
+【提案の場】
+- 2週間後に銀行本店で 60分プレゼン + 30分質疑
+- 出席者:上記3名 + 頭取(初顔合わせ・最終決裁者)
+- 目的:正式RFP(提案依頼書)発行への合意を得ること`
+        },
+        {
+          title:'小売チェーンZ社向け 人事SaaSの本提案',
+          ctx:`あなたは人事・労務管理SaaSの営業マネージャー。1週間前、全国展開する小売チェーンZ社(従業員2,000名・50店舗)の人事部長・店舗運営部長・CFOの3名と1.5時間のヒアリングを実施した。
+
+【ポジティブシグナル】
+- 紙ベース・属人化した現行人事業務を変革する経営方針あり
+- 店舗の現場マネージャーから「シフト管理がつらい」声が上がっている
+- 競合導入検討中だが意思決定はこれから
+
+【顧客側の導入障壁】
+1. 人事部長:過去に勤怠管理SaaS導入で本社が「便利」と言い、店舗側が「使えない」として3年で撤退した苦い経験。本社主導の導入に対する組織不信が残っている
+2. 店舗運営部長:50店舗の店長(平均年齢48歳・ITリテラシー低い)への教育コストが見えない。「導入したのに使われない」展開を強く避けたい
+3. CFO:類似SaaSとの相見積もりで「他社より高い」と認識。価格根拠を経営会議で説明する材料が不十分
+4. 全員:就業規則・労働協定が店舗業態ごとに3パターン存在し、SaaS が対応しきれるかへの懸念
+
+【手元の素材】
+- ヒアリング文字起こし
+- 自社の標準提案デック(15スライド)
+- 同業小売(店舗数100以上)の導入事例2件
+- 段階展開(ロールアウト)の運用設計テンプレート
+
+【提案の場】
+- 1週間後にZ社本社で 50分プレゼン + 10分質疑
+- 出席者:上記3名 + 社長(初顔合わせ・最終決裁者)
+- 目的:3店舗パイロット(3ヶ月)への合意を得ること`
+        }
+      ];
+      const s = pick(scenarios);
+      return {
+        prompt: `【業務状況】\n${s.ctx}\n\n【設問】\n手元の素材(ヒアリング文字起こし・自社標準提案デック・競合資料・自社事例)を Gemini に渡し、上記の <b>顧客の導入障壁を先回りで解消する提案資料の構成案</b> を引き出すための初期プロンプトを記述しなさい。\n\n提案資料は <b>Google Slides で展開できる粒度</b>(1スライド=1メッセージ程度)とし、「スライド構成 / 各スライドに含めるべき要素 / 話者ノート案 / 想定質疑への先回り回答」を出力させる設計にすること。\n\nプロンプト本文には以下を必ず盛り込むこと:\n- 役割設定(B2B SaaS の顧客提案の設計に長けた立ち位置)\n- 顧客のキーパーソン構成と、初顔合わせとなる最終決裁者の特性\n- <b>4つの導入障壁を明示的にリストアップし、それぞれを解消するスライドを構成に組み込ませる</b>依頼\n- 提案ゴール(PoC / RFP / パイロット)への着地設計\n- 競合との差別化方針、および自社事例(特に同業事例)の活用指示\n- 数値プレースホルダの扱い方(自分で後から埋める)\n- 禁止事項(根拠なき断定 / 顧客の懸念を矮小化する表現 / 過度な技術用語の羅列 等)`,
+        free: true,
+        rubric: [
+          '役割設定とシナリオ前提(顧客像・キーパーソン構成・初参加の最終決裁者・提案ゴール)がプロンプトに反映されているか',
+          '顧客側の4つの導入障壁それぞれに対応する具体的なスライド配置(障壁→対応策スライド)が依頼されているか',
+          '競合との差別化方針と、自社事例(特に同業事例)の活用が明確に指示されているか',
+          'Google Slides 展開を見据えた構造化(スライド単位・タイトル・含めるべき要素・話者ノート・想定質疑数)が指定されているか',
+          '数値プレースホルダの扱い・根拠なき断定の禁止・顧客の懸念を矮小化しない表現 等の制約が適切に書かれているか',
+        ],
+        task: s.title,
+      };
+    }
+  },
 ];
 // ========================================================================
 // STATE
@@ -818,7 +918,7 @@ const BANK_D = [
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-let timerSec = 70*60;
+let timerSec = 80*60;
 let timerHandle = null;
 let startedAt = null;
 let examinee = {name:'',role:'',evaluatorEmail:'',email:''};
@@ -850,7 +950,7 @@ function startTest(){
   answers = {};
   curIdx = 0;
   startedAt = new Date();
-  timerSec = 70*60;
+  timerSec = 80*60;
   document.getElementById('qTotal').textContent = TEST.length;
   document.getElementById('screen-start').classList.add('hide');
   document.getElementById('screen-test').classList.remove('hide');
