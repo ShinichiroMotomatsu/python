@@ -149,17 +149,18 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     </div>
   </div>
 
-  <h2>受験者情報・提出先</h2>
+  <h2>受験者情報</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
     <div><label>氏名(または受験番号) <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
     <div><label>所属・現職 <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
-    <div><label>提出先メールアドレス(評価者) <span style="color:var(--c-danger);">*</span></label><input type="email" id="evaluatorEmail" placeholder="例: hr-promotion@company.co.jp"></div>
-    <div><label>あなたのメールアドレス(任意・CC送信用)</label><input type="email" id="examineeEmail" placeholder="例: yamada@company.co.jp"></div>
+    <div><label>受験者メールアドレス(記録用) <span style="color:var(--c-danger);">*</span></label><input type="email" id="examineeEmail" placeholder="例: yamada@company.co.jp"></div>
+    <div><label>評価者メールアドレス(記録用・任意)</label><input type="email" id="evaluatorEmail" placeholder="例: hr-promotion@company.co.jp"></div>
   </div>
 
   <div class="callout info" style="margin-top:14px;">
-    開始ボタンを押すと <b>60分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
-    試験提出時に、結果サマリを含むメールが <b>提出先メールアドレス宛て</b>に作成され(あなたのメールクライアントが起動)、詳細結果テキストが添付用に自動ダウンロードされます。
+    開始ボタンを押すと <b>70分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
+    提出後、セクションA・B・C・E は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
+    あなたの判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)は結果画面に表示されます。
   </div>
 
   <div style="margin-top:18px;text-align:right;">
@@ -188,10 +189,30 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 </section>
 
 <!-- ========================= RESULT SCREEN ========================= -->
+<!-- ========================= LOADING SCREEN (waiting for Gemini) ========================= -->
+<section id="screen-loading" class="hide">
+  <div class="card" style="text-align:center;padding:48px;">
+    <div style="font-size:36px;margin-bottom:18px;">⏳</div>
+    <h1>採点中…</h1>
+    <p style="font-size:14px;color:var(--c-ink-2);">セクションDの記述回答を Gemini API で評価しています。<br>20〜60秒ほどお待ちください。</p>
+    <div style="margin-top:24px;width:300px;margin-left:auto;margin-right:auto;background:#e8eaed;border-radius:999px;height:8px;overflow:hidden;">
+      <div id="loadingBar" style="width:0%;background:var(--c-primary);height:100%;animation:loadingAnim 2s ease-in-out infinite;"></div>
+    </div>
+    <style>@keyframes loadingAnim{0%{width:0%}50%{width:80%}100%{width:0%}}</style>
+  </div>
+</section>
+
 <section id="screen-result" class="hide">
   <div class="card">
     <h1>採点結果</h1>
-    <p class="sub">セクションA〜Cは自動採点完了。セクションDは下部の<b>AI評価プロンプト</b>を採点者がGeminiに貼って評価してください。</p>
+    <p class="sub">セクションA・B・C・E は自動採点、セクションD は Gemini が採点しました。結果は集計シートに保存済みです。</p>
+
+    <!-- Category Badge -->
+    <div id="categoryBadge" style="text-align:center;margin:24px 0;padding:28px;border-radius:12px;border:3px solid var(--c-line);">
+      <div class="muted" style="font-size:12px;letter-spacing:2px;">RESULT</div>
+      <div id="categoryLabel" style="font-size:48px;font-weight:800;margin:4px 0;">—</div>
+      <div id="categoryDescription" style="font-size:13px;color:var(--c-ink-2);"></div>
+    </div>
 
     <div class="flex between" style="margin:18px 0;">
       <div>
@@ -201,9 +222,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
         <div class="muted" id="resultTime"></div>
       </div>
       <div style="text-align:right;">
-        <div class="muted">自動採点スコア (A〜C)</div>
-        <div style="font-size:38px;font-weight:800;color:var(--c-primary);font-family:'JetBrains Mono',monospace;" id="scoreAuto">0 / 40</div>
-        <div style="margin-top:6px;" id="verdictBox"></div>
+        <div class="muted">総合スコア</div>
+        <div style="font-size:38px;font-weight:800;color:var(--c-primary);font-family:'JetBrains Mono',monospace;" id="scoreTotal">— / —</div>
+        <div class="muted" id="totalPct">—%</div>
       </div>
     </div>
 
@@ -212,36 +233,41 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
       <div class="b"><div class="v" id="scoreE">0/20</div><div class="l">E. 複数選択</div></div>
-      <div class="b"><div class="v" id="scoreD">—/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(AI評価)</span></div></div>
+      <div class="b"><div class="v" id="scoreD">0/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(Gemini評価)</span></div></div>
     </div>
 
-    <h2>スキル別到達度</h2>
+    <h2>スキル別到達度(自動採点分)</h2>
     <div id="skillBreakdown"></div>
 
-    <h2>個別フィードバック</h2>
+    <h2>Gemini評価 — セクションD 記述問題</h2>
+    <div id="geminiResult"></div>
+
+    <h2>個別フィードバック(セクションA・B・C・E)</h2>
     <div id="feedback"></div>
 
-    <h2>セクションD — AI評価用プロンプト</h2>
-    <p class="muted">下のプロンプトをコピーして Gemini に貼ると、受験者の記述回答をルーブリックに従って採点します。採点者は出力結果を確認・調整してから最終スコアを確定してください。</p>
-    <button class="copy-btn" id="copyBtn" onclick="copyPrompt()" style="float:none;margin-bottom:8px;">📋 評価プロンプトをコピー</button>
-    <div class="prompt" id="evalPrompt"></div>
-
     <hr>
-
-    <h2>結果の提出</h2>
-    <div class="callout info" style="margin-top:0;">
-      下のボタンを押すと、<b id="emailToShow">—</b> 宛てのメールがあなたのメールクライアントで開き、同時に <b>詳細結果テキスト(添付用)</b>が自動ダウンロードされます。<br>
-      開いたメール本文を確認し、<b>ダウンロードされた添付ファイル(.txt)を必ず添付してから送信</b>してください。
+    <div id="saveStatus" class="callout good" style="display:none;">
+      <b>✓ 結果は保存されました。</b><br>
+      <span class="muted" id="savedIdLabel" style="font-size:12px;"></span>
     </div>
-    <div id="emailFlowNote" class="muted" style="margin:8px 0 14px;font-size:13px;"></div>
-    <div class="flex between no-print" style="flex-wrap:wrap;gap:8px;">
-      <button class="primary" onclick="submitByEmail()" style="font-size:15px;padding:12px 28px;">📧 結果をメールで提出する</button>
-      <div class="flex" style="gap:8px;">
-        <button class="ghost" onclick="downloadResultsTxt()">⬇️ 添付テキストのみ再ダウンロード</button>
-        <button class="ghost" onclick="window.print()">🖨️ 印刷 / PDF</button>
-        <button class="ghost" onclick="downloadJSON()">⬇️ JSON</button>
-        <button class="ghost" onclick="if(confirm('結果を破棄して最初に戻ります。よろしいですか?')){location.reload();}">最初に戻る</button>
-      </div>
+    <div class="flex between no-print" style="flex-wrap:wrap;gap:8px;margin-top:18px;">
+      <button class="primary" onclick="window.print()" style="font-size:15px;padding:10px 24px;">🖨️ 結果を印刷 / PDF 保存</button>
+      <button class="ghost" onclick="if(confirm('結果画面を閉じて最初に戻ります。'+`\n結果は既に保存済みのため、戻ってもデータは失われません。`)){location.reload();}">最初に戻る</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ERROR SCREEN ========================= -->
+<section id="screen-error" class="hide">
+  <div class="card">
+    <h1 style="color:var(--c-danger);">提出エラー</h1>
+    <p class="sub">Gemini API での評価または結果保存に失敗しました。</p>
+    <div id="errorMsg" class="callout danger"></div>
+    <p>下のボタンから JSON で結果を保存し、管理者に連絡してください。</p>
+    <div class="flex between no-print" style="margin-top:18px;">
+      <button class="primary" onclick="retrySubmit()">再送信</button>
+      <button class="ghost" onclick="downloadOfflineJSON()">⬇️ JSON で保存</button>
+      <button class="ghost" onclick="location.reload()">最初に戻る</button>
     </div>
   </div>
 </section>
@@ -1158,8 +1184,8 @@ function startTest(){
   const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   if(!name){ alert('氏名(または受験番号)を入力してください'); return; }
   if(!role){ alert('所属・現職を入力してください'); return; }
-  if(!evalEmail || !emailRe.test(evalEmail)){ alert('提出先メールアドレス(評価者)を正しい形式で入力してください'); return; }
-  if(myEmail && !emailRe.test(myEmail)){ alert('あなたのメールアドレスの形式が正しくありません(空欄でも構いません)'); return; }
+  if(!myEmail || !emailRe.test(myEmail)){ alert('受験者メールアドレスを正しい形式で入力してください'); return; }
+  if(evalEmail && !emailRe.test(evalEmail)){ alert('評価者メールアドレスの形式が正しくありません(空欄でも構いません)'); return; }
   examinee.name = name;
   examinee.role = role;
   examinee.evaluatorEmail = evalEmail;
@@ -1307,25 +1333,66 @@ function nextQ(){
   }
 }
 
+let LAST_PAYLOAD = null;
+
 function submitTest(){
   if(timerHandle) clearInterval(timerHandle);
   const finished = new Date();
   const elapsed = Math.floor((finished-startedAt)/1000);
-  showResult(elapsed);
+  // compute auto scores client-side, then send to GAS for D grading + persistence
+  const payload = computeAutoScoresAndPayload(elapsed);
+  LAST_PAYLOAD = payload;
+  // show loading screen
+  document.getElementById('screen-test').classList.add('hide');
+  document.getElementById('screen-loading').classList.remove('hide');
+  window.scrollTo(0,0);
+
+  google.script.run
+    .withSuccessHandler(onSubmitSuccess)
+    .withFailureHandler(onSubmitFailure)
+    .submitAssessment(payload);
+}
+
+function onSubmitSuccess(res){
+  document.getElementById('screen-loading').classList.add('hide');
+  if(res && res.success){
+    renderResult(res);
+  } else {
+    onSubmitFailure(new Error((res && res.error) || '不明なエラー'));
+  }
+}
+
+function onSubmitFailure(err){
+  document.getElementById('screen-loading').classList.add('hide');
+  document.getElementById('screen-error').classList.remove('hide');
+  document.getElementById('errorMsg').textContent = String((err && err.message) || err);
+}
+
+function retrySubmit(){
+  if(!LAST_PAYLOAD){ location.reload(); return; }
+  document.getElementById('screen-error').classList.add('hide');
+  document.getElementById('screen-loading').classList.remove('hide');
+  google.script.run
+    .withSuccessHandler(onSubmitSuccess)
+    .withFailureHandler(onSubmitFailure)
+    .submitAssessment(LAST_PAYLOAD);
+}
+
+function downloadOfflineJSON(){
+  if(!LAST_PAYLOAD) return;
+  const blob = new Blob([JSON.stringify(LAST_PAYLOAD,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (examinee.name||'examinee').replace(/[^\w\-]/g,'_');
+  a.href=url; a.download=`ai_assessment_${safeName}_${Date.now()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // ========================================================================
-// SCORING
+// SCORING (auto portion + payload assembly)
 // ========================================================================
-function showResult(elapsedSec){
-  document.getElementById('screen-test').classList.add('hide');
-  document.getElementById('screen-result').classList.remove('hide');
-  window.scrollTo(0,0);
-
-  document.getElementById('resultName').textContent = examinee.name;
-  document.getElementById('resultRole').textContent = examinee.role;
-  const m=Math.floor(elapsedSec/60), s=elapsedSec%60;
-  document.getElementById('resultTime').textContent = `所要 ${m}分${String(s).padStart(2,'0')}秒 / 受験日時 ${startedAt.toLocaleString('ja-JP')}`;
+function computeAutoScoresAndPayload(elapsedSec){
 
   const sec = {A:{got:0,max:0},B:{got:0,max:0},C:{got:0,max:0},D:{got:0,max:0},E:{got:0,max:0}};
   const perSkill = {};
@@ -1364,57 +1431,138 @@ function showResult(elapsedSec){
     }
   });
 
-  const totalAuto = sec.A.got + sec.B.got + sec.C.got + sec.E.got;
-  const maxAuto = sec.A.max + sec.B.max + sec.C.max + sec.E.max;
-  const maxAll = maxAuto + sec.D.max;
-  const passThreshold = Math.ceil(maxAll * 0.64); // 全体64%以上で合格
-  const dMinThreshold = Math.ceil(sec.D.max * 0.5); // セクションD最低5割
+  // Section D 設問のペイロードを構築(Gemini送信用)
+  const sectionD = TEST.filter(q=>q.section==='D').map((q,i)=>{
+    const idxInTest = TEST.indexOf(q);
+    return {
+      id: q.id, skill: q.skill, points: q.points,
+      prompt: q.prompt, rubric: q.rubric,
+      answer: answers[idxInTest] || ''
+    };
+  });
 
-  document.getElementById('scoreAuto').textContent = `${totalAuto} / ${maxAuto}`;
+  // 監査用に全Q&Aログを残す(機微情報注意)
+  const questionsLog = TEST.map((q,i)=>{
+    const a = answers[i];
+    return {
+      id:q.id, section:q.section, skill:q.skill, points:q.points,
+      prompt:q.prompt,
+      options:q.options,
+      correctIndex: q.correctIndex,
+      correctIndices: q.correctIndices,
+      multiSelect: !!q.multiSelect,
+      free: !!q.free,
+      answer: a===undefined? null : a
+    };
+  });
+
+  // クライアント側集計結果もキャッシュ(描画用)
+  RESULT = { sec, perSkill, fbItems, elapsedSec };
+
+  return {
+    examinee: { ...examinee },
+    elapsedSec,
+    autoScores: {
+      A: { got: sec.A.got, max: sec.A.max },
+      B: { got: sec.B.got, max: sec.B.max },
+      C: { got: sec.C.got, max: sec.C.max },
+      E: { got: sec.E.got, max: sec.E.max }
+    },
+    sectionD,
+    questionsLog
+  };
+}
+
+// ========================================================================
+// RESULT RENDERING (after GAS response)
+// ========================================================================
+function renderResult(res){
+  // res = { sec, dResult, totalScore, totalMax, totalPct, dPct, category, submissionId, thresholds }
+  document.getElementById('screen-result').classList.remove('hide');
+  window.scrollTo(0,0);
+
+  const r = RESULT; // client-side scores from auto sections
+  const sec = r.sec;
+  sec.D.got = res.dResult.totalScore;
+
+  // header info
+  document.getElementById('resultName').textContent = examinee.name;
+  document.getElementById('resultRole').textContent = examinee.role;
+  const m=Math.floor(r.elapsedSec/60), s=r.elapsedSec%60;
+  document.getElementById('resultTime').textContent = `所要 ${m}分${String(s).padStart(2,'0')}秒 / 受験日時 ${startedAt.toLocaleString('ja-JP')}`;
+
+  // section scores
   document.getElementById('scoreA').textContent = `${sec.A.got}/${sec.A.max}`;
   document.getElementById('scoreB').textContent = `${sec.B.got}/${sec.B.max}`;
   document.getElementById('scoreC').textContent = `${sec.C.got}/${sec.C.max}`;
   document.getElementById('scoreE').textContent = `${sec.E.got}/${sec.E.max}`;
-  document.getElementById('scoreD').textContent = `—/${sec.D.max}`;
+  document.getElementById('scoreD').textContent = `${sec.D.got}/${sec.D.max}`;
+  document.getElementById('scoreTotal').textContent = `${res.totalScore} / ${res.totalMax}`;
+  document.getElementById('totalPct').textContent = `${res.totalPct}%`;
 
-  // verdict: 必要なDスコア = passThreshold - totalAuto
-  const dNeeded = Math.max(0, passThreshold - totalAuto);
-  const vBox = document.getElementById('verdictBox');
-  if(dNeeded === 0){
-    vBox.innerHTML = `<span class="verdict pass">自動部分のみで合格基準達成</span>
-      <div class="muted" style="margin-top:4px;font-size:11px;">合格確定にはセクションD≧${dMinThreshold}/${sec.D.max}点が必要</div>`;
-  } else if(dNeeded <= sec.D.max - dMinThreshold){
-    vBox.innerHTML = `<span class="verdict review">合格にはセクションDで <b>${dNeeded}/${sec.D.max}</b> 点以上が必要</span>`;
-  } else if(dNeeded <= sec.D.max){
-    vBox.innerHTML = `<span class="verdict review">合格にはセクションDで <b>${dNeeded}/${sec.D.max}</b> 点以上(高難度)</span>`;
-  } else {
-    vBox.innerHTML = `<span class="verdict fail">自動部分:基準未達</span>
-      <div class="muted" style="margin-top:4px;font-size:11px;">セクションDが満点でも合格基準${passThreshold}点に届かない</div>`;
-  }
+  // category badge
+  const badge = document.getElementById('categoryBadge');
+  const label = document.getElementById('categoryLabel');
+  const desc  = document.getElementById('categoryDescription');
+  const COLORS = {
+    '優良':   { bg:'#e6f4ea', border:'#34a853', fg:'#137333', desc:'AI活用でチームの生産性向上を主導できるレベル。部下への横展開と社内ナレッジ化を期待。' },
+    '及第点': { bg:'#fef7e0', border:'#fbbc04', fg:'#b06000', desc:'管理職昇格に必要な水準をクリア。実務で使いながら更なる定着を図ってください。' },
+    '要努力': { bg:'#fdecea', border:'#ea4335', fg:'#a50e0e', desc:'AI活用の基礎・実践両面で底上げが必要。研修受講と日常的な活用を経て再受験を推奨。' },
+  };
+  const c = COLORS[res.category] || COLORS['要努力'];
+  badge.style.background = c.bg;
+  badge.style.borderColor = c.border;
+  label.style.color = c.fg;
+  label.textContent = res.category;
+  desc.textContent = `${c.desc}(合格基準 ${res.thresholds.passPct}%, 優良基準 ${res.thresholds.excellentPct}%, セクションD最低 ${res.thresholds.dMinPct}%)`;
 
   // skill breakdown
   const sbEl = document.getElementById('skillBreakdown');
   sbEl.innerHTML = '';
-  Object.entries(perSkill).forEach(([sk,v])=>{
+  Object.entries(r.perSkill).forEach(([sk,v])=>{
     const pct = v.max? (v.got/v.max*100):0;
     const row = document.createElement('div');
     row.className = 'score-row';
-    row.innerHTML = `<div>${sk}</div>
+    row.innerHTML = `<div>${escapeHtml(sk)}</div>
       <div class="score-bar ${pct<60?'warn':''}"><div style="width:${pct}%"></div></div>
       <div class="v">${v.got}/${v.max}</div>`;
     sbEl.appendChild(row);
   });
 
+  // Gemini D evaluation
+  const gEl = document.getElementById('geminiResult');
+  gEl.innerHTML = '';
+  (res.dResult.evaluations || []).forEach((ev, i)=>{
+    const div = document.createElement('div');
+    div.className = 'callout' + (ev.verdict==='合格'?' good':' danger');
+    div.style.marginBottom = '10px';
+    const rubricList = (ev.rubricScores||[]).map((sc,j)=>{
+      const cm = (ev.comments && ev.comments[j]) || '';
+      return `<li>R${j+1}: <b>${sc}/3</b> — ${escapeHtml(cm)}</li>`;
+    }).join('');
+    div.innerHTML = `<b>[D${i+1}] ${escapeHtml(ev.skill||'')} — ${ev.subtotal}/${ev.maxPoints||15} 点  <span style="font-weight:normal;">[${escapeHtml(ev.verdict||'')}]</span></b>
+      <ul style="margin:6px 0 6px 16px;padding:0;font-size:13px;">${rubricList}</ul>
+      ${ev.strengths?`<div style="font-size:13px;"><b>強み:</b> ${escapeHtml(ev.strengths)}</div>`:''}
+      ${ev.improvements?`<div style="font-size:13px;"><b>改善点:</b> ${escapeHtml(ev.improvements)}</div>`:''}`;
+    gEl.appendChild(div);
+  });
+  if(res.dResult.overallSummary){
+    const sm = document.createElement('div');
+    sm.className = 'callout info';
+    sm.innerHTML = `<b>総評:</b> ${escapeHtml(res.dResult.overallSummary)}`;
+    gEl.appendChild(sm);
+  }
+
   // feedback for wrong answers
   const fbEl = document.getElementById('feedback');
-  if(fbItems.length===0){
-    fbEl.innerHTML = '<div class="callout good">セクションA〜Cはすべて正答です。素晴らしい!</div>';
+  if(r.fbItems.length===0){
+    fbEl.innerHTML = '<div class="callout good">セクションA・B・C・E はすべて正答です。素晴らしい!</div>';
   } else {
     fbEl.innerHTML = '<div class="muted" style="margin-bottom:10px;">不正解または未回答だった項目を整理しています。記載のスキル領域は重点復習を推奨します。</div>';
-    fbItems.forEach(it=>{
+    r.fbItems.forEach(it=>{
       const div = document.createElement('div');
       div.className = 'callout danger';
-      div.innerHTML = `<b>[${it.section}-${it.idx}] ${it.skill}</b><br>
+      div.innerHTML = `<b>[${it.section}-${it.idx}] ${escapeHtml(it.skill)}</b><br>
         <span class="muted">問:</span>${escapeHtml(it.prompt).replace(/\n/g,'<br>')}<br>
         <span class="muted">あなたの回答:</span>${escapeHtml(it.yourAns)}<br>
         <span class="muted">正答:</span><b>${escapeHtml(it.correctAns)}</b>`;
@@ -1422,300 +1570,12 @@ function showResult(elapsedSec){
     });
   }
 
-  // D evaluation prompt
-  renderEvalPrompt();
-
-  // cache full result snapshot for email/export
-  let verdictText;
-  if(dNeeded===0) verdictText = `自動部分のみで合格基準達成(セクションDで${dMinThreshold}点以上で合格確定)`;
-  else if(dNeeded<=sec.D.max-dMinThreshold) verdictText = `合格にはセクションDで ${dNeeded}/${sec.D.max} 点以上が必要`;
-  else if(dNeeded<=sec.D.max) verdictText = `合格にはセクションDで ${dNeeded}/${sec.D.max} 点以上(高難度)`;
-  else verdictText = `自動部分が基準未達。セクションDが満点でも合格基準${passThreshold}点に届かない`;
-
-  RESULT = {
-    totalAuto, maxAuto, maxAll, passThreshold, dMinThreshold, dNeeded,
-    sec, perSkill, fbItems, verdictText, elapsedSec,
-  };
-
-  // show evaluator email on result screen
-  const showEl = document.getElementById('emailToShow');
-  if(showEl) showEl.textContent = examinee.evaluatorEmail || '(未設定)';
-  const noteEl = document.getElementById('emailFlowNote');
-  if(noteEl) noteEl.innerHTML = examinee.email
-    ? `送信時、CCに <b>${escapeHtml(examinee.email)}</b> が自動付与されます。`
-    : `(CCは指定されていません。本人控えが必要な場合は最初の画面で自分のメールアドレスを入力してください。)`;
-}
-
-function renderEvalPrompt(){
-  const dQs = TEST.filter(q=>q.section==='D');
-  const dAns = dQs.map((q)=>{
-    const idxInTest = TEST.indexOf(q);
-    return {q, ans: answers[idxInTest] || '(未回答)'};
-  });
-  const totalD = dQs.reduce((s,q)=>s+q.points,0);
-
-  const blocks = dQs.map((q,i)=>
-`# 設問D${i+1}${q.task?` (テーマ: ${q.task})`:''}  [配点: ${q.points}点]
-${q.prompt}
-
-## ルーブリック (各項目を 0=欠落 / 1=部分的 / 2=明示 / 3=十分に明示 で採点)
-${(q.rubric||[]).map((r,j)=>`R${j+1}. ${r}`).join('\n')}
-
-## 受験者の回答
-"""
-${dAns[i]?.ans || '(未回答)'}
-"""
-`).join('\n---\n\n');
-
-  const sampleScore = dQs.map((q,i)=>
-`【D${i+1} 採点】
-R1: x/3 — コメント
-R2: x/3 — コメント
-R3: x/3 — コメント
-R4: x/3 — コメント
-R5: x/3 — コメント
-小計: xx/${q.points}  判定: 合格(${Math.ceil(q.points*0.7)}点以上)/要再受験`).join('\n\n');
-
-  const prompt =
-`# 役割
-あなたは管理職昇格試験の評価者です。以下の受験者の記述回答(全${dQs.length}問)を、与えられたルーブリックに従って厳密に採点してください。
-
-# 受験者
-- 氏名: ${examinee.name}
-- 所属: ${examinee.role}
-- 受験日時: ${startedAt.toLocaleString('ja-JP')}
-
-# 採点ルール
-- 各設問15点満点。ルーブリック5項目を 0(欠落) / 1(部分的) / 2(明示) / 3(十分に明示)で採点(上限3点 × 5項目 = 15点満点)。
-- セクションD合計: ${totalD}点満点。
-- 採点と同時に、各項目について「不足している点」または「優れている点」を1行ずつコメントする。
-- 一般論で終わっている / 提示シナリオの数値・関係者・制約が反映されていない / 安全性配慮が欠落 / 分量要件を満たさない、はいずれも厳しく減点する。
-- 各設問について「合格(各設問の70%以上)」「要再受験(70%未満)」を判定する。
-
-# 出力フォーマット
-\`\`\`
-${sampleScore}
-
-【セクションD合計】 xx/${totalD}
-【総評(5〜8行)】
-受験者の強み・改善点・次の学習ステップを具体的に。
-\`\`\`
-
----
-
-${blocks}
----
-
-それでは採点を開始してください。`;
-
-  document.getElementById('evalPrompt').textContent = prompt;
-}
-
-function copyPrompt(){
-  const text = document.getElementById('evalPrompt').textContent;
-  navigator.clipboard.writeText(text).then(()=>{
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ コピーしました';
-    btn.classList.add('copied');
-    setTimeout(()=>{ btn.textContent='📋 評価プロンプトをコピー'; btn.classList.remove('copied'); },2000);
-  });
-}
-
-function downloadJSON(){
-  const data = {
-    examinee, startedAt, finishedAt:new Date(),
-    questions: TEST.map((q,i)=>({
-      id:q.id, section:q.section, skill:q.skill, points:q.points,
-      prompt:q.prompt,
-      options:q.options, correctIndex:q.correctIndex,
-      answer: answers[i],
-      free: !!q.free,
-    })),
-  };
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const safeName = (examinee.name||'examinee').replace(/[^\w\-]/g,'_');
-  a.href=url; a.download=`ai_assessment_${safeName}_${Date.now()}.json`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
+  // saved status
+  document.getElementById('saveStatus').style.display = 'block';
+  document.getElementById('savedIdLabel').textContent = `提出ID: ${res.submissionId}`;
 }
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// ========================================================================
-// EMAIL SUBMISSION
-// ========================================================================
-function buildEmailSubject(){
-  return `[管理職昇格AIアセスメント] 結果送付 — ${examinee.name} (${examinee.role})`;
-}
-
-function buildEmailBody(){
-  if(!RESULT) return '';
-  const r = RESULT;
-  const m=Math.floor(r.elapsedSec/60), s=r.elapsedSec%60;
-  const fbLines = r.fbItems.length===0
-    ? '(セクションA〜Cはすべて正答)'
-    : r.fbItems.map(it=>`  - [${it.section}-${it.idx}] ${it.skill}`).join('\n');
-  return [
-    '管理職昇格AIアセスメントの結果を送付します。',
-    '',
-    '【受験者】',
-    `氏名: ${examinee.name}`,
-    `所属: ${examinee.role}`,
-    `受験日時: ${startedAt.toLocaleString('ja-JP')}`,
-    `所要時間: ${m}分${String(s).padStart(2,'0')}秒`,
-    '',
-    '【自動採点結果(セクションA・B・C・E)】',
-    `セクションA (L1 基礎理解)       : ${r.sec.A.got}/${r.sec.A.max}`,
-    `セクションB (L2 業務活用判断)   : ${r.sec.B.got}/${r.sec.B.max}`,
-    `セクションC (L3 マネジメント応用): ${r.sec.C.got}/${r.sec.C.max}`,
-    `セクションE (複数選択)          : ${r.sec.E.got}/${r.sec.E.max}`,
-    `─────────────────────────`,
-    `自動採点 小計                    : ${r.totalAuto}/${r.maxAuto}`,
-    `セクションD (プロンプト記述)    : AI評価未実施 (満点 ${r.sec.D.max})`,
-    '',
-    '【合格判定(暫定)】',
-    `合格基準: 総合 ${r.passThreshold}/${r.maxAll} 点(64%)以上 かつ セクションD ≧ ${r.dMinThreshold}/${r.sec.D.max} 点`,
-    `現状: ${r.verdictText}`,
-    '',
-    '【セクションA〜C 不正解項目】',
-    fbLines,
-    '',
-    '【次の評価ステップ(評価者の方へ)】',
-    '1. 添付の詳細結果テキスト(.txt)を開いてください。',
-    '2. ファイル末尾に「Gemini に貼り付ける AI評価用プロンプト」が含まれています。',
-    '3. そのプロンプトを Gemini にコピー&ペーストし、出力された採点結果を本人記述に当てた点数として参照してください。',
-    '4. セクションD の点数を確定した上で、最終合否を判定してください。',
-    '',
-    '※ このメールは管理職昇格AIアセスメント(クライアント完結HTML)から自動作成されました。',
-    '※ 添付ファイル(詳細結果テキスト)は同タイミングでブラウザによりダウンロードされています。送信前に添付し忘れにご注意ください。',
-  ].join('\n');
-}
-
-function buildResultsText(){
-  if(!RESULT) return '';
-  const r = RESULT;
-  const m=Math.floor(r.elapsedSec/60), s=r.elapsedSec%60;
-  const lines = [];
-  lines.push('========================================================');
-  lines.push('  管理職昇格AIアセスメント — 詳細結果');
-  lines.push('========================================================');
-  lines.push('');
-  lines.push(`受験者: ${examinee.name} (${examinee.role})`);
-  lines.push(`受験者メール: ${examinee.email || '(未設定)'}`);
-  lines.push(`提出先: ${examinee.evaluatorEmail}`);
-  lines.push(`受験日時: ${startedAt.toLocaleString('ja-JP')}`);
-  lines.push(`所要時間: ${m}分${String(s).padStart(2,'0')}秒`);
-  lines.push('');
-  lines.push('--------------------------------------------------------');
-  lines.push('セクション別 自動採点結果');
-  lines.push('--------------------------------------------------------');
-  lines.push(`A. L1 基礎理解         : ${r.sec.A.got}/${r.sec.A.max}`);
-  lines.push(`B. L2 業務活用判断     : ${r.sec.B.got}/${r.sec.B.max}`);
-  lines.push(`C. L3 マネジメント応用 : ${r.sec.C.got}/${r.sec.C.max}`);
-  lines.push(`E. 複数選択           : ${r.sec.E.got}/${r.sec.E.max}`);
-  lines.push(`自動採点 小計           : ${r.totalAuto}/${r.maxAuto}`);
-  lines.push(`D. プロンプト記述       : AI評価未実施 (満点 ${r.sec.D.max})`);
-  lines.push('');
-  lines.push(`合格基準: 総合 ${r.passThreshold}/${r.maxAll} 点 (64%) 以上 かつ セクションD ≧ ${r.dMinThreshold}/${r.sec.D.max} 点`);
-  lines.push(`現状: ${r.verdictText}`);
-  lines.push('');
-  lines.push('--------------------------------------------------------');
-  lines.push('スキル別 到達度');
-  lines.push('--------------------------------------------------------');
-  Object.entries(r.perSkill).forEach(([sk,v])=>{
-    const pct = v.max? Math.round(v.got/v.max*100):0;
-    lines.push(`  - ${sk}: ${v.got}/${v.max} (${pct}%)`);
-  });
-  lines.push('');
-  lines.push('--------------------------------------------------------');
-  lines.push('セクションA・B・C・E 全設問の詳細');
-  lines.push('--------------------------------------------------------');
-  TEST.forEach((q,i)=>{
-    if(q.section==='D') return;
-    const ans = answers[i];
-    let isCorrect;
-    let correctSet, userSet;
-    if(q.multiSelect){
-      userSet = new Set(Array.isArray(ans)?ans:[]);
-      correctSet = new Set(q.correctIndices);
-      isCorrect = userSet.size===correctSet.size && [...userSet].every(x=>correctSet.has(x));
-    } else {
-      isCorrect = ans===q.correctIndex;
-    }
-    lines.push('');
-    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点 / ${isCorrect?'○ 正答':'× 誤答'}${q.multiSelect?' (複数選択・strict採点)':''}`);
-    lines.push(`問題: ${q.prompt.replace(/<\/?b>/g,'').replace(/\n/g,'\n      ')}`);
-    q.options.forEach((o,j)=>{
-      let mark = '';
-      if(q.multiSelect){
-        const correctMark = correctSet.has(j) ? '★正解' : '';
-        const userMark = userSet.has(j) ? '← 選択' : '';
-        mark = [correctMark, userMark].filter(Boolean).join(' / ');
-      } else {
-        mark = j===q.correctIndex? '★正解': (j===ans? '← 受験者の回答':'');
-      }
-      lines.push(`  ${String.fromCharCode(65+j)}. ${o}  ${mark}`);
-    });
-    if(!isAnswered(ans)) lines.push('  (未回答)');
-  });
-  lines.push('');
-  lines.push('--------------------------------------------------------');
-  lines.push('セクションD 記述回答(AI評価対象)');
-  lines.push('--------------------------------------------------------');
-  TEST.forEach((q,i)=>{
-    if(q.section!=='D') return;
-    lines.push('');
-    lines.push(`[問 ${i+1}] ${q.section} / ${q.skill} / 配点 ${q.points}点`);
-    lines.push(`設問: ${q.prompt.replace(/\n/g,'\n     ')}`);
-    lines.push('受験者の回答:');
-    const a = answers[i] || '(未回答)';
-    lines.push(a.split('\n').map(l=>'  '+l).join('\n'));
-    if(q.rubric){
-      lines.push('評価ルーブリック:');
-      q.rubric.forEach((rb,j)=>lines.push(`  R${j+1}. ${rb}`));
-    }
-  });
-  lines.push('');
-  lines.push('========================================================');
-  lines.push('  Gemini に貼り付ける AI評価用プロンプト(評価者向け)');
-  lines.push('========================================================');
-  lines.push('');
-  lines.push(document.getElementById('evalPrompt').textContent);
-  lines.push('');
-  lines.push('========================================================');
-  lines.push('  END OF REPORT');
-  lines.push('========================================================');
-  return lines.join('\n');
-}
-
-function downloadResultsTxt(){
-  const txt = buildResultsText();
-  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const safeName = (examinee.name||'examinee').replace(/[^\w\-]/g,'_');
-  a.href=url; a.download=`ai_assessment_${safeName}_${Date.now()}.txt`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function submitByEmail(){
-  if(!RESULT){ alert('結果がまだ集計されていません'); return; }
-  if(!examinee.evaluatorEmail){ alert('提出先メールアドレスが設定されていません'); return; }
-  // 1) trigger download of the attachment file
-  downloadResultsTxt();
-  // 2) open mailto: with summary in body
-  const subject = buildEmailSubject();
-  const body = buildEmailBody();
-  let mailto = `mailto:${encodeURIComponent(examinee.evaluatorEmail)}`
-    + `?subject=${encodeURIComponent(subject)}`
-    + `&body=${encodeURIComponent(body)}`;
-  if(examinee.email) mailto += `&cc=${encodeURIComponent(examinee.email)}`;
-  // open in same tab to invoke mail client
-  window.location.href = mailto;
-}
 </script>
 
 </body>
