@@ -103,7 +103,7 @@ function setupSpreadsheet() {
     sheet = ss.insertSheet(SHEET_NAME);
     sheet.appendRow([
       'submissionId','受験日時','氏名','所属','受験者メール','評価者メール','所要(秒)',
-      'A_got','A_max','B_got','B_max','C_got','C_max','E_got','E_max','D_got','D_max',
+      'A_got','A_max','B_got','B_max','C_got','C_max','D_got','D_max',
       '総合','満点','達成率(%)','カテゴリ',
       'Gemini評価(JSON)','回答ログ(JSON)'
     ]);
@@ -127,7 +127,7 @@ function setupSpreadsheet() {
  *   {
  *     examinee: { name, role, email, evaluatorEmail },
  *     elapsedSec: number,
- *     autoScores: { A:{got,max}, B:{got,max}, C:{got,max}, E:{got,max} },
+ *     autoScores: { A:{got,max}, B:{got,max}, C:{got,max} },
  *     sectionD: [ { id, skill, prompt, rubric:[5項目], answer, points } ],
  *     questionsLog: [ ... 監査用 ... ]
  *   }
@@ -143,8 +143,8 @@ function submitAssessment(payload) {
 
     // 2) スコア集計
     const sec = payload.autoScores;
-    const totalAuto = (sec.A.got||0) + (sec.B.got||0) + (sec.C.got||0) + (sec.E.got||0);
-    const maxAuto   = (sec.A.max||0) + (sec.B.max||0) + (sec.C.max||0) + (sec.E.max||0);
+    const totalAuto = (sec.A.got||0) + (sec.B.got||0) + (sec.C.got||0);
+    const maxAuto   = (sec.A.max||0) + (sec.B.max||0) + (sec.C.max||0);
     const totalScore = totalAuto + dResult.totalScore;
     const totalMax   = maxAuto + dResult.totalMax;
     const dPct = dResult.totalMax > 0 ? (dResult.totalScore / dResult.totalMax) : 0;
@@ -322,7 +322,6 @@ function saveToSheet_(o) {
     o.sec.A.got, o.sec.A.max,
     o.sec.B.got, o.sec.B.max,
     o.sec.C.got, o.sec.C.max,
-    o.sec.E.got, o.sec.E.max,
     o.dResult.totalScore, o.dResult.totalMax,
     o.totalScore, o.totalMax,
     o.totalMax > 0 ? (o.totalScore / o.totalMax * 100).toFixed(1) : '0',
@@ -365,7 +364,6 @@ function getDashboardData() {
       A: r[ix['A_got']] + '/' + r[ix['A_max']],
       B: r[ix['B_got']] + '/' + r[ix['B_max']],
       C: r[ix['C_got']] + '/' + r[ix['C_max']],
-      E: r[ix['E_got']] + '/' + r[ix['E_max']],
       D: r[ix['D_got']] + '/' + r[ix['D_max']],
       total: r[ix['総合']] + '/' + r[ix['満点']],
       percent: r[ix['達成率(%)']],

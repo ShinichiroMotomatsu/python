@@ -157,7 +157,7 @@ function render(){
       <table>
         <thead>
           <tr>
-            <th>受験日時</th><th>氏名</th><th>所属</th><th>A</th><th>B</th><th>C</th><th>E</th><th>D</th>
+            <th>受験日時</th><th>氏名</th><th>所属</th><th>A</th><th>B</th><th>C</th><th>D</th>
             <th>総合</th><th>達成率</th><th>カテゴリ</th><th></th>
           </tr>
         </thead>
@@ -171,7 +171,6 @@ function render(){
                 <td class="mono">${escapeHtml(r.A||'')}</td>
                 <td class="mono">${escapeHtml(r.B||'')}</td>
                 <td class="mono">${escapeHtml(r.C||'')}</td>
-                <td class="mono">${escapeHtml(r.E||'')}</td>
                 <td class="mono">${escapeHtml(r.D||'')}</td>
                 <td class="mono">${escapeHtml(r.total||'')}</td>
                 <td class="pct ${pctClass(r.percent)}">${escapeHtml(String(r.percent||''))}%</td>
@@ -257,7 +256,6 @@ function renderDetail(d){
     <div class="score-line"><div class="lbl">A. 基礎理解</div><div class="val">${d['A_got']}/${d['A_max']}</div></div>
     <div class="score-line"><div class="lbl">B. 業務活用判断</div><div class="val">${d['B_got']}/${d['B_max']}</div></div>
     <div class="score-line"><div class="lbl">C. マネジメント</div><div class="val">${d['C_got']}/${d['C_max']}</div></div>
-    <div class="score-line"><div class="lbl">E. 複数選択</div><div class="val">${d['E_got']}/${d['E_max']}</div></div>
     <div class="score-line"><div class="lbl">D. プロンプト記述(Gemini評価)</div><div class="val">${d['D_got']}/${d['D_max']}</div></div>
     <div class="score-line"><div class="lbl">所要時間</div><div class="val">${Math.floor((d['所要(秒)']||0)/60)}分${String(((d['所要(秒)']||0)%60)).padStart(2,'0')}秒</div></div>
   `;
@@ -286,10 +284,10 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
 function exportCSV(){
   const rows = filterRows(ALL_DATA.rows);
-  const header = ['受験日時','氏名','所属','A','B','C','E','D','総合','達成率(%)','カテゴリ'];
+  const header = ['受験日時','氏名','所属','A','B','C','D','総合','達成率(%)','カテゴリ'];
   const lines = [header.join(',')];
   rows.forEach(r=>{
-    lines.push([r.timestamp,r.name,r.role,r.A,r.B,r.C,r.E,r.D,r.total,r.percent,r.category]
+    lines.push([r.timestamp,r.name,r.role,r.A,r.B,r.C,r.D,r.total,r.percent,r.category]
       .map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
   });
   const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
