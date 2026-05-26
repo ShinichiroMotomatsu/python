@@ -52,6 +52,14 @@ const SHEET_ID_PROP       = 'ASSESSMENT_SHEET_ID';
 const GEMINI_API_KEY_PROP = 'GEMINI_API_KEY';
 const SHEET_NAME          = 'Results';
 const GEMINI_MODEL        = 'gemini-2.5-flash';
+// 503/429/5xx のときは順にフォールバックを試す。最初に成功したモデルの結果を採用する。
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash'
+];
+// 各モデルでこの回数までリトライ(初回 + リトライ)。バックオフは 2s, 5s, 11s …
+const GEMINI_MAX_ATTEMPTS = 4;
 
 // 合格カテゴリの閾値 (SaaS企業 ビジネスサイド管理職の期待水準)
 const PASS_PCT      = 0.60;   // 60% 未満は「要努力」
@@ -206,6 +214,80 @@ function submitAssessment(payload) {
   }
 }
 
+// HTTP コードが transient(リトライする価値あり)か判定
+function isTransientHttpCode_(code) {
+  return code === 429 || code === 500 || code === 502 || code === 503 || code === 504;
+}
+
+// Gemini API を1モデル × 1回呼び出して { code, text } を返す
+function callGeminiOnce_(model, body, apiKey) {
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model +
+              ':generateContent?key=' + encodeURIComponent(apiKey);
+  const res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  });
+  return { code: res.getResponseCode(), text: res.getContentText() };
+}
+
+/**
+ * GEMINI_MODELS の各モデルに対して指数バックオフでリトライしつつ呼び出す。
+ * 503/429/5xx は transient とみなしリトライ。
+ * いずれかのモデルが 2xx を返したら { jsonStr, modelUsed } を返す。
+ * 全モデル全リトライが失敗した場合のみ throw。
+ */
+function callGeminiWithRetry_(body, apiKey) {
+  const errors = [];
+  for (let m = 0; m < GEMINI_MODELS.length; m++) {
+    const model = GEMINI_MODELS[m];
+    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+      let code, text;
+      try {
+        const r = callGeminiOnce_(model, body, apiKey);
+        code = r.code; text = r.text;
+      } catch (netErr) {
+        // ネットワーク/タイムアウト系も transient 扱いで再試行
+        errors.push(model + ' attempt ' + attempt + ': ' + String(netErr.message || netErr));
+        if (attempt < GEMINI_MAX_ATTEMPTS) { Utilities.sleep(backoffMs_(attempt)); continue; }
+        break;
+      }
+
+      if (code >= 200 && code < 300) {
+        let data;
+        try { data = JSON.parse(text); } catch (e) {
+          errors.push(model + ' attempt ' + attempt + ': JSON parse failed');
+          break;
+        }
+        if (!data.candidates || !data.candidates[0] ||
+            !data.candidates[0].content || !data.candidates[0].content.parts ||
+            !data.candidates[0].content.parts[0]) {
+          errors.push(model + ' attempt ' + attempt + ': empty candidates (finishReason=' + (data.candidates && data.candidates[0] && data.candidates[0].finishReason) + ')');
+          break;
+        }
+        return { jsonStr: data.candidates[0].content.parts[0].text, modelUsed: model };
+      }
+
+      errors.push(model + ' attempt ' + attempt + ': HTTP ' + code + ' ' + text.substring(0, 200));
+      if (!isTransientHttpCode_(code)) break; // 4xx (auth/quota永続) はモデル変えても無駄なので次へ
+      if (attempt < GEMINI_MAX_ATTEMPTS) Utilities.sleep(backoffMs_(attempt));
+    }
+  }
+  throw new Error(
+    'Gemini API が一時的に応答しません(' + GEMINI_MODELS.length + 'モデル × ' + GEMINI_MAX_ATTEMPTS +
+    '回まで再試行しました)。数分待ってから再提出してください。\n詳細:\n  - ' +
+    errors.slice(-6).join('\n  - ')
+  );
+}
+
+// attempt=1 → 2000ms, attempt=2 → 5000ms, attempt=3 → 11000ms, attempt=4 → 23000ms (±20% jitter)
+function backoffMs_(attempt) {
+  const base = Math.pow(2, attempt) * 1000 + Math.pow(2, attempt - 1) * 1000;
+  const jitter = base * 0.2 * (Math.random() * 2 - 1);
+  return Math.round(base + jitter);
+}
+
 function categorize_(totalPct, dPct) {
   if (dPct < D_MIN_PCT) return '要努力';
   if (totalPct < PASS_PCT) return '要努力';
@@ -250,7 +332,6 @@ function gradeSectionDWithGemini_(sectionDQAs) {
     required: ['evaluations','totalScore','overallSummary']
   };
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(apiKey);
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
@@ -260,20 +341,11 @@ function gradeSectionDWithGemini_(sectionDQAs) {
     }
   };
 
-  const response = UrlFetchApp.fetch(url, {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(body),
-    muteHttpExceptions: true
-  });
-  const code = response.getResponseCode();
-  const text = response.getContentText();
-  if (code >= 400) throw new Error('Gemini API エラー (HTTP ' + code + '): ' + text.substring(0, 500));
-
-  const data = JSON.parse(text);
-  if (!data.candidates || !data.candidates[0]) throw new Error('Gemini レスポンスが空です');
-  const jsonStr = data.candidates[0].content.parts[0].text;
+  const { jsonStr, modelUsed } = callGeminiWithRetry_(body, apiKey);
   const parsed = JSON.parse(jsonStr);
+  if (modelUsed !== GEMINI_MODELS[0]) {
+    Logger.log('Gemini fallback model used: ' + modelUsed);
+  }
 
   // Sanity-clamp scores per question, recompute totals
   let runningTotal = 0;
