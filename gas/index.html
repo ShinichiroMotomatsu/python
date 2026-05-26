@@ -154,9 +154,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   </div>
 
   <div class="callout info" style="margin-top:14px;">
-    開始ボタンを押すと <b>70分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
+    開始ボタンを押すと <b>80分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
     提出後、セクションA・B・C は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
-    あなたの判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)は結果画面に表示されます。
+    判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)が結果画面に表示され、<b>受験者・評価者宛に結果メールも自動送信</b>されます。
   </div>
 
   <div style="margin-top:18px;text-align:right;">
@@ -242,9 +242,10 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
     <hr>
     <div id="saveStatus" class="callout good" style="display:none;">
-      <b>✓ 結果は保存されました。</b><br>
+      <b>✓ 結果は集計シートに保存されました。</b><br>
       <span class="muted" id="savedIdLabel" style="font-size:12px;"></span>
     </div>
+    <div id="emailStatus" class="callout" style="display:none;margin-top:8px;"></div>
     <div class="flex between no-print" style="flex-wrap:wrap;gap:8px;margin-top:18px;">
       <button class="primary" onclick="window.print()" style="font-size:15px;padding:10px 24px;">🖨️ 結果を印刷 / PDF 保存</button>
       <button class="ghost" onclick="if(confirm('結果画面を閉じて最初に戻ります。'+`\n結果は既に保存済みのため、戻ってもデータは失われません。`)){location.reload();}">最初に戻る</button>
@@ -1347,6 +1348,22 @@ function renderResult(res){
   // saved status
   document.getElementById('saveStatus').style.display = 'block';
   document.getElementById('savedIdLabel').textContent = `提出ID: ${res.submissionId}`;
+
+  // email status
+  const emEl = document.getElementById('emailStatus');
+  const em = res.emailStatus || {};
+  if(em.sent){
+    emEl.className = 'callout good';
+    let recipients = `送信先: <b>${escapeHtml(em.to||'')}</b>`;
+    if(em.cc) recipients += ` / Cc: <b>${escapeHtml(em.cc)}</b>`;
+    emEl.innerHTML = `<b>✉ 結果メールを送信しました。</b><br><span class="muted" style="font-size:12px;">${recipients}</span>`;
+    emEl.style.display = 'block';
+  } else if(em.reason){
+    emEl.className = 'callout';
+    emEl.style.borderColor = '#fbbc04';
+    emEl.innerHTML = `<b>⚠ 結果メールは送信されませんでした。</b><br><span class="muted" style="font-size:12px;">理由: ${escapeHtml(em.reason)}</span>`;
+    emEl.style.display = 'block';
+  }
 }
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
