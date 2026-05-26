@@ -384,6 +384,7 @@ function getDashboardData() {
     dMaxSum += parseInt(r[ix['D_max']] || 0);
 
     rows.push({
+      rowIndex: i + 1, // 1-based sheet row number (header is row 1)
       submissionId: r[ix['submissionId']],
       timestamp: r[ix['受験日時']] ? Utilities.formatDate(new Date(r[ix['受験日時']]), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm') : '',
       name: r[ix['氏名']],
@@ -418,22 +419,43 @@ function getDashboardData() {
   };
 }
 
+/**
+ * 指定された行(1-based、ヘッダ行は1)の受験詳細を返す。
+ * 古いバージョンの sheet schema や submissionId 列ズレに依存しないよう
+ * 行番号で直接読み出す。
+ */
+function getSubmissionByRow(rowIndex) {
+  const sheet = getOrCreateSheet_();
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (!rowIndex || rowIndex < 2 || rowIndex > lastRow) return null;
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const row     = sheet.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
+  const obj = {};
+  headers.forEach((h, j) => obj[h] = row[j]);
+  try { obj.dResultParsed = JSON.parse(obj['Gemini評価(JSON)']); } catch (e) { obj.dResultParsed = null; }
+  try { obj.qLogParsed    = JSON.parse(obj['回答ログ(JSON)']); }  catch (e) { obj.qLogParsed    = null; }
+  if (obj['受験日時']) {
+    try { obj.timestamp = Utilities.formatDate(new Date(obj['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm'); } catch (e) {}
+  }
+  return obj;
+}
+
+/**
+ * 後方互換: submissionId 文字列から行を引く。
+ * シートに submissionId 列が無い / ズレている場合は null を返す。
+ * 新しい UI は getSubmissionByRow を使うこと。
+ */
 function getSubmissionDetail(submissionId) {
   const sheet = getOrCreateSheet_();
   const data = sheet.getDataRange().getValues();
+  if (!data || data.length < 2) return null;
   const headers = data[0];
   const idCol = headers.indexOf('submissionId');
+  if (idCol < 0) return null;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][idCol] === submissionId) {
-      const obj = {};
-      headers.forEach((h, j) => obj[h] = data[i][j]);
-      try { obj.dResultParsed = JSON.parse(obj['Gemini評価(JSON)']); } catch (e) { obj.dResultParsed = null; }
-      try { obj.qLogParsed = JSON.parse(obj['回答ログ(JSON)']); } catch (e) { obj.qLogParsed = null; }
-      // timestamp 整形
-      if (obj['受験日時']) {
-        obj.timestamp = Utilities.formatDate(new Date(obj['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
-      }
-      return obj;
+    if (String(data[i][idCol]) === String(submissionId)) {
+      return getSubmissionByRow(i + 1);
     }
   }
   return null;
@@ -504,7 +526,7 @@ function buildResultEmailHtml_(payload, dResult, s) {
       '<div style="font-size:11px;letter-spacing:2px;color:#5f6368;">RESULT</div>' +
       '<div style="font-size:36px;font-weight:800;color:' + c.fg + ';margin:4px 0;">' + escapeHtml_(s.category) + '</div>' +
       '<div style="font-family:Menlo,monospace;font-size:18px;font-weight:700;">' + s.totalScore + ' / ' + s.totalMax + '点 (' + s.totalPct + '%)</div>' +
-      '<div style="font-size:11px;color:#5f6368;margin-top:6px;">合格基準: 64%以上 / 優良: 80%以上 / セクションD最低: 50%以上</div>' +
+      '<div style="font-size:11px;color:#5f6368;margin-top:6px;">及第点: ' + (PASS_PCT*100) + '%以上 / 優良: ' + (EXCELLENT_PCT*100) + '%以上 / セクションD最低: ' + (D_MIN_PCT*100) + '%以上</div>' +
     '</div>' +
 
     '<h3 style="font-size:14px;color:#174ea6;border-left:4px solid #1a73e8;padding-left:8px;margin:18px 0 8px;">セクション別スコア</h3>' +
@@ -552,7 +574,7 @@ function buildResultEmailText_(payload, dResult, s) {
   lines.push('');
   lines.push('===== 判定: ' + s.category + ' =====');
   lines.push('総合スコア: ' + s.totalScore + ' / ' + s.totalMax + ' 点 (' + s.totalPct + '%)');
-  lines.push('合格基準: 64%以上 / 優良: 80%以上 / セクションD最低: 50%以上');
+  lines.push('及第点: ' + (PASS_PCT*100) + '%以上 / 優良: ' + (EXCELLENT_PCT*100) + '%以上 / セクションD最低: ' + (D_MIN_PCT*100) + '%以上');
   lines.push('');
   lines.push('セクション別スコア:');
   lines.push('  A. L1 基礎理解         : ' + s.sec.A.got + '/' + s.sec.A.max);
