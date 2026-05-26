@@ -141,7 +141,7 @@ function render(){
 
     <h2>受験者一覧 (${filtered.length} / ${data.rows.length} 件)</h2>
     <div class="toolbar">
-      <input type="text" id="filterText" value="${escapeHtml(FILTER.text)}" placeholder="氏名・所属・メールで絞り込み" style="flex:1;min-width:200px;" oninput="onFilterChange()">
+      <input type="text" id="filterText" value="${escapeHtml(FILTER.text)}" placeholder="氏名・所属で絞り込み" style="flex:1;min-width:200px;" oninput="onFilterChange()">
       <select id="filterCat" onchange="onFilterChange()">
         <option value="">すべてのカテゴリ</option>
         <option value="優良" ${FILTER.category==='優良'?'selected':''}>優良</option>
@@ -205,7 +205,7 @@ function filterRows(rows){
     if(FILTER.category && r.category !== FILTER.category) return false;
     if(FILTER.text){
       const t = FILTER.text.toLowerCase();
-      const hay = [(r.name||''),(r.role||''),(r.email||'')].join(' ').toLowerCase();
+      const hay = [(r.name||''),(r.role||'')].join(' ').toLowerCase();
       if(!hay.includes(t)) return false;
     }
     return true;
@@ -253,7 +253,7 @@ function renderDetail(d){
   const ev = d.dResultParsed;
   let html = `
     <h2>受験詳細: ${escapeHtml(d['氏名']||'')}</h2>
-    <div class="muted">${escapeHtml(d.timestamp||'')}  |  ${escapeHtml(d['所属']||'')}  |  ${escapeHtml(d['受験者メール']||'')}</div>
+    <div class="muted">${escapeHtml(d.timestamp||'')}  |  ${escapeHtml(d['所属']||'')}</div>
     <div style="margin:14px 0;text-align:center;">
       <span class="tag tag-${d['カテゴリ']}" style="font-size:18px;padding:6px 20px;">${escapeHtml(d['カテゴリ']||'')}</span>
       <span style="margin-left:12px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:18px;">${d['総合']}/${d['満点']} (${d['達成率(%)']}%)</span>
