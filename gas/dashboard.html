@@ -175,7 +175,7 @@ function render(){
                 <td class="mono">${escapeHtml(r.total||'')}</td>
                 <td class="pct ${pctClass(r.percent)}">${escapeHtml(String(r.percent||''))}%</td>
                 <td><span class="tag tag-${r.category}">${escapeHtml(r.category||'')}</span></td>
-                <td><button onclick="showDetail(${Number(r.rowIndex)||0})" style="background:none;border:1px solid var(--c-line);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">詳細</button></td>
+                <td><button onclick='showDetail(${Number(r.rowIndex)||0}, ${JSON.stringify(String(r.submissionId||""))})' style="background:none;border:1px solid var(--c-line);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">詳細</button></td>
               </tr>
             `).join('')
           }
@@ -232,12 +232,7 @@ function pctClass(p){
   return 'low';
 }
 
-function showDetail(rowIndex){
-  if(!rowIndex){
-    document.getElementById('detailContent').innerHTML = '<div style="color:#a50e0e;">行番号が取得できませんでした。「更新」を押して一覧を再読込してください。</div>';
-    document.getElementById('detailModal').classList.add('show');
-    return;
-  }
+function showDetail(rowIndex, submissionId){
   document.getElementById('detailContent').innerHTML = '<div class="loading">読み込み中…</div>';
   document.getElementById('detailModal').classList.add('show');
   google.script.run
@@ -245,23 +240,25 @@ function showDetail(rowIndex){
     .withFailureHandler(err=>{
       document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">エラー: ${escapeHtml(String(err.message||err))}</div>`;
     })
-    .getSubmissionByRow(rowIndex);
+    .getSubmissionDetailFlexible({ rowIndex: rowIndex||0, submissionId: submissionId||'' });
 }
 
 function renderDetail(d){
-  if(!d){ document.getElementById('detailContent').innerHTML = '<div>該当する記録が見つかりませんでした。</div>'; return; }
+  if(!d){ document.getElementById('detailContent').innerHTML = '<div>サーバーから空の応答が返りました。Code.gs を最新版に更新し、デプロイの新バージョンを発行してください。</div>'; return; }
   const ev = d.dResultParsed;
+  const diag = d._diagnostic || {};
+  const fmt = v => (v===undefined||v===null||v==='') ? '-' : v;
   let html = `
-    <h2>受験詳細: ${escapeHtml(d['氏名']||'')}</h2>
-    <div class="muted">${escapeHtml(d.timestamp||'')}  |  ${escapeHtml(d['所属']||'')}</div>
+    <h2>受験詳細: ${escapeHtml(d['氏名']||'-')}</h2>
+    <div class="muted">${escapeHtml(d.timestamp||'-')}  |  ${escapeHtml(d['所属']||'-')}</div>
     <div style="margin:14px 0;text-align:center;">
-      <span class="tag tag-${d['カテゴリ']}" style="font-size:18px;padding:6px 20px;">${escapeHtml(d['カテゴリ']||'')}</span>
-      <span style="margin-left:12px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:18px;">${d['総合']}/${d['満点']} (${d['達成率(%)']}%)</span>
+      <span class="tag tag-${d['カテゴリ']}" style="font-size:18px;padding:6px 20px;">${escapeHtml(fmt(d['カテゴリ']))}</span>
+      <span style="margin-left:12px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:18px;">${fmt(d['総合'])}/${fmt(d['満点'])} (${fmt(d['達成率(%)'])}%)</span>
     </div>
-    <div class="score-line"><div class="lbl">A. 基礎理解</div><div class="val">${d['A_got']}/${d['A_max']}</div></div>
-    <div class="score-line"><div class="lbl">B. 業務活用判断</div><div class="val">${d['B_got']}/${d['B_max']}</div></div>
-    <div class="score-line"><div class="lbl">C. マネジメント</div><div class="val">${d['C_got']}/${d['C_max']}</div></div>
-    <div class="score-line"><div class="lbl">D. プロンプト記述(Gemini評価)</div><div class="val">${d['D_got']}/${d['D_max']}</div></div>
+    <div class="score-line"><div class="lbl">A. 基礎理解</div><div class="val">${fmt(d['A_got'])}/${fmt(d['A_max'])}</div></div>
+    <div class="score-line"><div class="lbl">B. 業務活用判断</div><div class="val">${fmt(d['B_got'])}/${fmt(d['B_max'])}</div></div>
+    <div class="score-line"><div class="lbl">C. マネジメント</div><div class="val">${fmt(d['C_got'])}/${fmt(d['C_max'])}</div></div>
+    <div class="score-line"><div class="lbl">D. プロンプト記述(Gemini評価)</div><div class="val">${fmt(d['D_got'])}/${fmt(d['D_max'])}</div></div>
     <div class="score-line"><div class="lbl">所要時間</div><div class="val">${Math.floor((d['所要(秒)']||0)/60)}分${String(((d['所要(秒)']||0)%60)).padStart(2,'0')}秒</div></div>
   `;
 
@@ -280,7 +277,16 @@ function renderDetail(d){
     if(ev.overallSummary){
       html += `<div class="eval-block" style="background:#e8f0fe;border-color:#1a73e8;"><b>総評:</b> ${escapeHtml(ev.overallSummary)}</div>`;
     }
+  } else {
+    html += '<div class="eval-block" style="background:#fef7e0;border-color:#fbbc04;"><b>Gemini評価データを取得できませんでした。</b>';
+    if(diag.dParseError) html += `<br><small>JSON parse: ${escapeHtml(diag.dParseError)}</small>`;
+    html += '</div>';
   }
+
+  if(diag.error || diag.dParseError || diag.qParseError){
+    html += `<details style="margin-top:18px;font-size:12px;color:#5f6368;"><summary>診断情報(管理者向け)</summary><pre style="background:#f8f9fa;padding:8px;border-radius:4px;overflow:auto;">${escapeHtml(JSON.stringify(diag,null,2))}</pre></details>`;
+  }
+
   document.getElementById('detailContent').innerHTML = html;
 }
 

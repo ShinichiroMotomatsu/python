@@ -465,44 +465,124 @@ function getDashboardData() {
 
 /**
  * 指定された行(1-based、ヘッダ行は1)の受験詳細を返す。
- * 古いバージョンの sheet schema や submissionId 列ズレに依存しないよう
- * 行番号で直接読み出す。
+ * シート schema の差異/ヘッダ名のズレ/列位置の変動に強い設計:
+ *  1) ヘッダ行と対象行をそのまま読む
+ *  2) ヘッダ名で obj を作る(ヘッダ通りのアクセスが効く場合)
+ *  3) ヘッダが壊れていても、行内の文字列値をスキャンして
+ *     dResult JSON / qLog JSON を発見できれば拾う
+ *  4) 必ずオブジェクトを返す(null を返さない)。何かおかしければ
+ *     _diagnostic にその情報を入れる。
  */
 function getSubmissionByRow(rowIndex) {
-  const sheet = getOrCreateSheet_();
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  if (!rowIndex || rowIndex < 2 || rowIndex > lastRow) return null;
-  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-  const row     = sheet.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
-  const obj = {};
-  headers.forEach((h, j) => obj[h] = row[j]);
-  try { obj.dResultParsed = JSON.parse(obj['Gemini評価(JSON)']); } catch (e) { obj.dResultParsed = null; }
-  try { obj.qLogParsed    = JSON.parse(obj['回答ログ(JSON)']); }  catch (e) { obj.qLogParsed    = null; }
-  if (obj['受験日時']) {
-    try { obj.timestamp = Utilities.formatDate(new Date(obj['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm'); } catch (e) {}
+  const out = { _diagnostic: {} };
+  try {
+    const sheet = getOrCreateSheet_();
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    out._diagnostic.sheetName    = sheet.getName();
+    out._diagnostic.lastRow      = lastRow;
+    out._diagnostic.lastCol      = lastCol;
+    out._diagnostic.requestedRow = rowIndex;
+
+    if (!rowIndex || rowIndex < 2 || rowIndex > lastRow) {
+      out._diagnostic.error = 'rowIndex が範囲外です (要求=' + rowIndex + ', 有効=2〜' + lastRow + ')';
+      return out;
+    }
+
+    const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    const row     = sheet.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
+    out._diagnostic.headers = headers;
+
+    headers.forEach((h, j) => { if (h) out[String(h).trim()] = row[j]; });
+
+    // dResult / qLog JSON の発掘
+    let dJsonRaw = out['Gemini評価(JSON)'];
+    let qJsonRaw = out['回答ログ(JSON)'];
+    if (typeof dJsonRaw !== 'string' || typeof qJsonRaw !== 'string') {
+      // ヘッダ名と一致しなくても、行内の文字列値からそれっぽいものを拾う
+      for (let i = 0; i < row.length; i++) {
+        const v = row[i];
+        if (typeof v !== 'string') continue;
+        const s = v.trim();
+        if ((typeof dJsonRaw !== 'string') && s.charAt(0) === '{' && s.indexOf('"evaluations"') >= 0) dJsonRaw = s;
+        if ((typeof qJsonRaw !== 'string') && s.charAt(0) === '[') qJsonRaw = s;
+      }
+    }
+
+    try { out.dResultParsed = (typeof dJsonRaw === 'string') ? JSON.parse(dJsonRaw) : null; }
+    catch (e) { out.dResultParsed = null; out._diagnostic.dParseError = String(e.message || e); }
+    try { out.qLogParsed = (typeof qJsonRaw === 'string') ? JSON.parse(qJsonRaw) : null; }
+    catch (e) { out.qLogParsed = null; out._diagnostic.qParseError = String(e.message || e); }
+
+    if (out['受験日時']) {
+      try { out.timestamp = Utilities.formatDate(new Date(out['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm'); } catch (e) {}
+    }
+    return out;
+  } catch (e) {
+    out._diagnostic.error = String(e.message || e);
+    return out;
   }
-  return obj;
 }
 
 /**
  * 後方互換: submissionId 文字列から行を引く。
- * シートに submissionId 列が無い / ズレている場合は null を返す。
- * 新しい UI は getSubmissionByRow を使うこと。
+ * 新規 UI は getSubmissionDetailFlexible を使うこと。
  */
 function getSubmissionDetail(submissionId) {
+  return getSubmissionDetailFlexible({ submissionId: submissionId });
+}
+
+/**
+ * 行番号 / submissionId のどちらか(または両方)で受験詳細を取得する。
+ *   1) rowIndex が有効ならそれで読む
+ *   2) ダメなら submissionId 列を探して該当行を見つけて読む
+ *   3) どちらも失敗したら必ず _diagnostic 入りオブジェクトを返す
+ * クライアントは null チェックする必要なく、d._diagnostic.error の有無で
+ * 結果の信頼性を判断できる。
+ */
+function getSubmissionDetailFlexible(query) {
+  query = query || {};
   const sheet = getOrCreateSheet_();
-  const data = sheet.getDataRange().getValues();
-  if (!data || data.length < 2) return null;
-  const headers = data[0];
-  const idCol = headers.indexOf('submissionId');
-  if (idCol < 0) return null;
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idCol]) === String(submissionId)) {
-      return getSubmissionByRow(i + 1);
-    }
+  const lastRow = sheet.getLastRow();
+
+  // (1) rowIndex 直接
+  if (query.rowIndex && Number(query.rowIndex) >= 2 && Number(query.rowIndex) <= lastRow) {
+    const r = getSubmissionByRow(Number(query.rowIndex));
+    if (r && !r._diagnostic.error) return r;
   }
-  return null;
+
+  // (2) submissionId フォールバック
+  if (query.submissionId) {
+    const data = sheet.getDataRange().getValues();
+    if (data && data.length >= 2) {
+      const headers = data[0];
+      let idCol = headers.indexOf('submissionId');
+      // ヘッダ名がブレている場合は列0(常に submissionId を最初に書いている)を当てにする
+      if (idCol < 0) idCol = 0;
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][idCol]) === String(query.submissionId)) {
+          const r = getSubmissionByRow(i + 1);
+          r._diagnostic.matchedBy = 'submissionId';
+          return r;
+        }
+      }
+    }
+    return {
+      _diagnostic: {
+        error: 'submissionId に一致する行が見つかりませんでした',
+        searchedSubmissionId: query.submissionId,
+        sheetName: sheet.getName(),
+        lastRow: lastRow
+      }
+    };
+  }
+
+  return {
+    _diagnostic: {
+      error: 'rowIndex も submissionId も指定されていません',
+      query: query
+    }
+  };
 }
 
 // Optional: quick health check from the script editor.
