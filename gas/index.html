@@ -108,8 +108,8 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
     <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>80分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全25問 / セクションA〜D / 147点満点(<b>選択問題はすべて複数選択・strict採点</b>)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 95/147 点(64%)以上</b> かつ <b>セクションD ≧ 45/90 点</b></td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全26問 / セクションA〜D / 149点満点(<b>選択問題はすべて複数選択・strict採点</b>)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 60%(及第点)以上</b> かつ <b>セクションD ≧ 50%</b>(優良は 80% 以上)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
@@ -117,9 +117,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <h2>セクション構成と測定スキル</h2>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 6問 · 12点
+      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 7問 · 14点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティ</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span><span>NotebookLM の特性</span>
+        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティの境界</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span><span>NotebookLM の特性</span><span>AI利活用ガイドラインの遵守</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
@@ -223,7 +223,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     </div>
 
     <div class="kpi">
-      <div class="b"><div class="v" id="scoreA">0/12</div><div class="l">A. L1 基礎理解</div></div>
+      <div class="b"><div class="v" id="scoreA">0/14</div><div class="l">A. L1 基礎理解</div></div>
       <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
       <div class="b"><div class="v" id="scoreD">0/90</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(Gemini評価)</span></div></div>
@@ -313,7 +313,7 @@ function buildMS(pool, prompt, total, minC, minW){
   };
 }
 
-// -------------------- SECTION A: L1 基礎理解 (6問 × 2点 = 12点・全問複数選択) --------------------
+// -------------------- SECTION A: L1 基礎理解 (7問 × 2点 = 14点・全問複数選択) --------------------
 const BANK_A = [
   // A1: LLM の動作原理
   {
@@ -353,17 +353,18 @@ const BANK_A = [
   {
     id:'A3', section:'A', skill:'情報セキュリティの境界', points:2, multiSelect:true,
     build: ()=> buildMS([
-      { c:true,  t:'すでに公開済みのプレスリリースのドラフト(修正要望のため再推敲したい)' },
-      { c:true,  t:'部下の評価コメント素案(メンバー名は「メンバーA・主任・営業3年目」に仮名化済み、KPIと観察行動のみ含む)' },
-      { c:true,  t:'今しがた終わった社内週次定例の Meet 文字起こし(参加者の発言・社内固有名詞は含むが、社外秘情報・人事評価情報は含まない)' },
-      { c:true,  t:'自分宛ての社内メール(取引先固有情報や人事情報は含まない)の要約依頼' },
-      { c:true,  t:'公開済みの社外向け会社案内資料・自社製品Webコンテンツ' },
-      { c:false, t:'未締結のNDAに基づき取引先から共有された、相手企業の未発表ロードマップを含む資料' },
-      { c:false, t:'部下10名の実名・等級・人事評価点・健康面の不調有無を表形式でまとめた人事データ' },
-      { c:false, t:'採用候補者の履歴書PDF(氏名・大学名・前職企業名を含む)' },
-      { c:false, t:'来週発表予定で社内法務レビュー前の、M&A対象企業名を含むプレスリリース原文' },
-      { c:false, t:'顧客との未公開の個別契約条件(価格・SLA・特例条項)を含むメモ' },
-    ], '会社契約の Google Workspace(Gemini Pro 含む。社内利用の入力は学習に使われない設定)の業務利用において、<b>Gemini に入力してよい情報をすべて選びなさい</b>。')
+      { c:true,  t:'すでに公開済みのプレスリリース原稿(社外公表後の推敲を依頼)' },
+      { c:true,  t:'仮名加工(個人特定不能)済みの部下評価素案(評価対象は「メンバーA・主任・営業3年目」表記、KPIと観察行動のみ)' },
+      { c:true,  t:'社内週次定例の Meet 文字起こし(社内固有名詞は含むが、社外秘・他社秘密・人事評価情報は含まない)' },
+      { c:true,  t:'自分宛ての社内メール(取引先固有情報・人事情報を含まない)の要約依頼' },
+      { c:true,  t:'公開済みの社外向け会社案内・自社製品 Web コンテンツ' },
+      { c:true,  t:'自社内部のみで使う未公開営業資料(自社の機密情報・指定機密区分内で、顧客名や個人情報は含まない)' },
+      { c:false, t:'NDA を締結した取引先から共有された、相手企業の未発表ロードマップを含む資料(第三者の秘密情報)' },
+      { c:false, t:'当社サービスにおいて取扱いを委託された顧客の個人データ(顧客個人情報の分析)' },
+      { c:false, t:'採用候補者の履歴書PDF(氏名・大学名・前職企業名を含む。本人同意のない個人情報)' },
+      { c:false, t:'本番データベースの接続文字列・API キー・管理者パスワード(認証情報)' },
+      { c:false, t:'部下10名の実名・等級・人事評価点・健康面の不調有無を表形式でまとめた人事データ(個人特定可能な個人情報)' },
+    ], 'ラクスの『AIサービス利活用ガイドライン』では、AIサービス利用可否一覧で許可された <b>法人 Gemini</b>(同一覧で指定された機密区分までの入力を許可・学習に利用されない設定済み)を業務利用してよいとされている。この前提で、Gemini に <b>入力してよい情報</b> をすべて選びなさい。')
   },
 
   // A4: AIに最終アウトプットを任せて良いタスク
@@ -416,6 +417,24 @@ const BANK_A = [
       { c:false, t:'対話履歴(コンテキスト)が Gemini より大幅に大きく、長文対話を続けることに特化したUIを持つ' },
       { c:false, t:'アップロードした瞬間にソース内の機密情報を自動検出・除去するため、機密ファイルも安全に投入できる' },
     ], 'NotebookLM の特徴として <b>正しい説明をすべて選びなさい</b>。')
+  },
+
+  // A7: AI 利活用ガイドラインの遵守(ラクス AIサービス利活用ガイドラインに準拠)
+  {
+    id:'A7', section:'A', skill:'AI利活用ガイドラインの遵守', points:2, multiSelect:true,
+    build: ()=> buildMS([
+      { c:true,  t:'生成 AI サービスへの登録・ログインは、会社から貸与されたメールアドレス・Google アカウントを使用する' },
+      { c:true,  t:'入力データがモデル学習に利用される設定のサービスでは、AIサービス利用可否一覧の手順に従ってオプトアウトを実施してから業務利用する' },
+      { c:true,  t:'AI で生成したチャット内容・生成物を社内共有する際は、その情報へのアクセス権限を持つメンバーに限定して共有する' },
+      { c:true,  t:'AIサービス利用可否一覧で許可されたサービスについては、同一覧で指定された機密区分までは機密情報を入力してよい' },
+      { c:true,  t:'AI 生成物に他社著作物との類似・差別的表現・名誉棄損的表現が含まれていないか、人が必ず確認してから利用する' },
+      { c:true,  t:'AIサービス利用可否一覧に載っていない生成 AI を業務利用したい場合は、稟議申請(法務依頼DB)から事前に法務部へ相談する' },
+      { c:false, t:'会社契約の生成 AI であれば、本番システムの API キー・データベース接続文字列・管理者パスワードもプロンプトに貼り付けて作業を効率化してよい' },
+      { c:false, t:'当社サービスで取扱いを委託された顧客の個人データを、サービス改善・分析のために生成 AI に入力してよい' },
+      { c:false, t:'NDA を締結した取引先から共有された未発表情報も、社内利用に限れば法人 Gemini に入力してよい' },
+      { c:false, t:'AI が出力した文章・コード・画像は AI 提供事業者の責任で著作権・名誉棄損・差別表現が処理されているので、利用者側での確認は不要である' },
+      { c:false, t:'業務利用の生成 AI サービスの登録に、私用のメールアドレスや個人 Google アカウントを使ってもよい(自分が使い慣れていれば便利な方を選ぶ)' },
+    ], 'ラクスの『AIサービス利活用ガイドライン』に照らして、業務での生成 AI 利用に関する記述として <b>正しいもの</b> をすべて選びなさい。')
   },
 ];
 
