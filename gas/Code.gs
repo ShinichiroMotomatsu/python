@@ -117,7 +117,8 @@ function setupSpreadsheet() {
       'submissionId','受験日時','氏名','所属','所要(秒)',
       'A_got','A_max','B_got','B_max','C_got','C_max','D_got','D_max',
       '総合','満点','達成率(%)','カテゴリ',
-      'Gemini評価(JSON)','回答ログ(JSON)'
+      'Gemini評価(JSON)','回答ログ(JSON)',
+      'モード','職種大分類','職種(詳細)','AI活用記述','AI評価アドバイス(JSON)'
     ]);
     sheet.setFrozenRows(1);
     sheet.getRange(1,1,1,sheet.getLastColumn()).setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
@@ -125,6 +126,8 @@ function setupSpreadsheet() {
     sheet.setColumnWidth(2, 150); // timestamp
     sheet.setColumnWidth(3, 120); // 氏名
     sheet.setColumnWidth(18, 200); sheet.setColumnWidth(19, 200); // JSON columns
+    sheet.setColumnWidth(20, 90); sheet.setColumnWidth(21, 140); sheet.setColumnWidth(22, 200);
+    sheet.setColumnWidth(23, 280); sheet.setColumnWidth(24, 280);
   }
   const url = ss.getUrl();
   Logger.log('結果保存シートを準備しました: ' + url);
@@ -162,12 +165,32 @@ function submitAssessment(payload) {
     const totalPct = totalMax > 0 ? (totalScore / totalMax) : 0;
     const category = categorize_(totalPct, dPct);
 
-    // 3) Sheets に保存
+    // 3) Gemini に「総合評価・現状の使い方コメント・今後のアドバイス」を生成依頼
+    //    失敗しても提出は成功扱いとし、advice 部分は空で記録する
+    let advice = null;
+    try {
+      advice = generateAssessmentAdvice_({
+        examinee: payload.examinee,
+        sec, dResult, totalScore, totalMax,
+        totalPct: totalPct * 100, dPct: dPct * 100,
+        category, dailyUsage: payload.dailyUsage || ''
+      });
+    } catch (adviceErr) {
+      Logger.log('advice generation failed: ' + (adviceErr.message || adviceErr));
+      advice = { _error: String(adviceErr.message || adviceErr) };
+    }
+
+    // 4) Sheets に保存
     const submissionId = Utilities.getUuid();
     saveToSheet_({
       submissionId, examinee: payload.examinee, elapsedSec: payload.elapsedSec || 0,
       sec, dResult, totalScore, totalMax, category,
-      questionsLog: payload.questionsLog || []
+      questionsLog: payload.questionsLog || [],
+      mode: payload.examinee.mode || '',
+      jobCategory: payload.examinee.jobCategory || '',
+      jobTitle: payload.examinee.jobTitle || '',
+      dailyUsage: payload.dailyUsage || '',
+      advice: advice
     });
 
     return {
@@ -182,11 +205,101 @@ function submitAssessment(payload) {
         passPct: PASS_PCT * 100,
         excellentPct: EXCELLENT_PCT * 100,
         dMinPct: D_MIN_PCT * 100
-      }
+      },
+      advice: advice
     };
   } catch (err) {
     return { success: false, error: String(err.message || err) };
   }
+}
+
+// ---------------- AI 評価アドバイス生成 ----------------
+/**
+ * Gemini に「総合評価 / カテゴリ別理解状況 / 現状の使い方の評価 / 今後のアドバイス」
+ * を一括生成依頼する。職種・モードに応じてプロンプトを切り替える。
+ */
+function generateAssessmentAdvice_(s) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty(GEMINI_API_KEY_PROP);
+  if (!apiKey) throw new Error('GEMINI_API_KEY 未設定のため、アドバイス生成をスキップします');
+
+  const modeLabel = s.examinee.mode === 'onboarding' ? '管理職オンボーディング(昇格後3か月時点)' : '昇格試験(非管理職)';
+  const audienceLabel = s.examinee.mode === 'onboarding'
+    ? '管理職オンボーディングモード(昇格後3か月時点での役員面談の補助資料)'
+    : '昇格試験モード(管理職昇格試験の面接の補助資料)';
+
+  // セクション別評価のサマリ
+  const dEvalsSummary = (s.dResult.evaluations || []).map((e, i) =>
+    'D' + (i+1) + ' [' + (e.skill||'') + '] ' + (e.subtotal||0) + '/' + (e.maxPoints||15) +
+    ' (' + (e.verdict||'') + ')'
+  ).join('\n');
+
+  const dailyUsageBlock = (s.dailyUsage && s.dailyUsage.trim().length > 0)
+    ? s.dailyUsage.trim()
+    : '(受験者からの記載なし)';
+
+  const prompt =
+    'あなたは、ある SaaS 企業(ラクス)の人材開発を支援する評価コメンテーターです。\n' +
+    '受験者の AI アセスメント結果と本人の業務上の AI 活用状況の自由記載をもとに、面談で使う補助資料として\n' +
+    '「総合評価」「セクション別の理解状況コメント」「現状の使い方への評価」「今後推奨される使い方のアドバイス」\n' +
+    'を、職種特性を踏まえて日本語で生成してください。\n\n' +
+    '【利用シーン】\n' + audienceLabel + '\n\n' +
+    '【受験者情報】\n' +
+    '- 氏名:' + (s.examinee.name || '') + '\n' +
+    '- 所属:' + (s.examinee.role || '') + '\n' +
+    '- 職種大分類:' + (s.examinee.jobCategory || '') + '\n' +
+    '- 職種(詳細):' + (s.examinee.jobTitle || '') + '\n' +
+    '- 受験モード:' + modeLabel + '\n\n' +
+    '【スコア】\n' +
+    '- A. L1 基礎理解              : ' + s.sec.A.got + '/' + s.sec.A.max + '\n' +
+    '- B. L2 業務活用判断          : ' + s.sec.B.got + '/' + s.sec.B.max + '\n' +
+    '- C. L3 マネジメント応用      : ' + s.sec.C.got + '/' + s.sec.C.max + '\n' +
+    '- D. プロンプト記述 (Gemini)  : ' + s.dResult.totalScore + '/' + s.dResult.totalMax + '\n' +
+    '- 総合                       : ' + s.totalScore + '/' + s.totalMax + ' (' + Math.round(s.totalPct*10)/10 + '%)\n' +
+    '- 判定カテゴリ               : ' + s.category + '\n\n' +
+    '【セクションDの個別評価】\n' + (dEvalsSummary || '(評価無し)') + '\n\n' +
+    '【受験者本人による「日々の業務で AI をどう使っているか」の自由記載】\n' + dailyUsageBlock + '\n\n' +
+    '【生成上の注意】\n' +
+    '- 全文を通して敬体(です・ます)で書くこと\n' +
+    '- 受験者の職種特性を踏まえて、当該職種で AI 活用が効くシーンを具体的に挙げること\n' +
+    (s.examinee.mode === 'onboarding'
+      ? '- 「数値マネジメント」「ピープルマネジメント」での AI 活用を必ず一言以上触れること\n'
+      : '- 個人業務の効率化と、チームの成果最大化(非管理職でもできる範囲)の両面を触れること\n') +
+    '- 称賛だけでなく、実行可能な具体提案(プロンプトの型・ツール選び・運用習慣)を 2〜4 個含めること\n' +
+    '- 自由記載が無い場合は「日常活用の言語化が不足している」点を率直に指摘すること\n' +
+    '- セキュリティ(ラクス AIサービス利活用ガイドライン:認証情報・NDA下他社秘密・顧客委託個人情報の入力NG)に反する記載があれば、必ず注意喚起すること';
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      overall_summary:          { type: 'STRING' },
+      category_assessment: {
+        type: 'OBJECT',
+        properties: {
+          A: { type: 'STRING' },
+          B: { type: 'STRING' },
+          C: { type: 'STRING' },
+          D: { type: 'STRING' }
+        },
+        required: ['A','B','C','D']
+      },
+      current_usage_assessment: { type: 'STRING' },
+      advice:                   { type: 'STRING' }
+    },
+    required: ['overall_summary','category_assessment','current_usage_assessment','advice']
+  };
+
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.3,
+      responseMimeType: 'application/json',
+      responseSchema: schema
+    }
+  };
+
+  const { jsonStr } = callGeminiWithRetry_(body, apiKey);
+  const parsed = JSON.parse(jsonStr);
+  return parsed;
 }
 
 // HTTP コードが transient(リトライする価値あり)か判定
@@ -400,7 +513,12 @@ function saveToSheet_(o) {
     o.totalMax > 0 ? (o.totalScore / o.totalMax * 100).toFixed(1) : '0',
     o.category,
     JSON.stringify(o.dResult),
-    JSON.stringify(o.questionsLog).substring(0, 49000) // セル上限対策
+    JSON.stringify(o.questionsLog).substring(0, 49000), // セル上限対策
+    o.mode || '',
+    o.jobCategory || '',
+    o.jobTitle || '',
+    (o.dailyUsage || '').substring(0, 4900),
+    o.advice ? JSON.stringify(o.advice).substring(0, 9000) : ''
   ]);
 }
 
@@ -434,6 +552,9 @@ function getDashboardData() {
       timestamp: r[ix['受験日時']] ? Utilities.formatDate(new Date(r[ix['受験日時']]), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm') : '',
       name: r[ix['氏名']],
       role: r[ix['所属']],
+      mode: ix['モード'] != null ? r[ix['モード']] : '',
+      jobCategory: ix['職種大分類'] != null ? r[ix['職種大分類']] : '',
+      jobTitle: ix['職種(詳細)'] != null ? r[ix['職種(詳細)']] : '',
       A: r[ix['A_got']] + '/' + r[ix['A_max']],
       B: r[ix['B_got']] + '/' + r[ix['B_max']],
       C: r[ix['C_got']] + '/' + r[ix['C_max']],
@@ -513,6 +634,15 @@ function getSubmissionByRow(rowIndex) {
     catch (e) { out.dResultParsed = null; out._diagnostic.dParseError = String(e.message || e); }
     try { out.qLogParsed = (typeof qJsonRaw === 'string') ? JSON.parse(qJsonRaw) : null; }
     catch (e) { out.qLogParsed = null; out._diagnostic.qParseError = String(e.message || e); }
+
+    // AI 評価アドバイス JSON もパース
+    const adviceRaw = out['AI評価アドバイス(JSON)'];
+    if (typeof adviceRaw === 'string' && adviceRaw.trim().length > 0) {
+      try { out.adviceParsed = JSON.parse(adviceRaw); }
+      catch (e) { out.adviceParsed = null; out._diagnostic.adviceParseError = String(e.message || e); }
+    } else {
+      out.adviceParsed = null;
+    }
 
     if (out['受験日時']) {
       try { out.timestamp = Utilities.formatDate(new Date(out['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm'); } catch (e) {}

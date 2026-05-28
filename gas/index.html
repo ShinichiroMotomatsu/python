@@ -108,7 +108,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
     <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>45分</b>(時間切れで自動提出。タブを閉じて再開してもタイマーは止まりません)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全23問 / セクションA〜D / 104点満点(<b>選択問題はすべて複数選択・strict採点</b>)<br>各スキルの問題は <b>毎回バリアントが抽選</b>されるため、再受験時にも内容が変わります。</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>セクションA〜D + AI活用ヒアリング(自由記述)<br>
+      <b>昇格試験モード</b>: 約 24 問 / 104 点 ・ <b>管理職オンボーディングモード</b>: 約 26 問 / 114 点<br>
+      <span class="muted" style="font-size:12px;">各スキルの問題は毎回バリアントが抽選されるため、再受験時にも内容が変わります。</span></td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 60%(及第点)以上</b> かつ <b>セクションD ≧ 50%</b>(優良は 80% 以上)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
@@ -129,9 +131,11 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag C">Section C</span> <b>L3 マネジメント応用</b> · 3問 · 15点
+      <span class="tag C">Section C</span> <b>L3 マネジメント応用</b> · 昇格試験:3問/15点 / 管理職オンボ:5問/25点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>1on1への活用</span><span>FB・評価への活用</span><span>組織課題の構造化</span><span>AIに渡さない領域の判断</span>
+        <span>1on1への活用</span><span>FB・評価への活用</span><span>組織課題の構造化</span>
+        <span style="background:#f3e8fd;color:#5e35b1;">+ 数値マネジメント(管理職オンボのみ)</span>
+        <span style="background:#f3e8fd;color:#5e35b1;">+ ピープルマネジメント(管理職オンボのみ)</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
@@ -145,16 +149,36 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <div class="callout" style="border-color:#5e35b1;background:#ede7f6;margin-top:14px;">
     <b>すべての選択問題は「複数選択(strict採点)」</b>です。各問とも、正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば <b>0点</b>(部分点なし)。</div>
 
+  <h2>動作モードの選択</h2>
+  <div class="callout" style="background:#f8f9fa;border-color:#dadce0;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <label style="display:block;padding:14px;border:2px solid #dadce0;border-radius:8px;cursor:pointer;" id="modePromotionLabel">
+        <input type="radio" name="assessmentMode" value="promotion" id="modePromotion" checked> <b>昇格試験モード</b>
+        <div style="font-size:12px;color:var(--c-ink-2);margin-top:6px;line-height:1.5;">
+          非管理職向け。日々の業務効率・精度を上げる AI 活用と、チームの成果最大化のための活用を確認します。<b>管理職昇格試験の面接</b>の補助資料として使われます。
+        </div>
+      </label>
+      <label style="display:block;padding:14px;border:2px solid #dadce0;border-radius:8px;cursor:pointer;" id="modeOnboardingLabel">
+        <input type="radio" name="assessmentMode" value="onboarding" id="modeOnboarding"> <b>管理職オンボーディングモード</b>
+        <div style="font-size:12px;color:var(--c-ink-2);margin-top:6px;line-height:1.5;">
+          管理職昇格後 3 ヶ月時点向け。上記に加えて、<b>数値マネジメント</b>と <b>ピープルマネジメント</b>での AI 活用を確認します。<b>役員との 3 ヶ月面談</b>の補助資料として使われます。
+        </div>
+      </label>
+    </div>
+  </div>
+
   <h2>受験者情報</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
     <div><label>氏名(または受験番号) <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
     <div><label>所属・現職 <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
+    <div><label>職種大分類 <span style="color:var(--c-danger);">*</span></label><select id="jobCategory" onchange="onJobCategoryChange()"><option value="">選択してください</option></select></div>
+    <div><label>職種(詳細) <span style="color:var(--c-danger);">*</span></label><select id="jobTitle"><option value="">先に大分類を選択</option></select></div>
   </div>
 
   <div class="callout info" style="margin-top:14px;">
     開始ボタンを押すと <b>45分のタイマーが起動</b>します。各スキルの問題は受験ごとにランダムなバリアントが選ばれるため、再受験時にも内容が変わります。タイマーはタブを別ウィンドウに切り替えても停止しません。<br>
     提出後、セクションA・B・C は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
-    判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)は結果画面に表示されます。詳細データは管理者がダッシュボードから確認します。
+    判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)に加え、<b>AI が職種・自由記載をもとに「総合評価・現状の使い方の評価・今後のアドバイス」を生成</b>します。これは面談時の補助資料として管理者がダッシュボードから参照できます。
   </div>
 
   <div style="margin-top:18px;text-align:right;">
@@ -232,6 +256,9 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     <h2>スキル別到達度(自動採点分)</h2>
     <div id="skillBreakdown"></div>
 
+    <h2>AI による総合評価とアドバイス</h2>
+    <div id="aiAdvice"><div class="muted">この受験結果に対する AI コメントを生成しています…</div></div>
+
     <h2>Gemini評価 — セクションD 記述問題</h2>
     <div id="geminiResult"></div>
 
@@ -273,6 +300,54 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 // Each item has the same measured skill, but multiple variants & variable pools
 // so the surface form is different every time, while the assessed competency is fixed.
 // ========================================================================
+
+// ラクスの職種一覧(CSV由来)。動作モードに依らず共通。
+const JOB_POSITIONS = [
+  { category:'セールス',     title:'インサイドセールス(IS)',           desc:'マーケティングが獲得したリード(見込み顧客)へのアプローチ、課題ヒアリング、商談獲得(案件化)' },
+  { category:'セールス',     title:'フィールドセールス(FS)',           desc:'商談から提案、受注・契約までを担当' },
+  { category:'セールス',     title:'エンタープライズセールス',           desc:'大手企業や一括導入を検討する大規模顧客を専門に担当する営業' },
+  { category:'セールス',     title:'カスタマーサクセス(CS)',           desc:'契約後のシステム導入(オンボーディング)から定着化、活用促進、解約防止、アップセルを担う' },
+  { category:'セールス',     title:'営業企画 / CS企画',                 desc:'営業・CS組織の戦略立案、プロセス改善、ツールの導入・運用などを支援' },
+  { category:'マーケティング', title:'オンラインマーケティング',           desc:'Web広告運用、SEO、コンテンツマーケティング、SNS運用などを担当' },
+  { category:'マーケティング', title:'データマーケティング',               desc:'MAツールの運用や、各種データの分析・施策へのフィードバックを担う' },
+  { category:'マーケティング', title:'マーケティング戦略',                 desc:'市場分析、プロダクトごとのプロモーションやマーケティング全体の戦略立案・マネジメント' },
+  { category:'企画',         title:'PMM(プロダクトマーケティングマネージャー)', desc:'担当プロダクトの市場投入戦略、価格設計、プロモーション企画、競合分析などを牽引' },
+  { category:'企画',         title:'事業企画',                           desc:'中期経営計画や事業計画の策定、予算管理、新規事業の推進などを担当' },
+  { category:'エンジニア',   title:'プロダクトマネージャー(PdM)',       desc:'プロダクトの機能要件定義、ロードマップ策定など、開発の方向性を決定' },
+  { category:'エンジニア',   title:'サーバサイドエンジニア(バックエンド)', desc:'JavaやPHPを用いたWebアプリケーションの開発' },
+  { category:'エンジニア',   title:'フロントエンドエンジニア',             desc:'ユーザーが直接触れるWebインターフェースの開発' },
+  { category:'エンジニア',   title:'インフラエンジニア(SRE)',           desc:'AWSやKubernetesなどを用いたクラウドインフラの設計・構築・運用、自動化' },
+  { category:'エンジニア',   title:'AI・機械学習エンジニア',               desc:'新規事業やプロダクトへのAI(生成AI含む)の組み込み・データ解析' },
+  { category:'エンジニア',   title:'コーポレートエンジニア(社内SE)',     desc:'社内の情報システム(社内IT、販売管理システムなど)の開発・リプレイス、社内DX・セキュリティ企画の推進' },
+  { category:'エンジニア',   title:'開発管理(エンジニアリングマネージャー:EM)', desc:'エンジニア組織のマネジメント、採用、育成、評価' },
+  { category:'デザイナー',   title:'UI/UXデザイナー',                    desc:'プロダクト(SaaS画面)の使いやすさ、ユーザー体験(UX)の向上を担う' },
+  { category:'デザイナー',   title:'Webデザイナー',                      desc:'サービスサイト、LP(ランディングページ)、バナー、プロモーション用素材の制作' },
+  { category:'コーポレート', title:'人事・労務',                          desc:'採用(新卒・中途)、研修、人事制度設計・運用、労務管理' },
+  { category:'コーポレート', title:'法務',                                desc:'契約書レビュー、コンプライアンス体制の整備' },
+  { category:'コーポレート', title:'財務・経理',                          desc:'日々の経理業務、決算対応、税務' },
+  { category:'コーポレート', title:'IR(投資家向け広報)',                desc:'投資家対応(取材対応)、決算説明資料の作成、適時開示' },
+  { category:'コーポレート', title:'内部統制・内部監査',                  desc:'リスク管理や業務プロセスの監査' },
+  { category:'コーポレート', title:'事務(業務改善・フロー設計)',         desc:'ミドルオフィスにおける業務効率化やオペレーション設計の推進' },
+];
+
+// 動作モード定数
+const MODE_PROMOTION  = 'promotion';   // 昇格試験モード(非管理職向け)
+const MODE_ONBOARDING = 'onboarding';  // 管理職オンボーディングモード(昇格後3か月)
+
+// 大分類の一意リスト
+const JOB_CATEGORIES = Array.from(new Set(JOB_POSITIONS.map(j => j.category)));
+
+// 大分類変更時に職種(詳細)プルダウンを連動更新
+function onJobCategoryChange(){
+  const cat = document.getElementById('jobCategory').value;
+  const select = document.getElementById('jobTitle');
+  select.innerHTML = '<option value="">職種を選択してください</option>';
+  JOB_POSITIONS.filter(j => j.category === cat).forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j.title; opt.textContent = j.title;
+    select.appendChild(opt);
+  });
+}
 
 // Variable pools (used by templated questions)
 const POOLS = {
@@ -889,9 +964,65 @@ const BANK_C = [
       { c:false, t:'AI に「結論まで一気に出して」と任せ、自分の思考プロセスは入れない' },
     ], 'あなたは部門長(配下40名・4チーム)。今四半期、メンバー稼働率が想定より15%低下している。経営からは来週までに原因分析と是正案を求められている。<b>適切な AI 活用をすべて選びなさい</b>。') },
   ]},
+
+  // C4 (管理職オンボーディングモード限定): 数値マネジメントへの AI 活用
+  { skill:'数値マネジメントへのAI活用', section:'C', points:5, multiSelect:true, modes:[MODE_ONBOARDING], variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'KPIダッシュボードの数値推移を Gemini に渡し、想定外の変化点(急増・急減・トレンドの折れ)を箇条書きで指摘させ、自分の解釈の抜けを補う' },
+      { c:true,  t:'前年同期比・前月比・前週比のうち、どの比較軸が今の意思決定に有効かを Gemini と対話しながら自分が決める' },
+      { c:true,  t:'数値の異常値が出た際、AI に「考えられる原因仮説」を MECE で3つ出させ、各仮説の検証手順を自分で設計する' },
+      { c:true,  t:'予実差異の原因をメンバーに説明する前に、AI で「説明資料の構成」と「経営層から想定される質問」を先に出させる' },
+      { c:true,  t:'数値の解釈は AI に任せず、最終的に「なぜそうなったか」「次に何をすべきか」は自分の業務理解で判断する' },
+      { c:false, t:'KPI ダッシュボードの数値を AI に貼り付け、AI が出した「次月の予測値」を経営層への報告にそのまま転記する' },
+      { c:false, t:'数値変動の原因は AI が一番よく分かるので、AI が出した因果説をそのまま全社展開する' },
+      { c:false, t:'AI が「特に問題なし」と判定した日は数値レビューをスキップし、AI が異常と判定した日のみ手元で確認する' },
+      { c:false, t:'AI に過去5年の全データを学習させて、来期のKPI目標値を AI 単独に最終決定させる' },
+      { c:false, t:'メンバーの個別実績の良し悪しを AI に判定させ、その結果に基づいて評価点を自動算出する' },
+    ], 'あなたは管理職昇格後3か月のマネージャー(部下8名)。今期からチームKPIの責任を持ち、毎月の事業部レビュー会で予実差異を説明する立場になった。<b>数値マネジメントにおける AI 活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'AIに過去12か月のKPI推移を渡し、季節要因・トレンド・外的要因の3軸で読み解きの視点を整理させ、自分のレビュー観点に追加する' },
+      { c:true,  t:'予実差異が大きい月について、AI に「考えられる構造的原因」と「一時的原因」を分けて出させ、自分の説明案に反映する' },
+      { c:true,  t:'数値の前提条件(計測ロジック・除外条件)が変わっていないか、AI 出力をきっかけに自分で再確認する' },
+      { c:true,  t:'AI に「上位役員から最も鋭く突かれる数値の論点トップ3」を出させ、想定問答の準備に使う' },
+      { c:true,  t:'最終的な「来月の打ち手」は AI 出力を踏まえつつ自分の責任で決定し、説明責任を自分で持つ' },
+      { c:false, t:'数値の解釈・打ち手判断・経営報告までを AI に丸投げし、自分は文面の体裁だけ整える' },
+      { c:false, t:'KPI の良し悪しの判定基準を AI に毎月決め直させ、自分は AI の判定に従って評価コメントを書く' },
+      { c:false, t:'数値が想定より良い月も悪い月も、AI に「経営層が安心する説明文」を作らせて報告する' },
+      { c:false, t:'AI が出した予測値を「事実」として扱い、未来の予算策定にそのまま反映する' },
+      { c:false, t:'KPI の細目データを AI に与え、AI に評価ランクを自動算出させてメンバーに通知する' },
+    ], 'あなたは管理職昇格後3か月。毎週、自チームのKPI推移を読み解いて、上位役員にレビューする責任を持つ。<b>適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
+
+  // C5 (管理職オンボーディングモード限定): ピープルマネジメントへの AI 活用
+  { skill:'ピープルマネジメントへのAI活用', section:'C', points:5, multiSelect:true, modes:[MODE_ONBOARDING], variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'メンバー像を仮名化(役割・在籍年数・直近の状況のみ)で AI に渡し、強み・伸びしろの整理や1on1の論点案を出させ、自分が選ぶ' },
+      { c:true,  t:'AI に「メンバーが自分で考え始める問い」を3〜5個出させ、当日の1on1で会話の出発点として使う' },
+      { c:true,  t:'チーム編成や役割アサイン案を考える際、AI に「メンバーの強みと案件特性のマッチング案」を複数パターン出させ、自分が最終決定する' },
+      { c:true,  t:'評価コメントの整形(事実→評価→期待の3層構造への整え)は AI に任せ、事実部分は自分が書き、関係性を踏まえた期待層は自分の言葉で書き直す' },
+      { c:true,  t:'メンバー間の対人摩擦が生じた際、AI には「双方の言い分から想定される構造的な噛み合わなさの仮説」を整理させ、当事者への対応は自分が直接行う' },
+      { c:false, t:'メンバーの実名・人事評価点・健康面・家庭事情を AI に渡し、対応スクリプト・面談台本を完成形まで作らせる' },
+      { c:false, t:'AI に「メンバーを退職に追い込まないための完璧な対応手順」を一覧で作らせ、それを暗記して当日読み上げる' },
+      { c:false, t:'AI が「最も適切」と判定した昇格・降格判断をそのまま人事に提出する' },
+      { c:false, t:'AI に対立中の双方の発言ログを渡し、AI に「どちらが悪いか」を判定させてその通りメンバーに伝える' },
+      { c:false, t:'メンバー全員の評価情報を AI に与え、AI 単独に給与改定額を最終決定させて人事に通知する' },
+    ], 'あなたは管理職昇格後3か月のマネージャー(部下8名)。1on1・評価・配置検討・対人摩擦の調整など、ピープルマネジメントの責任を新たに負っている。<b>AI 活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'1on1の事前準備として、仮名化したメンバー像と直近の出来事を AI に渡し、扱うべき論点を 5 つ程度出させて自分で 2〜3 個に絞る' },
+      { c:true,  t:'メンバーのキャリア観の整理を支援する開いた問いを AI に作らせ、当日メンバーが自分で考え始める起点に使う' },
+      { c:true,  t:'チーム内のスキルマップ整理は、メンバー名を伏せた状態で AI に表形式で整理させ、抜け漏れチェックに使う' },
+      { c:true,  t:'評価面談の準備で、事実(KPI・行動観察)は自分でまとめ、「事実→評価→期待」の構造化と表現の偏りチェックを AI に任せる' },
+      { c:true,  t:'対人摩擦への対応は、AI で「自分が見落としている前提仮説」を点検したうえで、最終的な介入は自分が直接対面で行う' },
+      { c:false, t:'メンバーの実名・健康面・家庭事情を入力すれば、AI 精度が上がるため積極的に渡す' },
+      { c:false, t:'1on1の進行は AI が生成した両者発言入りスクリプトを当日読み上げる方が抜け漏れがない' },
+      { c:false, t:'昇格・降格の最終判断は AI に任せ、人事への提出も AI 出力をそのまま添付する' },
+      { c:false, t:'メンバー全員の評価コメントを「過去全件を学習させて」と依頼し、出力を一気に上長提出する' },
+      { c:false, t:'対人摩擦の当事者対応も、AI 生成のスクリプトを暗記して読み上げれば本人の反応に関わらず正解の介入になる' },
+    ], 'あなたは管理職昇格後3か月で、初めての評価期を迎える。メンバー8名の1on1・評価・キャリア面談を実施する責任を持つ。<b>ピープルマネジメントでの適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
 ];
 
-// -------------------- SECTION D: プロンプト記述 (6問プールから 3問抽選 × 15点 = 45点) — AI評価 --------------------
+// -------------------- SECTION D: プロンプト記述 (各モードで使う問題プール) — AI評価 --------------------
 const BANK_D = [
   // D1: 業務効率化プロンプト記述(豊富な前提情報を与える)
   {
@@ -1192,7 +1323,7 @@ let timerHandle = null;
 let testStartMs = 0;               // 試験開始時刻(壁時計、Date.now())
 let timerExpired = false;
 let startedAt = null;
-let examinee = {name:'',role:''};
+let examinee = {name:'',role:'',jobCategory:'',jobTitle:'',mode:MODE_PROMOTION};
 let RESULT = null;      // cached result snapshot for export
 
 // ========================================================================
@@ -1232,26 +1363,47 @@ function shuffle_(arr){
   return a;
 }
 
-function generateTest(){
+// スキルの modes 属性に基づき、現在モードで出題対象かを判定
+function matchesMode_(skillEntry, mode){
+  if(!skillEntry.modes || skillEntry.modes.length === 0) return true; // モード未指定なら両モードで出題
+  return skillEntry.modes.indexOf(mode) >= 0;
+}
+
+function generateTest(mode){
   const test = [];
-  // A・B・C は全スキルを毎回出題(バリアントは抽選)
-  BANK_A.forEach(s => test.push(instantiateSkill(s)));
-  BANK_B.forEach(s => test.push(instantiateSkill(s)));
-  BANK_C.forEach(s => test.push(instantiateSkill(s)));
-  // D は 6 スキルからランダムに 3 つ選び、各スキル内でも内部シナリオ抽選
-  const dPicked = shuffle_(BANK_D).slice(0, 3);
+  // A・B・C は対象モードのスキルを全件出題(バリアントは毎回抽選)
+  BANK_A.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  BANK_B.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  BANK_C.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  // D は対象モードのスキルから 3 つランダム抽選(各スキル内でもシナリオ抽選)
+  const dPool = BANK_D.filter(s => matchesMode_(s, mode));
+  const dPicked = shuffle_(dPool).slice(0, 3);
   dPicked.forEach(s => test.push(instantiateSkill(s)));
+  // 最後に Section E: AI 活用ヒアリング(フリーテキスト・採点対象外)を追加
+  test.push({
+    id:'E1', section:'E', skill:'AI活用の現状ヒアリング', points:0,
+    free:true,
+    prompt:'<b>日々の業務の中で、どのようなシーンで AI(Gemini など)を活用していますか?</b>\n具体的な業務シーン・使い方・頻度・うまくいっている点・困っている点などを、自由に記載してください(目安: 200〜400字)。\n\n<b>※ この回答は採点対象外ですが、提出後の AI による現状の使い方の評価とアドバイス生成に活用されます。</b>'
+  });
   return test;
 }
 
 function startTest(){
   const name = document.getElementById('examineeName').value.trim();
   const role = document.getElementById('examineeRole').value.trim();
+  const jobCategory = document.getElementById('jobCategory').value;
+  const jobTitle    = document.getElementById('jobTitle').value;
+  const mode = (document.getElementById('modeOnboarding').checked) ? MODE_ONBOARDING : MODE_PROMOTION;
   if(!name){ alert('氏名(または受験番号)を入力してください'); return; }
   if(!role){ alert('所属・現職を入力してください'); return; }
+  if(!jobCategory){ alert('職種大分類を選択してください'); return; }
+  if(!jobTitle){ alert('職種(詳細)を選択してください'); return; }
   examinee.name = name;
   examinee.role = role;
-  TEST = generateTest();
+  examinee.jobCategory = jobCategory;
+  examinee.jobTitle = jobTitle;
+  examinee.mode = mode;
+  TEST = generateTest(mode);
   answers = {};
   curIdx = 0;
   startedAt = new Date();
@@ -1298,6 +1450,35 @@ function updateTimer(){
 document.addEventListener('visibilitychange', ()=>{
   if(!document.hidden && timerHandle){ updateTimer(); }
 });
+
+// スタート画面ロード時の初期化(職種大分類プルダウンとモード選択ラベルのハイライト)
+function initStartScreen(){
+  const catSelect = document.getElementById('jobCategory');
+  if(catSelect && catSelect.options.length <= 1){
+    JOB_CATEGORIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      catSelect.appendChild(opt);
+    });
+  }
+  // モード選択ラベルのアクティブ枠表示
+  const updateModeHighlight = () => {
+    const pl = document.getElementById('modePromotionLabel');
+    const ol = document.getElementById('modeOnboardingLabel');
+    const pSel = document.getElementById('modePromotion').checked;
+    if(pl) pl.style.borderColor = pSel ? 'var(--c-primary)' : '#dadce0';
+    if(pl) pl.style.background  = pSel ? '#e8f0fe' : '#fff';
+    if(ol) ol.style.borderColor = !pSel ? 'var(--c-primary)' : '#dadce0';
+    if(ol) ol.style.background  = !pSel ? '#e8f0fe' : '#fff';
+  };
+  ['modePromotion','modeOnboarding'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', updateModeHighlight);
+  });
+  updateModeHighlight();
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initStartScreen);
+else initStartScreen();
 
 function renderQ(){
   const q = TEST[curIdx];
@@ -1469,7 +1650,7 @@ function computeAutoScoresAndPayload(elapsedSec){
 
   TEST.forEach((q,i)=>{
     sec[q.section].max += q.points;
-    if(q.section==='D') return;
+    if(q.section==='D' || q.section==='E') return;  // D は Gemini 採点、E はヒアリングのため自動採点しない
     const ans = answers[i];
     let correct = false;
     let yourAnsText = '(未回答)';
@@ -1528,6 +1709,11 @@ function computeAutoScoresAndPayload(elapsedSec){
   // クライアント側集計結果もキャッシュ(描画用)
   RESULT = { sec, perSkill, fbItems, elapsedSec };
 
+  // Section E(AI 活用ヒアリング)のフリーテキスト回答を抽出
+  const sectionEEntry = TEST.find(q => q.section === 'E');
+  const sectionEIdx = sectionEEntry ? TEST.indexOf(sectionEEntry) : -1;
+  const dailyUsage = sectionEIdx >= 0 ? String(answers[sectionEIdx] || '').trim() : '';
+
   return {
     examinee: { ...examinee },
     elapsedSec,
@@ -1537,6 +1723,7 @@ function computeAutoScoresAndPayload(elapsedSec){
       C: { got: sec.C.got, max: sec.C.max }
     },
     sectionD,
+    dailyUsage,
     questionsLog
   };
 }
@@ -1637,12 +1824,50 @@ function renderResult(res){
     });
   }
 
+  // AI advice block
+  renderAdvice(res.advice);
+
   // saved status
   document.getElementById('saveStatus').style.display = 'block';
   document.getElementById('savedIdLabel').textContent = `提出ID: ${res.submissionId}`;
 }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderAdvice(advice){
+  const el = document.getElementById('aiAdvice');
+  if(!el) return;
+  if(!advice || advice._error){
+    el.innerHTML = `<div class="callout" style="border-color:#fbbc04;background:#fef7e0;">
+      <b>AI 評価アドバイスの生成に失敗しました。</b><br>
+      <span class="muted" style="font-size:12px;">${advice && advice._error ? escapeHtml(String(advice._error)) : '理由不明(Gemini API 一時障害の可能性)'}</span>
+    </div>`;
+    return;
+  }
+  const cat = advice.category_assessment || {};
+  el.innerHTML = `
+    <div class="callout" style="background:#e8f0fe;border-color:#1a73e8;">
+      <div style="font-size:11px;letter-spacing:2px;color:#5f6368;">OVERALL</div>
+      <div style="margin-top:6px;line-height:1.7;">${escapeHtml(advice.overall_summary||'').replace(/\n/g,'<br>')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;">
+      ${['A','B','C','D'].map(k => `
+        <div style="border:1px solid var(--c-line);border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">
+          <span class="tag ${k}">Section ${k}</span>
+          <div style="margin-top:6px;">${escapeHtml(cat[k]||'(未生成)').replace(/\n/g,'<br>')}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="callout" style="margin-top:14px;background:#f8f9fa;border-color:#dadce0;">
+      <b>現状の使い方への評価</b><br>
+      <div style="margin-top:6px;line-height:1.7;font-size:13px;">${escapeHtml(advice.current_usage_assessment||'').replace(/\n/g,'<br>')}</div>
+    </div>
+    <div class="callout" style="margin-top:10px;background:#e6f4ea;border-color:#34a853;">
+      <b>今後推奨される使い方のアドバイス</b><br>
+      <div style="margin-top:6px;line-height:1.7;font-size:13px;">${escapeHtml(advice.advice||'').replace(/\n/g,'<br>')}</div>
+    </div>
+  `;
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 </script>
 
 </body>
