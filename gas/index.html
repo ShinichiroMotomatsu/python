@@ -172,7 +172,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     <div><label>氏名(または受験番号) <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
     <div><label>所属・現職 <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
     <div><label>職種大分類 <span style="color:var(--c-danger);">*</span></label><select id="jobCategory" onchange="onJobCategoryChange()"><option value="">選択してください</option></select></div>
-    <div><label>職種(詳細) <span style="color:var(--c-danger);">*</span></label><select id="jobTitle"><option value="">先に大分類を選択</option></select></div>
+    <div><label>職種(詳細) <span style="color:var(--c-danger);">*</span></label><div id="jobTitleWrap"><select id="jobTitle"><option value="">先に大分類を選択</option></select></div></div>
   </div>
 
   <div class="callout info" style="margin-top:14px;">
@@ -334,19 +334,26 @@ const JOB_POSITIONS = [
 const MODE_PROMOTION  = 'promotion';   // 昇格試験モード(非管理職向け)
 const MODE_ONBOARDING = 'onboarding';  // 管理職オンボーディングモード(昇格後3か月)
 
-// 大分類の一意リスト
-const JOB_CATEGORIES = Array.from(new Set(JOB_POSITIONS.map(j => j.category)));
+// 大分類の一意リスト + 「その他(自由入力)」
+const OTHER_CATEGORY = 'その他';
+const JOB_CATEGORIES = Array.from(new Set(JOB_POSITIONS.map(j => j.category))).concat([OTHER_CATEGORY]);
 
-// 大分類変更時に職種(詳細)プルダウンを連動更新
+// 大分類変更時に職種(詳細)欄を連動更新。
+// 「その他」が選ばれたら <select> を <input type="text"> に差し替えて自由入力にする。
 function onJobCategoryChange(){
   const cat = document.getElementById('jobCategory').value;
-  const select = document.getElementById('jobTitle');
-  select.innerHTML = '<option value="">職種を選択してください</option>';
+  const wrap = document.getElementById('jobTitleWrap');
+  if(!wrap) return;
+  if(cat === OTHER_CATEGORY){
+    wrap.innerHTML = '<input type="text" id="jobTitle" placeholder="職種名を自由に入力してください(例: 広報、社内ヘルプデスク、新規事業立ち上げ など)">';
+    return;
+  }
+  let html = '<select id="jobTitle"><option value="">職種を選択してください</option>';
   JOB_POSITIONS.filter(j => j.category === cat).forEach(j => {
-    const opt = document.createElement('option');
-    opt.value = j.title; opt.textContent = j.title;
-    select.appendChild(opt);
+    html += `<option value="${j.title.replace(/"/g,'&quot;')}">${j.title}</option>`;
   });
+  html += '</select>';
+  wrap.innerHTML = html;
 }
 
 // Variable pools (used by templated questions)
@@ -1397,7 +1404,7 @@ function startTest(){
   if(!name){ alert('氏名(または受験番号)を入力してください'); return; }
   if(!role){ alert('所属・現職を入力してください'); return; }
   if(!jobCategory){ alert('職種大分類を選択してください'); return; }
-  if(!jobTitle){ alert('職種(詳細)を選択してください'); return; }
+  if(!jobTitle){ alert('職種(詳細)を選択または入力してください'); return; }
   examinee.name = name;
   examinee.role = role;
   examinee.jobCategory = jobCategory;
