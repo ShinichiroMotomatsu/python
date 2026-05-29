@@ -738,6 +738,8 @@ function getSubmissionDetailFlexible(query) {
  * 一度しか実行する必要はない。再実行する場合はバックアップシートが
  * もう一段増えるだけ。
  */
+
+
 function migrateSheetToCanonicalSchema() {
   const ssId = PropertiesService.getScriptProperties().getProperty(SHEET_ID_PROP);
   if (!ssId) throw new Error('SHEET_ID_PROP が未設定です。先に setupSpreadsheet を実行してください。');
@@ -828,6 +830,42 @@ function migrateSheetToCanonicalSchema() {
   Logger.log('  スキーマ別内訳: 21列(旧emailあり)=' + stats.v21 +
              ' / 19列(emailなし)=' + stats.v19 +
              ' / 24列(現行)=' + stats.v24);
+}
+
+/**
+ * デバッグ用: ダッシュボードの「詳細」ボタンと同じ経路でサーバ側を呼び出し、
+ * 戻り値の構造を Logger.log で確認する。スクリプトエディタから直接実行する。
+ *
+ * 「サーバから空の応答が返りました」が出るケースの切り分けに使う:
+ *   - この関数で `out` がオブジェクトとして返れば、サーバ側のロジックは健全。
+ *     → 原因はクライアント側のキャッシュやデプロイバージョン古い問題。
+ *   - この関数自体がエラーで止まれば、サーバ側にバグあり。エラー文を確認。
+ *   - 期待した内容と違う(例:diagnostic にエラー)ならログを共有。
+ */
+function debugSubmissionDetailLookup(rowIndex) {
+  const rIdx = Number(rowIndex) || 2;
+  Logger.log('=== getSubmissionDetailFlexible({rowIndex: ' + rIdx + '}) を実行 ===');
+  let r;
+  try {
+    r = getSubmissionDetailFlexible({ rowIndex: rIdx, submissionId: '' });
+  } catch (e) {
+    Logger.log('!! サーバー関数自体が例外: ' + (e.message || e));
+    Logger.log('   stack: ' + (e.stack || '(stack なし)'));
+    return { error: String(e.message || e) };
+  }
+  Logger.log('returned typeof: ' + typeof r);
+  Logger.log('returned is null?: ' + (r === null));
+  Logger.log('returned is undefined?: ' + (r === undefined));
+  if (r && typeof r === 'object') {
+    Logger.log('keys: ' + Object.keys(r).join(', '));
+    if (r._diagnostic) Logger.log('_diagnostic: ' + JSON.stringify(r._diagnostic, null, 2));
+    Logger.log('氏名: ' + r['氏名']);
+    Logger.log('カテゴリ: ' + r['カテゴリ']);
+    Logger.log('総合/満点: ' + r['総合'] + ' / ' + r['満点']);
+    Logger.log('dResultParsed type: ' + typeof r.dResultParsed);
+    Logger.log('adviceParsed type: ' + typeof r.adviceParsed);
+  }
+  return r;
 }
 
 // Optional: quick health check from the script editor.

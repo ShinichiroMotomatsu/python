@@ -253,19 +253,49 @@ function modeLabelFull(mode){
   return '(未指定)';
 }
 
+// 最後にサーバへ投げた検索条件(d が null で返ってきた時のエラー表示で使う)
+let LAST_DETAIL_REQUEST = null;
+
 function showDetail(rowIndex, submissionId){
   document.getElementById('detailContent').innerHTML = '<div class="loading">読み込み中…</div>';
   document.getElementById('detailModal').classList.add('show');
+  LAST_DETAIL_REQUEST = { rowIndex: rowIndex||0, submissionId: submissionId||'' };
   google.script.run
     .withSuccessHandler(renderDetail)
     .withFailureHandler(err=>{
-      document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">エラー: ${escapeHtml(String(err.message||err))}</div>`;
+      document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">
+        <b>エラー</b>: ${escapeHtml(String(err && (err.message||err) || '(エラー詳細なし)'))}<br>
+        <small>呼び出し: getSubmissionDetailFlexible(${escapeHtml(JSON.stringify(LAST_DETAIL_REQUEST))})</small>
+      </div>`;
     })
     .getSubmissionDetailFlexible({ rowIndex: rowIndex||0, submissionId: submissionId||'' });
 }
 
 function renderDetail(d){
-  if(!d){ document.getElementById('detailContent').innerHTML = '<div>サーバーから空の応答が返りました。Code.gs を最新版に更新し、デプロイの新バージョンを発行してください。</div>'; return; }
+  if(!d){
+    // サーバから success ハンドラに null / undefined が渡ってきた場合
+    // (= サーバ関数が null を返した or デプロイバージョンが旧い)
+    const req = LAST_DETAIL_REQUEST || {};
+    document.getElementById('detailContent').innerHTML = `
+      <div style="background:#fef7e0;border:1px solid #fbbc04;border-radius:6px;padding:14px;">
+        <b>サーバから空の応答(${d===null?'null':'undefined'})が返りました。</b><br>
+        <span style="font-size:13px;line-height:1.7;">
+          原因として最も多いのは、Web アプリのデプロイバージョンが旧く、最新の Code.gs(<code>getSubmissionDetailFlexible</code>)が反映されていないケースです。<br>
+          下記の手順で切り分けてください:
+        </span>
+        <ol style="font-size:13px;line-height:1.8;margin:10px 0 0 18px;padding:0;">
+          <li>スクリプトエディタで <b>Code.gs</b> を開き、関数選択欄に <code>debugSubmissionDetailLookup</code> がある事を確認</li>
+          <li>関数選択欄から <code>debugSubmissionDetailLookup</code> を選んで実行(引数なしで OK)</li>
+          <li>「実行ログ」を開く。<b>keys: ... 氏名: ... カテゴリ:</b> 等が出力されていれば、サーバ側のロジックは健全です</li>
+          <li>その場合は、デプロイ &gt; <b>デプロイの管理</b> &gt; ✏️ &gt; バージョン: <b>新バージョン</b> &gt; デプロイ を実施</li>
+          <li>ダッシュボード URL を <b>Ctrl+Shift+R / Cmd+Shift+R</b> で強制リロードしてから再試行</li>
+        </ol>
+        <details style="margin-top:10px;font-size:12px;color:#5f6368;"><summary>呼び出しパラメータ</summary>
+          <pre style="background:#f8f9fa;padding:8px;border-radius:4px;">${escapeHtml(JSON.stringify(req,null,2))}</pre>
+        </details>
+      </div>`;
+    return;
+  }
   const ev = d.dResultParsed;
   const adv = d.adviceParsed;
   const diag = d._diagnostic || {};
