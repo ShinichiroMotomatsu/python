@@ -107,7 +107,7 @@ table tbody tr:hover{background:#f8fafc;}
 <script>
 // バージョン整合性チェック用の合言葉。dashboard.html と Code.gs を更新するたびに上げる。
 // この文字列が SRV 側と一致していれば Web App デプロイは最新版を配信している。
-const CLIENT_BUILD = '2026-05-29-detail-fix-1';
+const CLIENT_BUILD = '2026-05-29-detail-fix-2';
 
 let ALL_DATA = null;
 let FILTER = { category:'', text:'', mode:'' };
@@ -299,16 +299,41 @@ let LAST_DETAIL_REQUEST = null;
 function showDetail(rowIndex, submissionId){
   document.getElementById('detailContent').innerHTML = '<div class="loading">読み込み中…</div>';
   document.getElementById('detailModal').classList.add('show');
-  LAST_DETAIL_REQUEST = { rowIndex: rowIndex||0, submissionId: submissionId||'' };
+  const req = { rowIndex: rowIndex||0, submissionId: submissionId||'' };
+  LAST_DETAIL_REQUEST = req;
+
+  const onFailure = err => {
+    document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">
+      <b>エラー</b>: ${escapeHtml(String(err && (err.message||err) || '(エラー詳細なし)'))}<br>
+      <small>呼び出し: ${escapeHtml(JSON.stringify(req))}</small>
+    </div>`;
+  };
+
+  // 1) まずは通常版(オブジェクト直返し)を呼ぶ
   google.script.run
-    .withSuccessHandler(renderDetail)
-    .withFailureHandler(err=>{
-      document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">
-        <b>エラー</b>: ${escapeHtml(String(err && (err.message||err) || '(エラー詳細なし)'))}<br>
-        <small>呼び出し: getSubmissionDetailFlexible(${escapeHtml(JSON.stringify(LAST_DETAIL_REQUEST))})</small>
-      </div>`;
+    .withSuccessHandler(d => {
+      if(d){ renderDetail(d); return; }
+      // 2) null が返った場合 → 経路上の serialize 問題の可能性。
+      //    サーバ側で JSON.stringify したものを文字列として返してもらい、
+      //    クライアントで JSON.parse する迂回路を試す。
+      google.script.run
+        .withSuccessHandler(s => {
+          let parsed = null;
+          try { parsed = (typeof s === 'string') ? JSON.parse(s) : null; } catch(e){}
+          if(parsed){
+            parsed._diagnostic = parsed._diagnostic || {};
+            parsed._diagnostic.deliveredVia = 'StringFallback';
+            renderDetail(parsed);
+          } else {
+            // それでも駄目だった場合は元の null パネルを出す
+            renderDetail(null);
+          }
+        })
+        .withFailureHandler(onFailure)
+        .getSubmissionDetailFlexibleString(req);
     })
-    .getSubmissionDetailFlexible({ rowIndex: rowIndex||0, submissionId: submissionId||'' });
+    .withFailureHandler(onFailure)
+    .getSubmissionDetailFlexible(req);
 }
 
 function renderDetail(d){

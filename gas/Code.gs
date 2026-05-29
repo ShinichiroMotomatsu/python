@@ -46,7 +46,7 @@
 // この値も更新して、Web App の「新バージョン」デプロイを発行する。
 // ダッシュボード上のバッジに DASH/SRV 双方のビルド ID が並び、Web App
 // デプロイが古いままだと SRV 側が一致せず赤バッジで警告される。
-const SERVER_BUILD        = '2026-05-29-detail-fix-1';
+const SERVER_BUILD        = '2026-05-29-detail-fix-2';
 function getServerVersion() { return SERVER_BUILD; }
 
 const SHEET_ID_PROP       = 'ASSESSMENT_SHEET_ID';
@@ -720,6 +720,35 @@ function getSubmissionDetailFlexible(query) {
       query: query
     }
   };
+}
+
+/**
+ * 同上を「JSON 文字列で返す」バリアント。
+ * 既知の問題: google.script.run はサーバ側で正しく構築したオブジェクトを
+ * クライアントへ運ぶ際に null に化けるケースが報告されている(オブジェクト内に
+ * Date / 親オブジェクトキーが括弧を含む等の組み合わせで発生しうる)。
+ * ここでは responseObj を JSON.stringify してプレーン文字列として返すことで、
+ * 経路の serialize 周りの揺れを回避する。クライアント側で JSON.parse する。
+ */
+function getSubmissionDetailFlexibleString(query) {
+  const obj = getSubmissionDetailFlexible(query);
+  try {
+    // 受験日時(Date) を文字列化してから stringify(循環参照は元から無いが念のため)
+    const safe = (function clone(v){
+      if (v === null || v === undefined) return v;
+      if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+      if (Array.isArray(v)) return v.map(clone);
+      if (typeof v === 'object') {
+        const out = {};
+        Object.keys(v).forEach(k => { out[k] = clone(v[k]); });
+        return out;
+      }
+      return v;
+    })(obj);
+    return JSON.stringify(safe);
+  } catch (e) {
+    return JSON.stringify({ _diagnostic: { error: 'serializeError: ' + (e.message || e) } });
+  }
 }
 
 // ---------------- Sheet migration ----------------
