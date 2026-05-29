@@ -42,6 +42,13 @@
  */
 
 // ---------------- Configuration ----------------
+// dashboard.html の CLIENT_BUILD と必ず一致させる。Code.gs を更新したら
+// この値も更新して、Web App の「新バージョン」デプロイを発行する。
+// ダッシュボード上のバッジに DASH/SRV 双方のビルド ID が並び、Web App
+// デプロイが古いままだと SRV 側が一致せず赤バッジで警告される。
+const SERVER_BUILD        = '2026-05-29-detail-fix-1';
+function getServerVersion() { return SERVER_BUILD; }
+
 const SHEET_ID_PROP       = 'ASSESSMENT_SHEET_ID';
 const GEMINI_API_KEY_PROP = 'GEMINI_API_KEY';
 const SHEET_NAME          = 'Results';

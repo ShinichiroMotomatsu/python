@@ -84,7 +84,12 @@ table tbody tr:hover{background:#f8fafc;}
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <h1>📊 AIアセスメント ダッシュボード</h1>
-      <div class="muted" id="sheetLink"></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div id="versionBadge" style="font-family:Menlo,monospace;font-size:11px;color:#5f6368;background:#f1f3f4;padding:4px 10px;border-radius:999px;border:1px solid #dadce0;" title="Dashboard と Server の Code.gs バージョン">
+          DASH: <span id="versionDash">…</span> / SRV: <span id="versionSrv">取得中</span>
+        </div>
+        <div class="muted" id="sheetLink"></div>
+      </div>
     </div>
 
     <div id="content" class="loading">読み込み中…</div>
@@ -100,10 +105,45 @@ table tbody tr:hover{background:#f8fafc;}
 </div>
 
 <script>
+// バージョン整合性チェック用の合言葉。dashboard.html と Code.gs を更新するたびに上げる。
+// この文字列が SRV 側と一致していれば Web App デプロイは最新版を配信している。
+const CLIENT_BUILD = '2026-05-29-detail-fix-1';
+
 let ALL_DATA = null;
 let FILTER = { category:'', text:'', mode:'' };
 
-window.addEventListener('load', loadDashboard);
+window.addEventListener('load', () => {
+  // ダッシュボード側のバージョンを即時表示
+  const dashEl = document.getElementById('versionDash');
+  if(dashEl) dashEl.textContent = CLIENT_BUILD;
+  // サーバ側のバージョンを取得し、一致しなければ赤で警告
+  google.script.run
+    .withSuccessHandler(v => {
+      const srvEl = document.getElementById('versionSrv');
+      const badge = document.getElementById('versionBadge');
+      if(srvEl) srvEl.textContent = v || '(無し)';
+      if(badge){
+        if(v === CLIENT_BUILD){
+          badge.style.background = '#e6f4ea'; badge.style.borderColor = '#34a853'; badge.style.color = '#137333';
+          badge.title = '✅ Dashboard と Web App デプロイが同期しています';
+        } else {
+          badge.style.background = '#fdecea'; badge.style.borderColor = '#ea4335'; badge.style.color = '#a50e0e';
+          badge.title = '⚠ Web App デプロイ側が古いバージョンです。デプロイの管理 → ✏️ → 新バージョン → デプロイ を実施してください。';
+        }
+      }
+    })
+    .withFailureHandler(_ => {
+      const srvEl = document.getElementById('versionSrv');
+      if(srvEl) srvEl.textContent = '(getServerVersion 未デプロイ)';
+      const badge = document.getElementById('versionBadge');
+      if(badge){
+        badge.style.background = '#fdecea'; badge.style.borderColor = '#ea4335'; badge.style.color = '#a50e0e';
+        badge.title = '⚠ getServerVersion を含む最新 Code.gs がまだ Web App にデプロイされていません。新バージョン発行が必要です。';
+      }
+    })
+    .getServerVersion();
+  loadDashboard();
+});
 
 function loadDashboard(){
   google.script.run
