@@ -715,6 +715,121 @@ function getSubmissionDetailFlexible(query) {
   };
 }
 
+// ---------------- Sheet migration ----------------
+/**
+ * シートを現行の 24 列スキーマに正規化する。
+ *
+ * 過去のバージョンでヘッダが {21列(メール列あり) / 19列(メール列なし) /
+ * 24列(現行)} と変わってきており、運用中のシートではヘッダ行と
+ * 実データの位置がズレている可能性がある。本関数は:
+ *   1) 元のシートを Results_backup_yyyyMMdd_HHmmss にリネームして退避
+ *   2) 新しい Results シートを 24 列スキーマで再作成
+ *   3) 旧データを 1 行ずつ「内容」から書式バージョンを推定して正規化し再書き込み
+ *
+ * 推定ロジック: 5列目(E列)がメールアドレスっぽい文字列なら 21列スキーマ、
+ *               そうでなければ 19列もしくは 24列スキーマと判定する。
+ *
+ * 実行手順(スクリプトエディタから):
+ *   1. シートを開いて事前に手動バックアップ(念のため)
+ *   2. migrateSheetToCanonicalSchema を実行
+ *   3. 実行ログでバックアップ名と移行件数を確認
+ *   4. 新 Results シートを開いて、列ヘッダと値の整合を目視確認
+ *
+ * 一度しか実行する必要はない。再実行する場合はバックアップシートが
+ * もう一段増えるだけ。
+ */
+function migrateSheetToCanonicalSchema() {
+  const ssId = PropertiesService.getScriptProperties().getProperty(SHEET_ID_PROP);
+  if (!ssId) throw new Error('SHEET_ID_PROP が未設定です。先に setupSpreadsheet を実行してください。');
+  const ss = SpreadsheetApp.openById(ssId);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) throw new Error('"' + SHEET_NAME + '" シートが見つかりません');
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 1) { Logger.log('データが無いため移行不要'); return; }
+
+  const CANONICAL_HEADERS = [
+    'submissionId','受験日時','氏名','所属','所要(秒)',
+    'A_got','A_max','B_got','B_max','C_got','C_max','D_got','D_max',
+    '総合','満点','達成率(%)','カテゴリ',
+    'Gemini評価(JSON)','回答ログ(JSON)',
+    'モード','職種大分類','職種(詳細)','AI活用記述','AI評価アドバイス(JSON)'
+  ];
+
+  // メール文字列っぽいか(@ を含むか) を判定するヘルパ
+  const looksEmail = v => typeof v === 'string' && v.indexOf('@') > 0;
+
+  const normalized = [];
+  const stats = { v21:0, v19:0, v24:0, unknown:0 };
+
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    // 行のスキーマを推定
+    const col4 = r[4], col5 = r[5];
+    let schema;
+    if (looksEmail(col4) || looksEmail(col5)) {
+      schema = 21; // 受験者メール / 評価者メール 列が残っている
+    } else if (r.length >= 20 && (r[19] === 'promotion' || r[19] === 'onboarding')) {
+      schema = 24; // モード列が入っている現行
+    } else {
+      schema = 19; // メール列無し、追加5列も無し
+    }
+    stats['v' + schema]++;
+
+    let row;
+    if (schema === 21) {
+      row = [
+        r[0], r[1], r[2], r[3],          // subId, date, name, role
+        r[6],                             // elapsed(7番目)
+        r[7], r[8], r[9], r[10], r[11], r[12], r[13], r[14],
+        r[15], r[16], r[17], r[18],
+        r[19], r[20],
+        '', '', '', '', ''
+      ];
+    } else if (schema === 19) {
+      row = [
+        r[0], r[1], r[2], r[3], r[4],
+        r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12],
+        r[13], r[14], r[15], r[16],
+        r[17], r[18],
+        '', '', '', '', ''
+      ];
+    } else {
+      // 24 列(現行スキーマ)はそのまま24列分を取り出す
+      row = [];
+      for (let j = 0; j < 24; j++) row.push(j < r.length ? r[j] : '');
+    }
+    normalized.push(row);
+  }
+
+  // 旧シートをタイムスタンプ付きでリネームしてバックアップ
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
+  const backupName = SHEET_NAME + '_backup_' + stamp;
+  sheet.setName(backupName);
+
+  // 新しい Results シートを 24 列スキーマで作成
+  const ns = ss.insertSheet(SHEET_NAME);
+  ns.appendRow(CANONICAL_HEADERS);
+  ns.setFrozenRows(1);
+  ns.getRange(1, 1, 1, CANONICAL_HEADERS.length)
+    .setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+  ns.setColumnWidth(1, 280); ns.setColumnWidth(2, 150); ns.setColumnWidth(3, 120);
+  ns.setColumnWidth(18, 200); ns.setColumnWidth(19, 200);
+  ns.setColumnWidth(20, 90);  ns.setColumnWidth(21, 140); ns.setColumnWidth(22, 200);
+  ns.setColumnWidth(23, 280); ns.setColumnWidth(24, 280);
+
+  if (normalized.length > 0) {
+    ns.getRange(2, 1, normalized.length, CANONICAL_HEADERS.length).setValues(normalized);
+  }
+
+  Logger.log('Migration 完了');
+  Logger.log('  バックアップ: ' + backupName + ' (元データはそのまま保持)');
+  Logger.log('  移行件数: ' + normalized.length + ' 行');
+  Logger.log('  スキーマ別内訳: 21列(旧emailあり)=' + stats.v21 +
+             ' / 19列(emailなし)=' + stats.v19 +
+             ' / 24列(現行)=' + stats.v24);
+}
+
 // Optional: quick health check from the script editor.
 function testGeminiConnection() {
   const apiKey = PropertiesService.getScriptProperties().getProperty(GEMINI_API_KEY_PROP);
