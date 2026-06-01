@@ -206,7 +206,7 @@ AI 利活用アセスメントの **受験 Web アプリ** と **ダッシュボ
 ```
 ai_assessment_pkg/
 ├── SETUP.md               ← 本書
-├── ai_curriculum.html     ← AI 利活用カリキュラム(任意配布、学習資料)
+├── ai_curriculum.html     ← AI 利活用カリキュラム(ハンズオン版・受験前学習用、プロンプト演習をブラウザで自動採点)
 ├── ai_assessment.html     ← スタンドアロン版(参考用、現行運用は GAS 版)
 └── gas/
     ├── Code.gs            ← Apps Script 本体(サーバサイドロジック)
