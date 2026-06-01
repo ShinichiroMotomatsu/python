@@ -202,7 +202,7 @@ const CURRICULUM = [
 <li><b>優良</b>: 総合 80% 以上 + セクション D 50% 以上</li>
 <li><b>要努力</b>: 上記未満</li>
 </ul>
-<div class="callout warn">試験時間は <b>45 分</b>(タブを閉じても止まりません)。問題は受験ごとにバリアントが抽選されるので毎回内容が変わります。</div>`,
+<div class="callout warn">試験時間は <b>60 分</b>(タブを閉じても止まりません)。問題は受験ごとにバリアントが抽選されるので毎回内容が変わります。</div>`,
       },
     ],
   },
@@ -1250,13 +1250,13 @@ Google Slides で展開可能な粒度(1 スライド = 1 メッセージ程度)
         content:`
 <table class="matrix">
 <tr><th>セクション</th><th>問題数</th><th>目安時間</th><th>注意点</th></tr>
-<tr><td><span class="tag A">A</span> 基礎理解</td><td>7 問</td><td>約 9 分</td><td>1 問 1 分前後で進める。複数選択 strict 採点</td></tr>
-<tr><td><span class="tag B">B</span> 業務活用判断</td><td>10 問</td><td>約 15 分</td><td>シナリオが長いので、設問前提を最初に読み切る</td></tr>
-<tr><td><span class="tag C">C</span> マネジメント</td><td>3〜5 問</td><td>約 9 分</td><td>マネージャー視点で答える</td></tr>
-<tr><td><span class="tag D">D</span> プロンプト記述</td><td>3 問</td><td>約 12 分</td><td>1 問 4 分で書く。完璧を目指さず構造を埋める</td></tr>
-<tr><td>E ヒアリング</td><td>1 問</td><td>—</td><td>残時間で書く。採点対象外だが AI コメントの精度に影響</td></tr>
+<tr><td><span class="tag A">A</span> 基礎理解</td><td>7 問</td><td>約 10 分</td><td>1 問 1.5 分前後で進める。複数選択 strict 採点</td></tr>
+<tr><td><span class="tag B">B</span> 業務活用判断</td><td>10 問</td><td>約 18 分</td><td>シナリオが長いので、設問前提を最初に読み切る</td></tr>
+<tr><td><span class="tag C">C</span> マネジメント</td><td>3〜5 問</td><td>約 12 分</td><td>マネージャー視点で答える</td></tr>
+<tr><td><span class="tag D">D</span> プロンプト記述</td><td>3 問</td><td>約 18 分</td><td>1 問 6 分で書く。Gemini が観点別に採点(部分点あり)</td></tr>
+<tr><td>E ヒアリング</td><td>1 問</td><td>残時間</td><td>採点対象外だが AI コメントの精度に影響</td></tr>
 </table>
-<div class="callout warn"><b>合計時間 45 分。タブを切り替えても止まりません。</b><br>時間切れで自動提出されるので、D に十分時間を残して進めましょう。</div>`,
+<div class="callout warn"><b>合計時間 60 分。タブを切り替えても止まりません。</b><br>時間切れで自動提出されるので、D に十分時間を残して進めましょう。</div>`,
       },
       {
         id:'l5-2', title:'5.2 strict 採点(複数選択)で気をつけること', duration:'3分',
@@ -1279,12 +1279,12 @@ Google Slides で展開可能な粒度(1 スライド = 1 メッセージ程度)
       {
         id:'l5-3', title:'5.3 セクション D の取り組み方(時間がない中で点数を取る)', duration:'5分',
         content:`
-<p>セクション D は記述で、Gemini が自動採点します。3 問 × 12 分 = <b>1 問 4 分</b>が目安。</p>
-<h3>4 分で書ききるための構造</h3>
+<p>セクション D は記述で、Gemini が観点別に自動採点します(部分点あり)。3 問 × 18 分 = <b>1 問 6 分</b>が目安。</p>
+<h3>6 分で書ききるための構造</h3>
 <ol>
-<li><b>30 秒</b> シナリオを読み、依頼内容を確認</li>
-<li><b>30 秒</b> 5 要素のメモ書き(役割 / 背景 / 依頼 / 制約 / 形式)</li>
-<li><b>2 分</b> プロンプト本文を書く</li>
+<li><b>1 分</b> シナリオを読み、依頼内容を確認</li>
+<li><b>1 分</b> 5 要素のメモ書き(役割 / 背景 / 依頼 / 制約 / 形式)</li>
+<li><b>3 分</b> プロンプト本文を書く</li>
 <li><b>1 分</b> シナリオ固有の数値・関係者を盛り込めているか、出力形式が指定できているか確認</li>
 </ol>
 <h3>採点で見られる 5 観点</h3>

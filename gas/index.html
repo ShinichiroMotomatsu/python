@@ -107,7 +107,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>45分</b>(時間切れで自動提出。タブを閉じて再開してもタイマーは止まりません)</td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>60分</b>(時間切れで自動提出。タブを閉じて再開してもタイマーは止まりません)</td></tr>
     <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>セクションA〜D + AI活用ヒアリング(自由記述)<br>
       <b>昇格試験モード</b>: 約 24 問 / 104 点 ・ <b>管理職オンボーディングモード</b>: 約 26 問 / 114 点<br>
       <span class="muted" style="font-size:12px;">各スキルの問題は毎回バリアントが抽選されるため、再受験時にも内容が変わります。</span></td></tr>
@@ -147,7 +147,8 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   </div>
 
   <div class="callout" style="border-color:#5e35b1;background:#ede7f6;margin-top:14px;">
-    <b>すべての選択問題は「複数選択(strict採点)」</b>です。各問とも、正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば <b>0点</b>(部分点なし)。</div>
+    <b>セクション A・B・C の選択問題は「複数選択(strict採点)」</b>です。各問とも、正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば <b>0点</b>(部分点なし)。<br>
+    <b>セクション D の記述問題は Gemini が観点別に採点</b>します(役割・背景・依頼・制約・出力形式 などの観点ごとに加点 / 減点され、<b>部分点あり</b>)。</div>
 
   <h2>動作モードの選択</h2>
   <div class="callout" style="background:#f8f9fa;border-color:#dadce0;margin-bottom:14px;">
@@ -176,7 +177,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   </div>
 
   <div class="callout info" style="margin-top:14px;">
-    開始ボタンを押すと <b>45分のタイマーが起動</b>します。各スキルの問題は受験ごとにランダムなバリアントが選ばれるため、再受験時にも内容が変わります。タイマーはタブを別ウィンドウに切り替えても停止しません。<br>
+    開始ボタンを押すと <b>60分のタイマーが起動</b>します。各スキルの問題は受験ごとにランダムなバリアントが選ばれるため、再受験時にも内容が変わります。タイマーはタブを別ウィンドウに切り替えても停止しません。<br>
     提出後、セクションA・B・C は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
     判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)に加え、<b>AI が職種・自由記載をもとに「総合評価・現状の使い方の評価・今後のアドバイス」を生成</b>します。これは面談時の補助資料として管理者がダッシュボードから参照できます。
   </div>
@@ -1324,7 +1325,7 @@ const BANK_D = [
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-const TIMER_TOTAL_SEC = 45 * 60;   // 試験時間
+const TIMER_TOTAL_SEC = 60 * 60;   // 試験時間
 let timerSec = TIMER_TOTAL_SEC;    // 残り秒数(UI 表示用、updateTimer で再計算される)
 let timerHandle = null;
 let testStartMs = 0;               // 試験開始時刻(壁時計、Date.now())
@@ -1509,12 +1510,22 @@ function renderQ(){
   qText.innerHTML = escapeHtml(q.prompt).replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>').replace(/\n/g,'<br>');
   card.appendChild(qText);
 
-  if(q.multiSelect){
+  // 複数選択ヒントは「選択式の問題」だけに表示する。
+  // Section D の記述問題(q.free===true)は Gemini ルーブリック採点で部分点があるため、
+  // 「部分点なし」と表示するのは事実誤認になる。
+  if(q.multiSelect && !q.free){
     const hint = document.createElement('div');
     hint.className = 'callout';
     hint.style.borderColor = '#5e35b1';
     hint.style.background = '#ede7f6';
     hint.innerHTML = `<b>複数選択 — 該当する選択肢を<u>すべて</u>選んでください。</b> 過不足があると0点になります(部分点なし)。`;
+    card.appendChild(hint);
+  }
+  // Section D の記述問題は、Gemini が観点ごとにスコアを付ける(部分点あり)
+  if(q.free){
+    const hint = document.createElement('div');
+    hint.className = 'callout info';
+    hint.innerHTML = `<b>記述問題 — Gemini が観点ごとにスコアを付与します(部分点あり)。</b> 役割・背景・依頼・制約・出力形式 を意識して、シナリオの数値や関係者を盛り込みましょう。`;
     card.appendChild(hint);
   }
 
