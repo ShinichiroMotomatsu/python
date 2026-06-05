@@ -284,7 +284,8 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     <h1 style="color:var(--c-danger);">提出エラー</h1>
     <p class="sub">Gemini API での評価または結果保存に失敗しました。</p>
     <div id="errorMsg" class="callout danger"></div>
-    <p>下のボタンから JSON で結果を保存し、管理者に連絡してください。</p>
+    <p>下のボタンから JSON で結果を保存し、管理者に連絡してください。<br>
+    <small style="color:var(--c-ink-2);">※ 管理者はダッシュボードの「📥 JSON 取り込み」ボタンから、このファイルをアップロードして再採点できます。</small></p>
     <div class="flex between no-print" style="margin-top:18px;">
       <button class="primary" onclick="retrySubmit()">再送信</button>
       <button class="ghost" onclick="downloadOfflineJSON()">⬇️ JSON で保存</button>

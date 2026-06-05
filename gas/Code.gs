@@ -46,7 +46,7 @@
 // この値も更新して、Web App の「新バージョン」デプロイを発行する。
 // ダッシュボード上のバッジに DASH/SRV 双方のビルド ID が並び、Web App
 // デプロイが古いままだと SRV 側が一致せず赤バッジで警告される。
-const SERVER_BUILD        = '2026-05-29-detail-fix-2';
+const SERVER_BUILD        = '2026-06-01-offline-json-upload';
 function getServerVersion() { return SERVER_BUILD; }
 
 const SHEET_ID_PROP       = 'ASSESSMENT_SHEET_ID';

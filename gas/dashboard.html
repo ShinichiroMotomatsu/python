@@ -107,7 +107,7 @@ table tbody tr:hover{background:#f8fafc;}
 <script>
 // バージョン整合性チェック用の合言葉。dashboard.html と Code.gs を更新するたびに上げる。
 // この文字列が SRV 側と一致していれば Web App デプロイは最新版を配信している。
-const CLIENT_BUILD = '2026-05-29-detail-fix-2';
+const CLIENT_BUILD = '2026-06-01-offline-json-upload';
 
 let ALL_DATA = null;
 let FILTER = { category:'', text:'', mode:'' };
@@ -195,6 +195,8 @@ function render(){
       </select>
       <button onclick="resetFilters()">リセット</button>
       <button class="primary" onclick="exportCSV()">CSV ダウンロード</button>
+      <button onclick="document.getElementById('uploadJsonInput').click()" title="採点エラー時にダウンロードされた JSON をアップロードして再採点します">📥 JSON 取り込み</button>
+      <input type="file" id="uploadJsonInput" accept="application/json,.json" style="display:none;" onchange="onUploadJson(event)">
       <button onclick="loadDashboard()">🔄 更新</button>
     </div>
 
@@ -452,6 +454,88 @@ function renderDetail(d){
 function closeModal(){ document.getElementById('detailModal').classList.remove('show'); }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
+// ==========================================================================
+// オフライン JSON 取り込み(採点エラー時にダウンロードされた payload を再採点)
+// ==========================================================================
+function onUploadJson(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  // 入力をクリアして同じファイルを再アップロード可能にする
+  ev.target.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    let payload;
+    try {
+      payload = JSON.parse(e.target.result);
+    } catch(err){
+      showUploadStatus('error', 'JSON のパースに失敗しました: ' + (err.message || err));
+      return;
+    }
+    // 必須フィールドの軽い検証
+    const missing = [];
+    if(!payload || typeof payload !== 'object') missing.push('JSON がオブジェクトでない');
+    else {
+      if(!payload.examinee) missing.push('examinee');
+      if(!payload.autoScores) missing.push('autoScores');
+      if(!Array.isArray(payload.sectionD)) missing.push('sectionD(配列でない)');
+    }
+    if(missing.length){
+      showUploadStatus('error', '必須フィールドが欠けています: ' + missing.join(', ') + '<br><small>採点エラー画面の「⬇️ JSON で保存」で書き出された JSON か確認してください。</small>');
+      return;
+    }
+    // 確認ダイアログ
+    const who = (payload.examinee && payload.examinee.name) || '(氏名不明)';
+    const mode = payload.examinee && payload.examinee.mode === 'onboarding' ? '管理職オンボーディング' : '昇格試験';
+    if(!confirm('以下の受験データを再採点します:\n\n氏名: ' + who + '\nモード: ' + mode + '\n\n採点には Gemini API を使用するため、提出と同様に 20〜60 秒程度かかります。実行しますか?')){
+      return;
+    }
+    showUploadStatus('loading', '「' + escapeHtml(who) + '」の再採点中… (Gemini API 呼び出し中、20〜60 秒)');
+    google.script.run
+      .withSuccessHandler(res => {
+        if(res && res.success){
+          showUploadStatus('success', '<b>✓ 再採点完了:</b> ' + escapeHtml(who) +
+            '(' + escapeHtml(res.category) + ' / ' + res.totalScore + '/' + res.totalMax + ' = ' + res.totalPct + '%)' +
+            '<br><small>提出ID: ' + escapeHtml(res.submissionId) + '</small>');
+          // 一覧を再読み込み
+          setTimeout(loadDashboard, 800);
+        } else {
+          showUploadStatus('error', '再採点に失敗しました: ' + escapeHtml((res && res.error) || '(理由不明)'));
+        }
+      })
+      .withFailureHandler(err => {
+        showUploadStatus('error', 'サーバエラー: ' + escapeHtml(String(err && (err.message || err) || '(不明)')));
+      })
+      .submitAssessment(payload);
+  };
+  reader.onerror = () => showUploadStatus('error', 'ファイルの読み込みに失敗しました');
+  reader.readAsText(file);
+}
+
+function showUploadStatus(kind, msg){
+  let box = document.getElementById('uploadStatusBox');
+  if(!box){
+    box = document.createElement('div');
+    box.id = 'uploadStatusBox';
+    box.style.cssText = 'position:fixed;right:20px;bottom:20px;max-width:480px;padding:14px 18px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);z-index:100;font-size:13px;line-height:1.6;';
+    document.body.appendChild(box);
+  }
+  const palette = {
+    loading: { bg:'#e8f0fe', bd:'#1a73e8', fg:'#174ea6' },
+    success: { bg:'#e6f4ea', bd:'#34a853', fg:'#137333' },
+    error:   { bg:'#fdecea', bd:'#ea4335', fg:'#a50e0e' },
+  }[kind] || { bg:'#fff', bd:'#dadce0', fg:'#202124' };
+  box.style.background = palette.bg;
+  box.style.border = '2px solid ' + palette.bd;
+  box.style.color = palette.fg;
+  const close = kind === 'loading' ? '' : '<button style="float:right;margin-left:10px;background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">×</button>';
+  box.innerHTML = close + msg;
+  if(kind !== 'loading'){
+    // 自動で 12 秒後に消える(成功時)。エラーはユーザーが閉じるまで残す。
+    if(kind === 'success'){
+      setTimeout(() => { if(box.parentElement) box.remove(); }, 12000);
+    }
+  }
+}
 function exportCSV(){
   const rows = filterRows(ALL_DATA.rows);
   const header = ['受験日時','氏名','所属','モード','職種大分類','職種(詳細)','A','B','C','D','総合','達成率(%)','カテゴリ'];
