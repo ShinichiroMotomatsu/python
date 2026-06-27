@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ロボットおつかいパズル</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    background: linear-gradient(135deg, #c6f0ff 0%, #e7e0ff 100%);
+    touch-action: manipulation; color: #234;
+  }
+  body { display: flex; flex-direction: column; align-items: center; padding: 8px; }
+
+  h1 { font-size: clamp(18px, 4vw, 28px); margin: 4px 0 8px; color: #1b4a6b;
+       text-shadow: 1px 1px 0 #fff; letter-spacing: 0.06em; }
+
+  /* ---------- Header ---------- */
+  .topbar { display: flex; gap: 8px; align-items: center; justify-content: center;
+            flex-wrap: wrap; width: 100%; max-width: 880px; margin-bottom: 6px; }
+  .pill { background: #fff; border-radius: 999px; padding: 6px 14px;
+          box-shadow: 0 3px 0 #b9c7d6; font-weight: bold; font-size: clamp(13px,2.6vw,17px); }
+  .pill.btn { cursor: pointer; transition: transform .08s; }
+  .pill.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b9c7d6; }
+
+  /* ---------- Layout ---------- */
+  .game { display: flex; gap: 14px; width: 100%; max-width: 880px;
+          align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  .left  { flex: 1 1 340px; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
+  .right { flex: 1 1 300px; min-width: 280px; max-width: 380px; }
+
+  /* ---------- Board ---------- */
+  #boardWrap { position: relative; background: #fff; border-radius: 16px;
+               box-shadow: 0 6px 0 #b9c7d6; padding: 10px; }
+  #board { position: relative; }
+  .cell { position: absolute; border-radius: 8px; display: flex;
+          align-items: center; justify-content: center; font-size: 26px; }
+  .cell.floor { background: #eef6ff; box-shadow: inset 0 0 0 2px #dde8f5; }
+  .cell.wall  { background: linear-gradient(#7fbf6a,#5fa24c); box-shadow: inset 0 0 0 2px #4f8a3e; }
+  .cell.goal  { background: #fff6d8; box-shadow: inset 0 0 0 3px #ffd24d; }
+  #robot { position: absolute; display: flex; align-items: center; justify-content: center;
+           transition: left .28s ease, top .28s ease; z-index: 5; }
+  #robotInner { transition: transform .28s ease; display:flex; flex-direction:column;
+                align-items:center; justify-content:center; }
+  .nose { font-size: 14px; line-height: 1; margin-bottom: -4px; }
+  .face { font-size: 30px; line-height: 1; }
+  #robot.bump #robotInner { animation: bump .3s; }
+  @keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(.8) rotate(-8deg)} 100%{transform:scale(1)} }
+  #robot.cheer .face { animation: cheer .5s ease infinite; }
+  @keyframes cheer { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  .hint { margin-top: 8px; font-size: clamp(12px,2.6vw,15px); color: #2d5a7a;
+          background:#fff; border-radius: 12px; padding: 6px 12px; box-shadow: 0 2px 0 #b9c7d6;
+          text-align:center; max-width: 95%; }
+
+  /* ---------- Palette ---------- */
+  .panel { background:#fff; border-radius: 16px; box-shadow: 0 6px 0 #b9c7d6;
+           padding: 10px; margin-bottom: 12px; }
+  .panel h2 { font-size: 15px; margin: 2px 4px 8px; color:#1b4a6b; }
+  .palette { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+  .cmd { border: none; border-radius: 12px; padding: 8px 4px; cursor: pointer; min-width: 0;
+         display:flex; flex-direction:column; align-items:center; gap:2px;
+         font-family: inherit; font-weight: bold; font-size: 12px; color:#234;
+         box-shadow: 0 3px 0 rgba(0,0,0,.15); transition: transform .08s; }
+  .cmd:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.15); }
+  .cmd .ico { font-size: 24px; }
+  .cmd.forward { background:#bfe3ff; }
+  .cmd.left    { background:#ffe1b3; }
+  .cmd.right   { background:#ffd1e6; }
+  .cmd.pickup  { background:#d6f5c6; }
+  .cmd.loop    { background:#e3d6ff; }
+
+  /* ---------- Program list ---------- */
+  #program { min-height: 60px; display:flex; flex-direction:column; gap:6px; }
+  .step { display:flex; align-items:center; gap:8px; background:#f3f8ff;
+          border-radius:10px; padding:6px 8px; box-shadow: inset 0 0 0 2px #dde8f5; }
+  .step .num { font-weight:bold; color:#7a93ab; min-width: 20px; text-align:center; }
+  .step .lbl { flex:1; font-weight:bold; font-size:14px; display:flex; align-items:center; gap:6px; }
+  .step .lbl .ico { font-size:20px; }
+  .step .del { background:#ff8a8a; color:#fff; border:none; border-radius:8px;
+               width:28px; height:28px; font-size:16px; cursor:pointer; font-weight:bold; }
+  .step.running { box-shadow: inset 0 0 0 3px #ffb74d; background:#fff6e6; }
+  .step.loopblock { flex-direction:column; align-items:stretch; background:#f1ecff;
+                    box-shadow: inset 0 0 0 2px #cdbcf5; }
+  .loophead { display:flex; align-items:center; gap:8px; }
+  .loophead .lbl { font-size:14px; }
+  .countbtn { background:#9b7fe0; color:#fff; border:none; border-radius:8px;
+              padding:3px 10px; font-weight:bold; cursor:pointer; font-size:14px; }
+  .loopbody { display:flex; flex-direction:column; gap:5px; margin:6px 0 2px 14px;
+              padding-left:8px; border-left:3px dashed #b9a6e8; }
+  .loopbody .step { background:#fbf9ff; }
+  .loopbody.open { box-shadow: 0 0 0 2px #ffb74d; border-radius:6px; }
+  .loopempty { font-size:12px; color:#9a86c8; padding:4px; }
+  .closebtn { align-self:flex-start; background:#ffb74d; color:#fff; border:none;
+              border-radius:8px; padding:3px 10px; font-weight:bold; cursor:pointer;
+              font-size:12px; margin-top:4px; }
+  .emptyprog { color:#9aa; font-size:13px; text-align:center; padding:14px; }
+
+  /* ---------- Controls ---------- */
+  .controls { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:6px; }
+  .ctl { border:none; border-radius:14px; padding:12px 4px; font-family:inherit;
+         font-weight:bold; font-size:15px; cursor:pointer; color:#fff;
+         box-shadow:0 4px 0 rgba(0,0,0,.2); transition:transform .08s; }
+  .ctl:active { transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.2); }
+  .ctl.run  { background:#34c759; }
+  .ctl.step { background:#ff9f0a; }
+  .ctl.reset{ background:#8e8e93; }
+  .ctl:disabled { opacity:.5; }
+
+  /* ---------- Overlays ---------- */
+  .overlay { position: fixed; inset:0; background: rgba(20,40,60,.55);
+             display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .modal { background:#fff; border-radius:22px; padding:22px; text-align:center;
+           box-shadow:0 10px 0 #9bb; max-width: 92vw; width: 380px; animation: pop .3s; }
+  @keyframes pop { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal h2 { font-size:26px; margin:6px 0; color:#1b4a6b; }
+  .stars { font-size:40px; margin:6px 0; }
+  .modal p { font-size:15px; color:#456; }
+  .modal .row { display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+  .mbtn { border:none; border-radius:14px; padding:12px 18px; font-family:inherit;
+          font-weight:bold; font-size:15px; cursor:pointer; color:#fff; box-shadow:0 4px 0 rgba(0,0,0,.2); }
+  .mbtn:active{ transform:translateY(2px); }
+  .mbtn.next{ background:#34c759; } .mbtn.retry{ background:#ff9f0a; } .mbtn.menu{ background:#5a9; }
+
+  /* ---------- Stage select ---------- */
+  .stagegrid { display:grid; grid-template-columns: repeat(auto-fill,minmax(96px,1fr));
+               gap:12px; margin-top:10px; }
+  .stagecard { background:#fff; border-radius:16px; padding:12px 6px; text-align:center;
+               box-shadow:0 4px 0 #b9c7d6; cursor:pointer; transition:transform .08s; }
+  .stagecard:active{ transform:translateY(2px); }
+  .stagecard .no { font-size:22px; font-weight:bold; color:#1b4a6b; }
+  .stagecard .nm { font-size:11px; color:#567; margin-top:2px; }
+  .stagecard .st { font-size:16px; margin-top:4px; }
+  .stagecard.locked { opacity:.45; }
+</style>
+</head>
+<body>
+  <h1>🤖 ロボットおつかいパズル</h1>
+
+  <!-- ===== Stage Select Screen ===== -->
+  <div id="selectScreen">
+    <div class="topbar">
+      <span class="pill">あつめた ほし ⭐ <span id="totalStars">0</span></span>
+    </div>
+    <div class="hint">あそぶ ステージを えらんでね</div>
+    <div class="stagegrid" id="stageGrid"></div>
+  </div>
+
+  <!-- ===== Play Screen ===== -->
+  <div id="playScreen" style="display:none; width:100%;">
+    <div class="topbar">
+      <span class="pill btn" id="backBtn">← もどる</span>
+      <span class="pill">ステージ <span id="stageNo">1</span>：<span id="stageName"></span></span>
+      <span class="pill" id="bestPill">ベスト ☆</span>
+    </div>
+
+    <div class="game">
+      <div class="left">
+        <div id="boardWrap">
+          <div id="board">
+            <div id="robot"><div id="robotInner"><div class="nose">▲</div><div class="face">🤖</div></div></div>
+          </div>
+        </div>
+        <div class="hint" id="goalHint"></div>
+      </div>
+
+      <div class="right">
+        <div class="panel">
+          <h2>つかえる めいれい</h2>
+          <div class="palette" id="palette"></div>
+        </div>
+        <div class="panel">
+          <h2>プログラム（じゅんばん）</h2>
+          <div id="program"></div>
+        </div>
+        <div class="controls">
+          <button class="ctl run"   id="runBtn">▶ じっこう</button>
+          <button class="ctl step"  id="stepBtn">⏯ 1つずつ</button>
+          <button class="ctl reset" id="resetBtn">🔄 リセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===================== ステージ定義 ===================== */
+/* dir: 0=上 1=右 2=下 3=左 */
+const STAGES = [
+  { name:"はじめのいっぽ", cols:4, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:3,y:0}, walls:[], items:[],
+    allowed:["forward"], par:3,
+    hint:"「すすむ」を ならべて ⭐ まで いこう！" },
+
+  { name:"もうすこし", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0}, walls:[], items:[],
+    allowed:["forward"], par:4,
+    hint:"なんかい すすめば いいかな？" },
+
+  { name:"まがりみち", cols:4, rows:4,
+    robot:{x:0,y:0,dir:2}, goal:{x:3,y:3}, walls:[], items:[],
+    allowed:["forward","left","right"], par:6,
+    hint:"「みぎむき」で むきを かえよう" },
+
+  { name:"カクカクみち", cols:5, rows:5,
+    robot:{x:0,y:0,dir:2}, goal:{x:4,y:4}, walls:[[1,1],[2,1],[3,1],[1,3],[2,3],[3,3]],
+    items:[], allowed:["forward","left","right"], par:8,
+    hint:"かべ（🌳）には ぶつからないでね" },
+
+  { name:"かべよけ", cols:5, rows:5,
+    robot:{x:0,y:2,dir:1}, goal:{x:4,y:2},
+    walls:[[2,0],[2,1],[2,2],[2,3]], items:[],
+    allowed:["forward","left","right"], par:8,
+    hint:"かべを ぐるっと まわって ゴールへ" },
+
+  { name:"でんちを ひろおう", cols:5, rows:3,
+    robot:{x:0,y:1,dir:1}, goal:{x:4,y:1}, walls:[],
+    items:[[2,1]], allowed:["forward","left","right","pickup"], par:6,
+    hint:"🔋を「ひろう」してから ⭐へ いこう" },
+
+  { name:"おつかい", cols:5, rows:5,
+    robot:{x:0,y:0,dir:2}, goal:{x:4,y:0},
+    walls:[[2,1],[2,2],[2,3]], items:[[0,4],[4,4]],
+    allowed:["forward","left","right","pickup"], par:14,
+    hint:"🔋を ぜんぶ あつめてから ⭐へ！" },
+
+  { name:"くりかえし", cols:6, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:5,y:0}, walls:[], items:[],
+    allowed:["forward","loop"], par:2,
+    hint:"🔁 を つかうと みじかく できるよ！" },
+
+  { name:"かいだん", cols:5, rows:5,
+    robot:{x:0,y:4,dir:0}, goal:{x:4,y:0},
+    walls:[[1,4],[1,3],[2,3],[2,2],[3,2],[3,1],[4,1]], items:[],
+    allowed:["forward","left","right","loop"], par:8,
+    hint:"おなじ うごきは 🔁 で まとめよう" },
+
+  { name:"だいぼうけん", cols:6, rows:6,
+    robot:{x:0,y:0,dir:2}, goal:{x:5,y:5},
+    walls:[[2,0],[2,1],[2,2],[2,3],[3,3],[4,3],[4,4],[4,5]],
+    items:[[0,5],[5,0]],
+    allowed:["forward","left","right","pickup","loop"], par:14,
+    hint:"🔋を 2つ あつめて ⭐へ。チャレンジ！" },
+];
+
+const CMD = {
+  forward:{ ico:"⬆️", label:"すすむ",  cls:"forward" },
+  left:   { ico:"↩️", label:"ひだり",  cls:"left" },
+  right:  { ico:"↪️", label:"みぎ",    cls:"right" },
+  pickup: { ico:"✋", label:"ひろう",  cls:"pickup" },
+  loop:   { ico:"🔁", label:"くりかえし", cls:"loop" },
+};
+const DX=[0,1,0,-1], DY=[-1,0,1,0];
+
+/* ===================== 状態 ===================== */
+let cur = -1;          // 現在のステージ index
+let program = [];      // [{op}] or {loop:true,count,body:[{op}]}
+let openLoop = null;   // タップ追加先のループ(body配列) / null=メイン
+let stage = null;
+let cellSize = 60;
+let robot = null;      // {x,y,dir,items:Set}
+let running = false;
+let stepQueue = null;  // 1つずつ実行用
+const best = {};       // stageIndex -> 獲得スター
+
+/* ===================== 画面切り替え ===================== */
+const $ = id => document.getElementById(id);
+function showSelect(){
+  $("playScreen").style.display="none";
+  $("selectScreen").style.display="block";
+  renderStageGrid();
+}
+function totalStars(){ return Object.values(best).reduce((a,b)=>a+b,0); }
+function unlocked(i){
+  if(i===0) return true;
+  // ひとつ前をクリア（★1以上）していれば解放
+  return (best[i-1]||0) >= 1;
+}
+function renderStageGrid(){
+  $("totalStars").textContent = totalStars();
+  const g = $("stageGrid"); g.innerHTML="";
+  STAGES.forEach((s,i)=>{
+    const open = unlocked(i);
+    const c = document.createElement("div");
+    c.className = "stagecard"+(open?"":" locked");
+    const st = best[i]||0;
+    const stars = open ? "★".repeat(st)+"☆".repeat(3-st) : "🔒";
+    c.innerHTML = `<div class="no">${i+1}</div><div class="nm">${s.name}</div><div class="st">${stars}</div>`;
+    if(open) c.onclick = ()=>startStage(i);
+    g.appendChild(c);
+  });
+}
+
+/* ===================== ステージ開始 ===================== */
+function startStage(i){
+  cur = i; stage = STAGES[i];
+  program = []; openLoop = null; running=false; stepQueue=null;
+  $("selectScreen").style.display="none";
+  $("playScreen").style.display="block";
+  $("stageNo").textContent = i+1;
+  $("stageName").textContent = stage.name;
+  $("goalHint").textContent = stage.hint;
+  $("bestPill").textContent = "ベスト "+("★".repeat(best[i]||0)+"☆".repeat(3-(best[i]||0)));
+  buildPalette();
+  layoutBoard();
+  resetRobot();
+  renderProgram();
+}
+
+/* ===================== 盤面 ===================== */
+function layoutBoard(){
+  const wrap = $("boardWrap");
+  const maxW = Math.min(wrap.parentElement.clientWidth-0, 460);
+  const avail = Math.max(240, maxW-20);
+  cellSize = Math.floor(Math.min(avail/stage.cols, 360/stage.rows, 72));
+  if(cellSize<34) cellSize=34;
+  const gap=4;
+  const board = $("board");
+  board.style.width  = (stage.cols*(cellSize+gap)-gap)+"px";
+  board.style.height = (stage.rows*(cellSize+gap)-gap)+"px";
+  // タイル描画（ロボットは残す）
+  [...board.querySelectorAll(".cell")].forEach(e=>e.remove());
+  const isWall=(x,y)=>stage.walls.some(w=>w[0]===x&&w[1]===y);
+  for(let y=0;y<stage.rows;y++)for(let x=0;x<stage.cols;x++){
+    const c=document.createElement("div");
+    let cls="floor";
+    if(isWall(x,y)) cls="wall";
+    else if(stage.goal.x===x&&stage.goal.y===y) cls="goal";
+    c.className="cell "+cls;
+    c.style.width=c.style.height=cellSize+"px";
+    c.style.left=x*(cellSize+gap)+"px";
+    c.style.top =y*(cellSize+gap)+"px";
+    if(cls==="wall") c.textContent="🌳";
+    if(cls==="goal") c.textContent="⭐";
+    c.dataset.x=x; c.dataset.y=y;
+    board.appendChild(c);
+  }
+  renderItems();
+  $("robot").style.width=$("robot").style.height=cellSize+"px";
+  $("robot").querySelector(".face").style.fontSize=Math.floor(cellSize*0.55)+"px";
+  if(robot) placeRobot(false);
+}
+function renderItems(){
+  const board=$("board");
+  [...board.querySelectorAll(".item")].forEach(e=>e.remove());
+  const gap=4;
+  stage.items.forEach(([x,y])=>{
+    if(robot && robot.items.has(x+","+y)) return; // 拾い済みは非表示
+    const it=document.createElement("div");
+    it.className="cell item floor"; it.style.zIndex=3;
+    it.style.width=it.style.height=cellSize+"px";
+    it.style.left=x*(cellSize+gap)+"px"; it.style.top=y*(cellSize+gap)+"px";
+    it.style.background="transparent"; it.style.boxShadow="none";
+    it.textContent="🔋";
+    board.appendChild(it);
+  });
+}
+function placeRobot(animate){
+  const gap=4;
+  const r=$("robot");
+  r.style.transition = animate ? "" : "none";
+  r.style.left = robot.x*(cellSize+gap)+"px";
+  r.style.top  = robot.y*(cellSize+gap)+"px";
+  $("robotInner").style.transition = animate ? "" : "none";
+  $("robotInner").style.transform = "rotate("+(robot.dir*90)+"deg)";
+  if(!animate){ // 強制リセット後に transition を戻す
+    void r.offsetWidth;
+    r.style.transition=""; $("robotInner").style.transition="";
+  }
+}
+function resetRobot(){
+  robot = { x:stage.robot.x, y:stage.robot.y, dir:stage.robot.dir, items:new Set() };
+  const r=$("robot"); r.classList.remove("bump","cheer");
+  renderItems();
+  placeRobot(false);
+}
+
+/* ===================== パレット ===================== */
+function buildPalette(){
+  const p=$("palette"); p.innerHTML="";
+  stage.allowed.forEach(op=>{
+    const b=document.createElement("button");
+    b.className="cmd "+CMD[op].cls;
+    b.innerHTML=`<span class="ico">${CMD[op].ico}</span>${CMD[op].label}`;
+    b.onclick=()=>addCommand(op);
+    p.appendChild(b);
+  });
+}
+function addCommand(op){
+  if(running) return;
+  if(op==="loop"){
+    const blk={loop:true,count:2,body:[]};
+    program.push(blk);
+    openLoop = blk.body;        // 追加先をループの中へ
+  } else {
+    const target = openLoop || program;
+    target.push({op});
+  }
+  renderProgram();
+}
+
+/* ===================== プログラム表示 ===================== */
+function renderProgram(){
+  const wrap=$("program"); wrap.innerHTML="";
+  if(program.length===0){
+    wrap.innerHTML='<div class="emptyprog">めいれいを タップして<br>ここに ならべよう</div>';
+    return;
+  }
+  let n=0;
+  program.forEach((item,idx)=>{
+    if(item.loop){
+      const blk=document.createElement("div"); blk.className="step loopblock";
+      const head=document.createElement("div"); head.className="loophead";
+      head.innerHTML=`<span class="lbl"><span class="ico">🔁</span>くりかえし</span>`;
+      const cnt=document.createElement("button"); cnt.className="countbtn";
+      cnt.textContent=item.count+"かい";
+      cnt.onclick=()=>{ if(running)return; item.count=item.count>=5?2:item.count+1; renderProgram(); };
+      const del=document.createElement("button"); del.className="del"; del.textContent="✕";
+      del.onclick=()=>{ if(running)return; if(openLoop===item.body) openLoop=null;
+                        program.splice(idx,1); renderProgram(); };
+      head.appendChild(cnt); head.appendChild(del); blk.appendChild(head);
+      const body=document.createElement("div"); body.className="loopbody"+(openLoop===item.body?" open":"");
+      if(item.body.length===0){
+        body.innerHTML='<div class="loopempty">↑ めいれいを タップして いれてね</div>';
+      } else {
+        item.body.forEach((sub,si)=>{
+          body.appendChild(makeStep(sub,"🔁", ()=>{ if(running)return; item.body.splice(si,1); renderProgram(); }));
+        });
+      }
+      blk.appendChild(body);
+      // 開いている時は閉じるボタン
+      if(openLoop===item.body){
+        const cb=document.createElement("button"); cb.className="closebtn";
+        cb.textContent="🔁に いれるのを おわる";
+        cb.onclick=()=>{ openLoop=null; renderProgram(); };
+        blk.appendChild(cb);
+      } else {
+        const ob=document.createElement("button"); ob.className="closebtn";
+        ob.style.background="#9b7fe0"; ob.textContent="この 🔁 に いれる";
+        ob.onclick=()=>{ openLoop=item.body; renderProgram(); };
+        blk.appendChild(ob);
+      }
+      wrap.appendChild(blk);
+    } else {
+      n++;
+      wrap.appendChild(makeStep(item,String(n), ()=>{ if(running)return; program.splice(idx,1); renderProgram(); }));
+    }
+  });
+}
+function makeStep(item,num,onDel){
+  const s=document.createElement("div"); s.className="step";
+  const c=CMD[item.op];
+  s.innerHTML=`<span class="num">${num}</span>
+    <span class="lbl"><span class="ico">${c.ico}</span>${c.label}</span>`;
+  const d=document.createElement("button"); d.className="del"; d.textContent="✕"; d.onclick=onDel;
+  s.appendChild(d);
+  item._el = s;  // 実行ハイライト用
+  return s;
+}
+
+/* ===================== プログラム展開 ===================== */
+function writtenCount(){
+  let n=0;
+  for(const item of program) n += item.loop ? (1+item.body.length) : 1;
+  return n;
+}
+function flatten(){
+  const ops=[];
+  for(const item of program){
+    if(item.loop){
+      for(let r=0;r<item.count;r++) for(const sub of item.body) ops.push(sub);
+    } else ops.push(item);
+  }
+  return ops;
+}
+
+/* ===================== 実行 ===================== */
+function isWall(x,y){ return stage.walls.some(w=>w[0]===x&&w[1]===y); }
+function inBounds(x,y){ return x>=0&&y>=0&&x<stage.cols&&y<stage.rows; }
+function allItems(){ return stage.items.length===0 || stage.items.every(([x,y])=>robot.items.has(x+","+y)); }
+function onGoal(){ return robot.x===stage.goal.x && robot.y===stage.goal.y; }
+
+function highlight(item){
+  document.querySelectorAll(".step.running").forEach(e=>e.classList.remove("running"));
+  if(item && item._el) item._el.classList.add("running");
+}
+function bump(){ const r=$("robot"); r.classList.add("bump"); setTimeout(()=>r.classList.remove("bump"),300); }
+
+// 1命令を実行。戻り値 false=失敗(壁/外)で停止
+function execOne(item){
+  const op=item.op;
+  if(op==="left")  robot.dir=(robot.dir+3)%4;
+  else if(op==="right") robot.dir=(robot.dir+1)%4;
+  else if(op==="forward"){
+    const nx=robot.x+DX[robot.dir], ny=robot.y+DY[robot.dir];
+    if(!inBounds(nx,ny)||isWall(nx,ny)){ bump(); return false; }
+    robot.x=nx; robot.y=ny;
+  } else if(op==="pickup"){
+    const key=robot.x+","+robot.y;
+    if(stage.items.some(([x,y])=>x===robot.x&&y===robot.y)) robot.items.add(key);
+  }
+  placeRobot(true);
+  renderItems();
+  return true;
+}
+
+function setControls(dis){
+  $("runBtn").disabled=dis; $("stepBtn").disabled=false;
+  document.querySelectorAll(".cmd").forEach(b=>b.style.pointerEvents=dis?"none":"");
+}
+
+function runAll(){
+  if(running) return;
+  const ops=flatten();
+  if(ops.length===0){ flash("めいれいを ならべてね！"); return; }
+  resetRobot(); running=true; setControls(true);
+  let i=0;
+  const tick=()=>{
+    if(i>=ops.length){ finish(); return; }
+    const item=ops[i]; highlight(item);
+    const ok=execOne(item);
+    if(onGoal()&&allItems()){ setTimeout(()=>finish(),350); return; }
+    if(!ok){ setTimeout(()=>{ running=false; setControls(false); highlight(null);
+                              flash("おっと！ かべに ぶつかった"); },400); return; }
+    i++; setTimeout(tick,360);
+  };
+  setTimeout(tick,200);
+}
+
+function stepOnce(){
+  if(running && stepQueue===null) return;
+  if(stepQueue===null){ // 開始
+    stepQueue={ops:flatten(), i:0};
+    if(stepQueue.ops.length===0){ stepQueue=null; flash("めいれいを ならべてね！"); return; }
+    resetRobot(); running=true; setControls(true); $("runBtn").disabled=true;
+  }
+  const q=stepQueue;
+  if(q.i>=q.ops.length){ stepQueue=null; finish(); return; }
+  const item=q.ops[q.i]; highlight(item);
+  const ok=execOne(item);
+  if(onGoal()&&allItems()){ stepQueue=null; setTimeout(()=>finish(),350); return; }
+  if(!ok){ stepQueue=null; running=false; setControls(false);
+           setTimeout(()=>{ highlight(null); flash("おっと！ かべに ぶつかった"); },400); return; }
+  q.i++;
+}
+
+function finish(){
+  running=false; setControls(false); highlight(null);
+  const win = onGoal() && allItems();
+  if(win){
+    const r=$("robot"); r.classList.add("cheer");
+    const used = writtenCount();   // 並べたカード数（🔁は中身の分だけ。展開数ではない＝くりかえしが有利）
+    let stars=1;
+    if(used<=stage.par) stars=3; else if(used<=Math.ceil(stage.par*1.5)) stars=2;
+    if((best[cur]||0)<stars) best[cur]=stars;
+    showClear(stars,used);
+  } else {
+    if(stage.items.length>0 && !allItems()) flash("🔋を ぜんぶ ひろってね！");
+    else flash("⭐まで とどかなかった… もういちど！");
+  }
+}
+
+/* ===================== クリア演出 ===================== */
+function showClear(stars,used){
+  const ov=document.createElement("div"); ov.className="overlay"; ov.id="clearOv";
+  const last = cur>=STAGES.length-1;
+  ov.innerHTML=`<div class="modal">
+    <h2>🎉 クリア！</h2>
+    <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>
+    <p>つかった めいれい：${used}こ${stars<3?'<br>もっと みじかく できるかな？':'<br>かんぺき！'}</p>
+    <div class="row">
+      ${last?'':'<button class="mbtn next" id="nextB">つぎへ ▶</button>'}
+      <button class="mbtn retry" id="retryB">もういちど 🔄</button>
+      <button class="mbtn menu" id="menuB">ステージせんたく</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  if(!last) $("nextB").onclick=()=>{ ov.remove(); startStage(cur+1); };
+  $("retryB").onclick=()=>{ ov.remove(); startStage(cur); };
+  $("menuB").onclick=()=>{ ov.remove(); showSelect(); };
+}
+
+/* ===================== ちょいメッセージ ===================== */
+let flashT=null;
+function flash(msg){
+  $("goalHint").textContent=msg;
+  $("goalHint").style.background="#fff0c2";
+  clearTimeout(flashT);
+  flashT=setTimeout(()=>{ $("goalHint").textContent=stage.hint;
+                          $("goalHint").style.background="#fff"; },2200);
+}
+
+/* ===================== ボタン ===================== */
+$("runBtn").onclick=runAll;
+$("stepBtn").onclick=stepOnce;
+$("resetBtn").onclick=()=>{ if(running)return; resetRobot(); stepQueue=null; highlight(null);
+                            program=[]; openLoop=null; renderProgram(); };
+$("backBtn").onclick=()=>{ if(running)return; showSelect(); };
+window.addEventListener("resize",()=>{ if(stage && $("playScreen").style.display!=="none") layoutBoard(); });
+
+/* ===================== 起動 ===================== */
+showSelect();
+</script>
+</body>
+</html>
