@@ -57,7 +57,7 @@
 "use strict";
 (function(){
   // ====== 論理座標（縦長 800 x 1320）======
-  const W = 800, H = 1320;
+  const W = 800, H = 1380;
   const WALL = 28;
   const FLOOR_Y = 1150, POCKET_Y = 1235, HALF = 72; // カゴ（穴）の半幅
   const cv = document.getElementById('cv');
@@ -101,9 +101,9 @@
   }
   function sndFail(){ tone(392,0.22,'sine',0.18,0); tone(294,0.35,'sine',0.18,0.18); }
 
-  // ====== レベル（手作りの分かれ道パズル）======
-  // coreSegs: 山と坂、 cx: カゴの中心x、 stars: ヒントの星
-  function buildLevel(coreSegs, stars, cx, theme){
+  // ====== レベル（どこに落とすか＋ピンでバウンドするパズル）======
+  // coreSegs: 山と坂、 cx: カゴの中心x、 stars: 星、 pegs: 丸いピン（バウンド用）
+  function buildLevel(coreSegs, stars, cx, theme, pegs){
     const segs = coreSegs.slice();
     // 左右の壁
     segs.push({x1:WALL, y1:140, x2:WALL, y2:FLOOR_Y});
@@ -115,8 +115,9 @@
     segs.push({x1:cx-HALF, y1:FLOOR_Y, x2:cx-HALF, y2:POCKET_Y});
     segs.push({x1:cx+HALF, y1:FLOOR_Y, x2:cx+HALF, y2:POCKET_Y});
     segs.push({x1:cx-HALF, y1:POCKET_Y, x2:cx+HALF, y2:POCKET_Y});
-    return { segs, stars:stars.map(s=>({x:s[0], y:s[1], got:false})), cx, theme };
+    return { segs, stars:stars.map(s=>({x:s[0], y:s[1], got:false})), cx, theme, pegs:pegs||[] };
   }
+  const P = (x,y) => ({x, y, r:18}); // ピン
 
   const THEMES = [
     {bg1:'#1b2a6b', bg2:'#0d1b3e', ramp:'#4dd0e1', star:'#ffd23f'},
@@ -138,7 +139,9 @@
       {x1:cx-th+70, y1:880, x2:cx-40, y2:940},
     ];
     const stars = [ [cx-th/2,545], [cx+th/2,725], [cx-th/2+15,905] ];
-    return buildLevel([wallL, wallR, ...ledges], stars, cx, theme);
+    // 中央列に交互ピン → まっすぐ落としても必ず数回バウンドしてから落ちる
+    const pegs = [ P(cx-28,420), P(cx+34,640), P(cx-30,840) ];
+    return buildLevel([wallL, wallR, ...ledges], stars, cx, theme, pegs);
   }
 
   // おわん：曲線（多段）の漏斗。まんなかに落とそう。
@@ -149,7 +152,8 @@
     const segs = [];
     for(let i=0;i<Lp.length-1;i++) segs.push({x1:Lp[i][0],y1:Lp[i][1],x2:Lp[i+1][0],y2:Lp[i+1][1]});
     for(let i=0;i<Rp.length-1;i++) segs.push({x1:Rp[i][0],y1:Rp[i][1],x2:Rp[i+1][0],y2:Rp[i+1][1]});
-    return buildLevel(segs, [[300,560],[500,560],[400,860]], cx, theme);
+    const pegs = [ P(cx-28,430), P(cx+40,560), P(cx-34,700), P(cx+30,860) ];
+    return buildLevel(segs, [[300,560],[500,560],[400,860]], cx, theme, pegs);
   }
 
   // わかれ道：まん中の山で左右に分かれる。カゴのある側に落とせば成功、反対側は失敗。
@@ -160,14 +164,16 @@
         {x1:WALL, y1:300, x2:cx-HALF, y2:FLOOR_Y},  // 左の外壁（左に落とせば必ずカゴ）
         {x1:400,  y1:300, x2:cx+HALF, y2:FLOOR_Y},  // 中央の山（カゴの右ふち）
         {x1:400,  y1:300, x2:660,     y2:1080},     // 右へのすべり台 → 床（失敗）
-      ], [[200,520],[210,800],[230,1000]], cx, theme);
+      ], [[200,520],[210,800],[230,1000]], cx, theme,
+      [ P(205,430), P(250,580), P(200,730), P(252,880) ]);  // 勝ち側の中心列ピン
     } else {
       const cx = 570;
       return buildLevel([
         {x1:W-WALL, y1:300, x2:cx+HALF, y2:FLOOR_Y},
         {x1:400,    y1:300, x2:cx-HALF, y2:FLOOR_Y},
         {x1:400,    y1:300, x2:140,     y2:1080},
-      ], [[600,520],[590,800],[570,1000]], cx, theme);
+      ], [[600,520],[590,800],[570,1000]], cx, theme,
+      [ P(595,430), P(550,580), P(600,730), P(548,880) ]);
     }
   }
 
@@ -188,8 +194,8 @@
   // R=大きさ、REST=はずみ具合。検証済みの値（全コースで成功/失敗ゾーンあり）。
   const BALL_TYPES = [
     {key:'normal', name:'ノーマル',     emoji:'😊', R:26, REST:0.20, color:'#ff4757'},
-    {key:'bouncy', name:'ぴょんぴょん', emoji:'🟢', R:22, REST:0.62, color:'#2ecc71'},
-    {key:'heavy',  name:'ずっしり',     emoji:'🔵', R:30, REST:0.08, color:'#90a4ae'},
+    {key:'bouncy', name:'ぴょんぴょん', emoji:'🟢', R:22, REST:0.55, color:'#2ecc71'},
+    {key:'heavy',  name:'ずっしり',     emoji:'🔵', R:30, REST:0.10, color:'#90a4ae'},
   ];
   let ballIdx = 0;
   function ballColor(){ return BALL_TYPES[ballIdx].color; }
@@ -209,7 +215,7 @@
     x = Math.max(WALL+R+4, Math.min(W-WALL-R-4, x));
     for(const s of level().stars) s.got=false;
     starsGot = 0; slowFrames = 0;
-    ball = { x, y: 150, vx:(Math.random()-0.5)*0.4, vy:0, trail:[] };
+    ball = { x, y: 150, vx:(Math.random()-0.5)*0.6, vy:0, trail:[] };
     state = 'roll'; stateT = 0;
     confetti = []; aim = null;
     sndDrop();
@@ -239,6 +245,22 @@
     }
   }
 
+  // ボール vs 丸いピン（パチンコのように弾む）
+  function collidePeg(b, p){
+    let nx = b.x - p.x, ny = b.y - p.y;
+    let dist = Math.hypot(nx, ny); const rr = R + p.r;
+    if(dist < rr && dist > 0){
+      nx/=dist; ny/=dist;
+      b.x += nx*(rr-dist); b.y += ny*(rr-dist);
+      const vn = b.vx*nx + b.vy*ny;
+      if(vn < 0){
+        const speed = Math.abs(vn);
+        b.vx -= (1+REST)*vn*nx; b.vy -= (1+REST)*vn*ny;
+        if(speed > 1.4) sndBounce(speed);
+      }
+    }
+  }
+
   function step(){
     if(state!=='roll' && state!=='win' && state!=='lose') return;
     if(state==='roll'){
@@ -247,6 +269,7 @@
         ball.vy += G/SUB; ball.vx*=AIR; ball.vy*=AIR;
         ball.x += ball.vx/SUB; ball.y += ball.vy/SUB;
         for(const s of L.segs) collideSeg(ball, s);
+        for(const p of L.pegs) collidePeg(ball, p);
         if(ball.x < R+2){ ball.x=R+2; if(ball.vx<0) ball.vx*=-REST; }
         if(ball.x > W-R-2){ ball.x=W-R-2; if(ball.vx>0) ball.vx*=-REST; }
       }
@@ -277,6 +300,7 @@
       // win/lose 中も少し物理を動かして落ち着かせる
       ball.vy += G; ball.x += ball.vx; ball.y += ball.vy;
       for(const s of level().segs) collideSeg(ball, s);
+      for(const p of level().pegs) collidePeg(ball, p);
       ball.vx*=0.9;
       stateT++;
     }
@@ -325,6 +349,17 @@
       ctx.beginPath(); ctx.moveTo(s.x1,s.y1+4); ctx.lineTo(s.x2,s.y2+4); ctx.stroke();
       ctx.strokeStyle=th.ramp; ctx.lineWidth=16;
       ctx.beginPath(); ctx.moveTo(s.x1,s.y1); ctx.lineTo(s.x2,s.y2); ctx.stroke();
+    }
+
+    // ピン（バウンドする丸い杭）
+    for(const p of L.pegs){
+      ctx.fillStyle='rgba(0,0,0,0.25)';
+      ctx.beginPath(); ctx.arc(p.x,p.y+4,p.r,0,7); ctx.fill();
+      const pg=ctx.createRadialGradient(p.x-5,p.y-5,2,p.x,p.y,p.r);
+      pg.addColorStop(0,'#fff'); pg.addColorStop(1,th.ramp);
+      ctx.fillStyle=pg; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.stroke();
     }
 
     // カゴ（光る穴）
@@ -398,27 +433,32 @@
     }
   }
 
-  const BY = H-72, BR = 52;
-  const btnHome  = {x:100, y:BY, r:BR};
-  const btnAgain = {x:300, y:BY, r:BR};
-  const btnBall  = {x:500, y:BY, r:BR};
-  const btnNext  = {x:700, y:BY, r:BR};
+  const BY = H-66, BR = 50;
+  const btnHome  = {x:110, y:BY, r:BR};
+  const btnAgain = {x:303, y:BY, r:BR};
+  const btnBall  = {x:497, y:BY, r:BR};
+  const btnNext  = {x:690, y:BY, r:BR};
   function drawBtn(b,emoji){
     ctx.fillStyle='rgba(255,255,255,0.16)';
     ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
-    ctx.font='42px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(emoji,b.x,b.y+15);
+    ctx.font='42px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(emoji,b.x,b.y+2);
+    ctx.textBaseline='alphabetic';
   }
   // ボール切替ボタン（今のボールを表示）
   function drawBallBtn(b){
     ctx.fillStyle='rgba(255,255,255,0.16)';
     ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
-    const col=ballColor(), rr=BALL_TYPES[ballIdx].R*0.9;
+    const col=ballColor(), rr=Math.min(b.r-12, BALL_TYPES[ballIdx].R*0.9);
     const bg=ctx.createRadialGradient(b.x-6,b.y-6,3,b.x,b.y,rr);
     bg.addColorStop(0,'#fff'); bg.addColorStop(0.25,col); bg.addColorStop(1,shade(col,-40));
     ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(b.x,b.y,rr,0,7); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('🔁', b.x+b.r-12, b.y-b.r+18);
+    // 右下に小さな切替バッジ（枠内に収める）
+    const bx=b.x+b.r*0.5, by=b.y+b.r*0.5;
+    ctx.fillStyle='#ffd23f'; ctx.beginPath(); ctx.arc(bx,by,16,0,7); ctx.fill();
+    ctx.font='18px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🔁', bx, by+1);
+    ctx.textBaseline='alphabetic';
   }
   function hit(b,x,y){ return Math.hypot(x-b.x,y-b.y) < b.r+12; }
 
