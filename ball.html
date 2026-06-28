@@ -29,6 +29,16 @@
   .bigbtn:active { transform:translateY(6px); box-shadow:0 2px 0 #d97706, 0 6px 12px rgba(0,0,0,.4); }
   .emoji-row { font-size:min(11vw,64px); animation:bob 1.6s ease-in-out infinite; }
   @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .pick-label { font-size:min(5vw,24px); opacity:.92; margin-top:4px; }
+  #ballRow { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .ballbtn {
+    width:100px; height:128px; border:none; border-radius:24px; cursor:pointer;
+    background:rgba(255,255,255,0.10); color:#fff; font-family:inherit; font-size:17px; font-weight:bold;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    transition:transform .08s, background .15s, box-shadow .15s;
+  }
+  .ballbtn .dot { border-radius:50%; box-shadow:inset -6px -6px 10px rgba(0,0,0,.3); }
+  .ballbtn.sel { background:rgba(255,255,255,0.22); box-shadow:0 0 0 4px #ffd23f; transform:translateY(-4px); }
 </style>
 </head>
 <body>
@@ -38,6 +48,8 @@
   <div class="emoji-row">🔴 ⬇️ 🏔️ 〰️ 🧺</div>
   <h1>コロコロボール</h1>
   <div class="sub">どこに おとすと カゴに はいるかな？<br>ばしょを かえて ためしてみよう！</div>
+  <div class="pick-label">ボールを えらんでね</div>
+  <div id="ballRow"></div>
   <button class="bigbtn" id="startBtn">▶ あそぶ</button>
 </div>
 
@@ -107,17 +119,19 @@
   }
 
   const THEMES = [
-    {bg1:'#1b2a6b', bg2:'#0d1b3e', ramp:'#4dd0e1', star:'#ffd23f', ball:'#ff4757'},
-    {bg1:'#2d5a27', bg2:'#16331a', ramp:'#aee571', star:'#fff176', ball:'#ff7043'},
-    {bg1:'#6b2d5a', bg2:'#3a1530', ramp:'#f48fb1', star:'#ffe082', ball:'#42a5f5'},
+    {bg1:'#1b2a6b', bg2:'#0d1b3e', ramp:'#4dd0e1', star:'#ffd23f'},
+    {bg1:'#2d5a27', bg2:'#16331a', ramp:'#aee571', star:'#fff176'},
+    {bg1:'#6b2d5a', bg2:'#3a1530', ramp:'#f48fb1', star:'#ffe082'},
+    {bg1:'#7a4a16', bg2:'#3a2208', ramp:'#ffc77d', star:'#fff1b8'},
+    {bg1:'#155e63', bg2:'#08313a', ramp:'#80deea', star:'#b2ff59'},
+    {bg1:'#4a2d6b', bg2:'#1f1133', ramp:'#b388ff', star:'#ffd23f'},
   ];
 
-  // 漏斗（ファネル）レベルを作る。cx=カゴの中心、th=漏斗の半幅。
-  // 漏斗の壁がカゴの口までつながっているので、漏斗の中に落とせば必ずカゴへ。
+  // 漏斗（ファネル）：壁がカゴの口までつながっているので、漏斗の中に落とせば必ずカゴへ。
   // 漏斗の外（端っこ）に落とすと床に落ちて失敗。→「どこに落とすか」で結果が変わる。
   function makeFunnel(cx, th, theme){
-    const wallL = {x1:cx-th, y1:300, x2:cx-HALF, y2:FLOOR_Y};   // 左の漏斗壁
-    const wallR = {x1:cx+th, y1:300, x2:cx+HALF, y2:FLOOR_Y};   // 右の漏斗壁
+    const wallL = {x1:cx-th, y1:300, x2:cx-HALF, y2:FLOOR_Y};
+    const wallR = {x1:cx+th, y1:300, x2:cx+HALF, y2:FLOOR_Y};
     const ledges = [                                            // ジグザグの段差（ピタゴラ風）
       {x1:cx-th+40, y1:520, x2:cx-40, y2:580},
       {x1:cx+th-40, y1:700, x2:cx+40, y2:760},
@@ -127,17 +141,64 @@
     return buildLevel([wallL, wallR, ...ledges], stars, cx, theme);
   }
 
+  // おわん：曲線（多段）の漏斗。まんなかに落とそう。
+  function makeBowl(theme){
+    const cx = 400;
+    const Lp = [[150,300],[180,520],[260,760],[cx-HALF,FLOOR_Y]];
+    const Rp = [[650,300],[620,520],[540,760],[cx+HALF,FLOOR_Y]];
+    const segs = [];
+    for(let i=0;i<Lp.length-1;i++) segs.push({x1:Lp[i][0],y1:Lp[i][1],x2:Lp[i+1][0],y2:Lp[i+1][1]});
+    for(let i=0;i<Rp.length-1;i++) segs.push({x1:Rp[i][0],y1:Rp[i][1],x2:Rp[i+1][0],y2:Rp[i+1][1]});
+    return buildLevel(segs, [[300,560],[500,560],[400,860]], cx, theme);
+  }
+
+  // わかれ道：まん中の山で左右に分かれる。カゴのある側に落とせば成功、反対側は失敗。
+  function makeFork(side, theme){
+    if(side==='left'){
+      const cx = 230;
+      return buildLevel([
+        {x1:WALL, y1:300, x2:cx-HALF, y2:FLOOR_Y},  // 左の外壁（左に落とせば必ずカゴ）
+        {x1:400,  y1:300, x2:cx+HALF, y2:FLOOR_Y},  // 中央の山（カゴの右ふち）
+        {x1:400,  y1:300, x2:660,     y2:1080},     // 右へのすべり台 → 床（失敗）
+      ], [[200,520],[210,800],[230,1000]], cx, theme);
+    } else {
+      const cx = 570;
+      return buildLevel([
+        {x1:W-WALL, y1:300, x2:cx+HALF, y2:FLOOR_Y},
+        {x1:400,    y1:300, x2:cx-HALF, y2:FLOOR_Y},
+        {x1:400,    y1:300, x2:140,     y2:1080},
+      ], [[600,520],[590,800],[570,1000]], cx, theme);
+    }
+  }
+
+  // 6コース：漏斗・おわん・わかれ道をまぜてバリエーション豊かに
   const LEVELS = [
-    makeFunnel(400, 250, THEMES[0]), // レベル1：まんなかに おとそう（両はじは しっぱい）
-    makeFunnel(250, 230, THEMES[1]), // レベル2：ひだりに おとそう（みぎは しっぱい）
-    makeFunnel(560, 230, THEMES[2]), // レベル3：みぎに おとそう（ひだりは しっぱい）
+    makeFunnel(400, 250, THEMES[0]), // 1 まんなかに おとそう
+    makeFork('left',     THEMES[3]), // 2 わかれ道：ひだりが せいかい
+    makeFunnel(560, 230, THEMES[2]), // 3 みぎに おとそう
+    makeBowl(            THEMES[4]), // 4 おわん：まんなかに おとそう
+    makeFork('right',    THEMES[5]), // 5 わかれ道：みぎが せいかい
+    makeFunnel(250, 230, THEMES[1]), // 6 ひだりに おとそう
   ];
   let levelIdx = 0;
   function level(){ return LEVELS[levelIdx]; }
   function goalIn(x){ const c=level().cx; return x>c-HALF && x<c+HALF; }
 
+  // ====== ボールの種類 ======
+  // R=大きさ、REST=はずみ具合。検証済みの値（全コースで成功/失敗ゾーンあり）。
+  const BALL_TYPES = [
+    {key:'normal', name:'ノーマル',     emoji:'😊', R:26, REST:0.20, color:'#ff4757'},
+    {key:'bouncy', name:'ぴょんぴょん', emoji:'🟢', R:22, REST:0.62, color:'#2ecc71'},
+    {key:'heavy',  name:'ずっしり',     emoji:'🔵', R:30, REST:0.08, color:'#90a4ae'},
+  ];
+  let ballIdx = 0;
+  function ballColor(){ return BALL_TYPES[ballIdx].color; }
+
   // ====== ボール物理 ======
-  const R = 26, G = 0.55, REST = 0.30, FRIC = 0.985, AIR = 0.999;
+  let G = 0.55, FRIC = 0.99, AIR = 0.999;
+  let R = 26, REST = 0.20;                       // 選択中のボールに同期
+  function applyBall(){ R = BALL_TYPES[ballIdx].R; REST = BALL_TYPES[ballIdx].REST; }
+  applyBall();
   let ball = null;
   let confetti = [], stars2 = [];
   let state = 'aim';   // 'aim' | 'roll' | 'win' | 'lose'
@@ -254,7 +315,7 @@
     if(aim!==null && state==='aim'){
       ctx.strokeStyle='rgba(255,255,255,0.45)'; ctx.setLineDash([10,12]); ctx.lineWidth=4;
       ctx.beginPath(); ctx.moveTo(aim,120); ctx.lineTo(aim,FLOOR_Y); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle=th.ball; ctx.beginPath(); ctx.arc(aim,120,R,0,7); ctx.fill();
+      ctx.fillStyle=ballColor(); ctx.beginPath(); ctx.arc(aim,120,R,0,7); ctx.fill();
     }
 
     // 坂・壁
@@ -280,15 +341,20 @@
 
     // トレイル＆ボール
     if(ball){
+      const col=ballColor();
       for(let i=0;i<ball.trail.length;i++){ const p=ball.trail[i], a=i/ball.trail.length;
-        ctx.globalAlpha=a*0.4; ctx.fillStyle=th.ball;
+        ctx.globalAlpha=a*0.4; ctx.fillStyle=col;
         ctx.beginPath(); ctx.arc(p.x,p.y,R*a*0.8,0,7); ctx.fill(); }
       ctx.globalAlpha=1;
       ctx.fillStyle='rgba(0,0,0,0.2)';
       ctx.beginPath(); ctx.ellipse(ball.x,ball.y+R-2,R*0.9,R*0.4,0,0,7); ctx.fill();
       const bg=ctx.createRadialGradient(ball.x-8,ball.y-8,4,ball.x,ball.y,R);
-      bg.addColorStop(0,'#fff'); bg.addColorStop(0.25,th.ball); bg.addColorStop(1,shade(th.ball,-40));
+      bg.addColorStop(0,'#fff'); bg.addColorStop(0.25,col); bg.addColorStop(1,shade(col,-40));
       ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(ball.x,ball.y,R,0,7); ctx.fill();
+      if(BALL_TYPES[ballIdx].key==='heavy'){ // ずっしり：金属リング
+        ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=3;
+        ctx.beginPath(); ctx.arc(ball.x,ball.y,R-7,0,7); ctx.stroke();
+      }
       ctx.fillStyle='rgba(0,0,0,0.65)';
       ctx.beginPath(); ctx.arc(ball.x-8,ball.y-4,3.2,0,7); ctx.arc(ball.x+8,ball.y-4,3.2,0,7); ctx.fill();
       ctx.strokeStyle='rgba(0,0,0,0.65)'; ctx.lineWidth=2.4;
@@ -310,7 +376,7 @@
     ctx.textAlign='right'; ctx.fillText('レベル '+(levelIdx+1)+'/'+LEVELS.length, W-20, 38);
     ctx.textAlign='center';
 
-    drawBtn(btnAgain,'🔄'); drawBtn(btnNext,'➡️');
+    drawBtn(btnHome,'🏠'); drawBtn(btnAgain,'🔄'); drawBallBtn(btnBall); drawBtn(btnNext,'➡️');
 
     // 結果メッセージ
     if(state==='win'){
@@ -332,13 +398,27 @@
     }
   }
 
-  const btnAgain = {x:170, y:H-72, r:54};
-  const btnNext  = {x:W-170, y:H-72, r:54};
+  const BY = H-72, BR = 52;
+  const btnHome  = {x:100, y:BY, r:BR};
+  const btnAgain = {x:300, y:BY, r:BR};
+  const btnBall  = {x:500, y:BY, r:BR};
+  const btnNext  = {x:700, y:BY, r:BR};
   function drawBtn(b,emoji){
     ctx.fillStyle='rgba(255,255,255,0.16)';
     ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
-    ctx.font='46px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(emoji,b.x,b.y+16);
+    ctx.font='42px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(emoji,b.x,b.y+15);
+  }
+  // ボール切替ボタン（今のボールを表示）
+  function drawBallBtn(b){
+    ctx.fillStyle='rgba(255,255,255,0.16)';
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
+    const col=ballColor(), rr=BALL_TYPES[ballIdx].R*0.9;
+    const bg=ctx.createRadialGradient(b.x-6,b.y-6,3,b.x,b.y,rr);
+    bg.addColorStop(0,'#fff'); bg.addColorStop(0.25,col); bg.addColorStop(1,shade(col,-40));
+    ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(b.x,b.y,rr,0,7); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('🔁', b.x+b.r-12, b.y-b.r+18);
   }
   function hit(b,x,y){ return Math.hypot(x-b.x,y-b.y) < b.r+12; }
 
@@ -375,7 +455,9 @@
   function onDown(x,y){
     audio();
     const p=toLogical(x,y);
+    if(hit(btnHome,p.x,p.y)){ goTitle(); return; }
     if(hit(btnAgain,p.x,p.y)){ retry(); return; }
+    if(hit(btnBall,p.x,p.y)){ cycleBall(); return; }
     if(hit(btnNext,p.x,p.y)){ nextLevel(); return; }
     if(state==='roll') return;            // ころがり中はさわってもOK（無視）
     if(state==='win'||state==='lose'){ retry(); return; } // 結果画面をタップ→やり直し
@@ -394,10 +476,33 @@
   function retry(){ ball=null; confetti=[]; stars2=[]; state='aim'; aim=null;
     for(const s of level().stars) s.got=false; starsGot=0; }
   function nextLevel(){ levelIdx=(levelIdx+1)%LEVELS.length; retry(); tone(660,0.12,'square',0.15); }
+  function cycleBall(){ if(state==='roll') return;
+    ballIdx=(ballIdx+1)%BALL_TYPES.length; applyBall();
+    tone(520+ballIdx*120,0.12,'triangle',0.18); }
+  function selectBall(i){ ballIdx=i; applyBall(); updatePicker(); }
+  function goTitle(){ retry(); updatePicker(); document.getElementById('start').style.display='flex'; }
 
+  // ====== スタート画面：ボール選び ======
+  const ballRow = document.getElementById('ballRow');
+  function updatePicker(){
+    [...ballRow.children].forEach((el,i)=> el.classList.toggle('sel', i===ballIdx));
+  }
+  BALL_TYPES.forEach((bt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ballbtn';
+    const d=Math.round(bt.R*1.7);
+    btn.innerHTML=`<span class="dot" style="width:${d}px;height:${d}px;background:radial-gradient(circle at 35% 30%,#fff, ${bt.color} 45%, ${shade(bt.color,-40)})"></span><span>${bt.name}</span>`;
+    btn.addEventListener('click', ()=>{ audio(); selectBall(i); tone(660,0.1,'triangle',0.15); });
+    ballRow.appendChild(btn);
+  });
+  updatePicker();
+
+  let started=false;
   document.getElementById('startBtn').addEventListener('click', ()=>{
     audio(); document.getElementById('start').style.display='none';
-    tone(880,0.15,'triangle',0.2); resize(); loop();
+    tone(880,0.15,'triangle',0.2);
+    resize();
+    if(!started){ started=true; loop(); }
   });
   resize();
 })();
