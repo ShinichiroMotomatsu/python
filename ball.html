@@ -85,6 +85,9 @@
     {bg1:'#155e63',bg2:'#06222a',ramp:'#80deea',star:'#b2ff59',gear:'#4dd0e1'},
     {bg1:'#7a4a16',bg2:'#241405',ramp:'#ffc77d',star:'#fff1b8',gear:'#ffa726'},
     {bg1:'#4a2d6b',bg2:'#160b26',ramp:'#b388ff',star:'#ffd23f',gear:'#9575cd'},
+    {bg1:'#5a1f1f',bg2:'#1c0808',ramp:'#ff8a80',star:'#ffd23f',gear:'#ff7043'}, // むずかしい用
+    {bg1:'#143a4a',bg2:'#06181f',ramp:'#26c6da',star:'#b2ebf2',gear:'#00bcd4'},
+    {bg1:'#3a2a0a',bg2:'#140d02',ramp:'#ffca28',star:'#fff59d',gear:'#ffb300'},
   ];
   const S=(x1,y1,x2,y2)=>({x1,y1,x2,y2});
   const P=(x,y,r)=>({x,y,r:r||16});
@@ -146,6 +149,32 @@
       gimmicks:[ {type:'windmill', x:600, y:560, arm:58, n:4, omega:-0.06, phase:0} ],
       stars:[[600,1120],[600,690]] },
 
+    // ===== ここから むずかしい（6さい〜）=====
+
+    // 7) ふりこ：揺れる振り子をよけて、せまいカゴへ（タイミング）
+    { name:'ふりこ ★', hint:'まんなか＋タイミング', cx:400, theme:TH[6],
+      statics:[ ...funnel(400,185,560) ],
+      pegs:[],
+      gimmicks:[ {type:'pendulum', x:400, y:210, len:300, amp:0.95, w:0.033, t:0} ],
+      stars:[[400,1120],[400,300]] },
+
+    // 8) うごくゆか：動く床がカゴの口を ふさいだり あけたり
+    { name:'うごくゆか ★', hint:'あいてる ときに！', cx:400, theme:TH[7],
+      statics:[ ...funnel(400,175,560) ],
+      pegs:[],
+      gimmicks:[ {type:'mover', x:400, y:470, len:135, amp:150, w:0.028, t:0} ],
+      stars:[[400,1120],[230,650]] },
+
+    // 9) だいパニック：風車＋振り子の大あばれを くぐりぬけろ
+    { name:'だいパニック ★', hint:'よく みて！', cx:400, theme:TH[8],
+      statics:[ ...funnel(400,250,520) ],
+      pegs:[ P(250,430,14), P(550,430,14) ],
+      gimmicks:[
+        {type:'windmill', x:400, y:600, arm:70, n:4, omega:0.06, phase:0},
+        {type:'pendulum', x:400, y:180, len:250, amp:0.7, w:0.045, t:0},
+      ],
+      stars:[[400,1120],[250,360]] },
+
   ]; }
 
   let LEVELS=makeCourses();
@@ -159,6 +188,8 @@
     for(const g of world.gimmicks){
       if(g.type==='windmill'||g.type==='spinner'){ g.phase+=g.omega; }
       else if(g.type==='conveyor'){ g.scroll=(g.scroll||0)+g.speed; }
+      else if(g.type==='pendulum'){ g.t=(g.t||0)+1; g.omega=g.amp*g.w*Math.cos(g.t*g.w); g.angle=g.amp*Math.sin(g.t*g.w); }
+      else if(g.type==='mover'){ g.t=(g.t||0)+1; g.cxNow=g.x+g.amp*Math.sin(g.t*g.w); g.svx=g.amp*g.w*Math.cos(g.t*g.w); }
       else if(g.type==='seesaw'){
         let target=0;
         if(ball){
@@ -186,6 +217,12 @@
       } else if(g.type==='spinner'){
         const a=g.phase;
         segs.push({x1:g.x-Math.cos(a)*g.len,y1:g.y-Math.sin(a)*g.len,x2:g.x+Math.cos(a)*g.len,y2:g.y+Math.sin(a)*g.len,svx:0,svy:0,grip:0.25,rest:0.4,_rot:g});
+      } else if(g.type==='pendulum'){
+        const an=g.angle||0, bx=g.x+Math.sin(an)*g.len, by=g.y+Math.cos(an)*g.len;
+        segs.push({x1:g.x,y1:g.y,x2:bx,y2:by,svx:0,svy:0,grip:0.2,rest:0.45,_rot:g});
+      } else if(g.type==='mover'){
+        const c=g.cxNow!=null?g.cxNow:g.x;
+        segs.push({x1:c-g.len,y1:g.y,x2:c+g.len,y2:g.y,svx:g.svx||0,svy:0,grip:0.3,rest:0.2});
       } else if(g.type==='seesaw'){
         const c=Math.cos(g.angle),s=Math.sin(g.angle);
         segs.push({x1:g.x-c*g.len,y1:g.y-s*g.len,x2:g.x+c*g.len,y2:g.y+s*g.len,svx:0,svy:0,grip:0.06,rest:0.2,_see:g});
@@ -316,6 +353,35 @@
       ctx.beginPath(); ctx.moveTo(g.x-Math.cos(a)*g.len,g.y-Math.sin(a)*g.len); ctx.lineTo(g.x+Math.cos(a)*g.len,g.y+Math.sin(a)*g.len); ctx.stroke();
       ctx.fillStyle='#ff8a65'; for(const sg of [1,-1]){ ctx.beginPath(); ctx.arc(g.x+sg*Math.cos(a)*g.len,g.y+sg*Math.sin(a)*g.len,10,0,7); ctx.fill(); }
       ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(g.x,g.y,11,0,7); ctx.fill();
+    } else if(g.type==='pendulum'){
+      const an=g.angle||0, bx=g.x+Math.sin(an)*g.len, by=g.y+Math.cos(an)*g.len;
+      // 可動範囲のうっすらした弧
+      ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(g.x,g.y,g.len,Math.PI/2-g.amp,Math.PI/2+g.amp); ctx.stroke();
+      // 棒
+      ctx.strokeStyle='rgba(0,0,0,0.28)'; ctx.lineWidth=10; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(g.x,g.y+3); ctx.lineTo(bx,by+3); ctx.stroke();
+      ctx.strokeStyle=th.gear; ctx.lineWidth=7; ctx.beginPath(); ctx.moveTo(g.x,g.y); ctx.lineTo(bx,by); ctx.stroke();
+      // おもり
+      const bg=ctx.createRadialGradient(bx-7,by-7,3,bx,by,26); bg.addColorStop(0,'#fff'); bg.addColorStop(0.3,'#ff8a65'); bg.addColorStop(1,shade('#ff8a65',-50));
+      ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.arc(bx,by+4,26,0,7); ctx.fill();
+      ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(bx,by,26,0,7); ctx.fill();
+      // 支点
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(g.x,g.y,9,0,7); ctx.fill();
+      ctx.fillStyle=shade(th.gear,-40); ctx.beginPath(); ctx.arc(g.x,g.y,5,0,7); ctx.fill();
+    } else if(g.type==='mover'){
+      const c=g.cxNow!=null?g.cxNow:g.x;
+      // レール（可動範囲）
+      ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=4; ctx.setLineDash([6,10]);
+      ctx.beginPath(); ctx.moveTo(g.x-g.amp-g.len,g.y); ctx.lineTo(g.x+g.amp+g.len,g.y); ctx.stroke(); ctx.setLineDash([]);
+      // 板
+      ctx.fillStyle='rgba(0,0,0,0.28)'; rr(c-g.len,g.y-9+4,g.len*2,18,9); ctx.fill();
+      const grd=ctx.createLinearGradient(0,g.y-9,0,g.y+9); grd.addColorStop(0,shade(th.gear,30)); grd.addColorStop(1,shade(th.gear,-30));
+      ctx.fillStyle=grd; rr(c-g.len,g.y-9,g.len*2,18,9); ctx.fill();
+      // 動く方向の矢印
+      const dir=Math.sign(g.svx||1)||1; ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.lineCap='round';
+      for(const ox of [-g.len*0.45,0,g.len*0.45]){ const px=c+ox; ctx.beginPath();
+        ctx.moveTo(px-7*dir,g.y-6); ctx.lineTo(px+7*dir,g.y); ctx.lineTo(px-7*dir,g.y+6); ctx.stroke(); }
     } else if(g.type==='seesaw'){
       const c=Math.cos(g.angle), s=Math.sin(g.angle);
       const lx=g.x-c*g.len,ly=g.y-s*g.len, rx2=g.x+c*g.len,ry2=g.y+s*g.len;
