@@ -77,9 +77,14 @@
   .cmd.pickup  { background:#d6f5c6; }
   .cmd.chop    { background:#f3cda0; }
   .cmd.loop    { background:#e3d6ff; }
+  .cmd.cond    { background:#bfe9e0; }
 
   /* ---------- Program list (compact wrap chips) ---------- */
-  #program { display:flex; flex-wrap:wrap; gap:7px; align-items:flex-start; min-height:60px; }
+  #program { display:flex; flex-direction:column; gap:7px; min-height:60px; }
+  .proglist { display:flex; flex-wrap:wrap; gap:7px; align-items:flex-start; width:100%; }
+  .backmain { width:100%; background:#fff2c2; border:2px dashed #e0b000; border-radius:10px;
+              padding:7px; font-family:inherit; font-weight:bold; color:#8a6500; cursor:pointer; font-size:12px; }
+  .backmain:active { transform:translateY(1px); }
   .step { position:relative; width:54px; min-height:54px; border-radius:12px; padding:3px;
           display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
           box-shadow:0 2px 0 rgba(0,0,0,.12); }
@@ -93,19 +98,27 @@
   .step.forward{ background:#bfe3ff } .step.left{ background:#ffe1b3 } .step.right{ background:#ffd1e6 }
   .step.pickup{ background:#d6f5c6 } .step.chop{ background:#f3cda0 }
 
-  .step.loopblock { flex-basis:100%; width:100%; flex-direction:column; align-items:stretch;
-                    background:#efe7ff; box-shadow:inset 0 0 0 2px #cdbcf5; padding:7px; min-height:0; }
+  .step.loopblock, .step.condblock { flex-basis:100%; width:100%; flex-direction:column;
+                    align-items:stretch; padding:7px; min-height:0; }
+  .step.loopblock { background:#efe7ff; box-shadow:inset 0 0 0 2px #cdbcf5; }
+  .step.condblock { background:#dff5ef; box-shadow:inset 0 0 0 2px #9fd9cb; }
   .step.loopblock.open { box-shadow:inset 0 0 0 2px #cdbcf5, 0 0 0 3px #ff9f0a; }
-  .loophead { display:flex; align-items:center; gap:6px; }
-  .loophead .ico { font-size:20px; }
-  .loophead .ttl { font-size:13px; font-weight:bold; color:#5a3aa0; }
+  .step.condblock.open { box-shadow:inset 0 0 0 2px #9fd9cb, 0 0 0 3px #ff9f0a; }
+  .blockhead { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .blockhead .ico { font-size:20px; }
+  .blockhead .ttl { font-size:13px; font-weight:bold; }
+  .step.loopblock .ttl { color:#5a3aa0; } .step.condblock .ttl { color:#23806e; }
   .countbtn { background:#9b7fe0; color:#fff; border:none; border-radius:8px; padding:3px 9px;
               font-weight:bold; cursor:pointer; font-size:13px; }
+  .condbtn { background:#2bb1a0; color:#fff; border:none; border-radius:8px; padding:3px 9px;
+             font-weight:bold; cursor:pointer; font-size:12px; }
   .toggle { background:#ff9f0a; color:#fff; border:none; border-radius:8px; padding:3px 9px;
             font-weight:bold; cursor:pointer; font-size:11px; }
-  .step.loopblock > .del { position:static; width:22px; height:22px; margin-left:auto; box-shadow:none; }
-  .loopbody { display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; padding-left:8px;
-              border-left:3px dashed #b9a6e8; min-height:46px; align-items:flex-start; }
+  .step.loopblock > .blockhead > .del, .step.condblock > .blockhead > .del {
+            position:static; width:22px; height:22px; margin-left:auto; box-shadow:none; }
+  .blockbody { display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; padding-left:8px;
+               border-left:3px dashed #b9a6e8; min-height:46px; align-items:flex-start; }
+  .step.condblock .blockbody { border-left-color:#7ccdbe; }
   .loopempty { font-size:11px; color:#9a86c8; align-self:center; }
   .emptyprog { color:#9aa; font-size:13px; text-align:center; padding:16px; width:100%; }
 
@@ -276,6 +289,59 @@ const STAGES = [
     robot:{x:0,y:0,dir:1}, goal:{x:5,y:0}, walls:[[2,0],[4,0]], items:[[1,0],[3,0]],
     allowed:["forward","pickup","chop","loop"], par:6,
     hint:"🔋と 木が こうごに！ 🔁 で みじかく できるかな？" },
+
+  /* ===== ここから ついか の 10ステージ ===== */
+  { name:"ながいみち", cols:9, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:8,y:0}, walls:[], items:[],
+    allowed:["forward","loop"], par:2,
+    hint:"とても ながい！ 🔁 の かいすうを ふやそう（×8）" },
+
+  { name:"もしも にゅうもん", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0}, walls:[[2,0]], items:[], power:1,
+    allowed:["forward","chop","cond","loop"], par:4,
+    hint:"❓もし「まえが き」なら 🪓。🔁の なかに いれてみよう" },
+
+  { name:"でんちと き", cols:7, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:6,y:0}, walls:[[2,0],[4,0]], items:[[1,0],[3,0]],
+    allowed:["forward","pickup","chop","cond","loop"], par:6,
+    hint:"🔋なら ひろう・木なら たおす。❓を つかいわけよう" },
+
+  { name:"でこぼこの もり", cols:9, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:8,y:0}, walls:[[2,0],[5,0],[7,0]], items:[[1,0],[4,0],[6,0]],
+    allowed:["forward","pickup","chop","cond","loop"], par:6,
+    hint:"おなじ プログラムで ぜんぶ クリアできるよ！" },
+
+  { name:"ぐるりみち", cols:5, rows:5,
+    robot:{x:0,y:0,dir:1}, goal:{x:0,y:2},
+    walls:[[0,1],[1,1],[2,1],[3,1],[1,2],[2,2],[3,2],[1,3],[2,3],[3,3]], items:[],
+    allowed:["forward","left","right","loop","cond"], par:4,
+    hint:"❓もし「まえが かべ」なら みぎ。かべぞいに ぐるり！" },
+
+  { name:"ジグザグ", cols:6, rows:6,
+    robot:{x:0,y:5,dir:0}, goal:{x:5,y:0}, walls:[], items:[],
+    allowed:["forward","left","right","loop"], par:5,
+    hint:"うえ・みぎ。🔁を 2つ つかおう" },
+
+  { name:"もりの ひろば", cols:4, rows:4,
+    robot:{x:0,y:0,dir:1}, goal:{x:0,y:3}, walls:[], items:[[3,0],[3,3]],
+    allowed:["forward","left","right","pickup","loop"], par:13,
+    hint:"🔋を 2つ ひろって ⭐へ" },
+
+  { name:"おりかえし もり", cols:11, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:10,y:0}, walls:[[2,0],[4,0],[7,0],[9,0]], items:[[1,0],[3,0],[6,0],[8,0]],
+    allowed:["forward","pickup","chop","cond","loop"], par:6,
+    hint:"ながい もり！ ❓と 🔁で みじかい プログラムに" },
+
+  { name:"おおきな おつかい", cols:5, rows:5,
+    robot:{x:0,y:0,dir:2}, goal:{x:4,y:0}, walls:[[2,1],[2,2],[2,3]], items:[[0,4],[4,4]],
+    allowed:["forward","left","right","pickup","loop"], par:16,
+    hint:"🔋を 2つ あつめて ⭐へ。とおまわりに ちゅうい" },
+
+  { name:"さいごの ちょうせん", cols:5, rows:5,
+    robot:{x:0,y:0,dir:1}, goal:{x:0,y:2},
+    walls:[[0,1],[1,1],[2,1],[3,1],[1,2],[2,2],[3,2],[1,3],[2,3],[3,3],[4,2]], items:[[2,0]],
+    allowed:["forward","left","right","pickup","chop","loop","cond"], par:8,
+    hint:"ぜんぶ つかう！ もし(木→🪓 かべ→みぎ 🔋→ひろう) すすむ" },
 ];
 
 const CMD = {
@@ -285,7 +351,17 @@ const CMD = {
   pickup: { ico:"✋", label:"ひろう",  cls:"pickup" },
   chop:   { ico:"🪓", label:"たおす",  cls:"chop" },
   loop:   { ico:"🔁", label:"くり…",  cls:"loop" },
+  cond:   { ico:"❓", label:"もし",    cls:"cond" },
 };
+// 「もし …なら」の じょうけん（タップで きりかえ）
+const CONDS = {
+  blocked:{ ico:"🧱", label:"まえが かべ" },
+  tree:   { ico:"🌳", label:"まえが き" },
+  battery:{ ico:"🔋", label:"🔋の うえ" },
+  goal:   { ico:"⭐", label:"⭐の うえ" },
+};
+const CONDORDER = ["blocked","tree","battery","goal"];
+const COUNTS = [2,3,4,5,6,8,10,12,16,20];   // くりかえし かいすう の せんたくし
 const DX=[0,1,0,-1], DY=[-1,0,1,0];
 
 /* ===================== 状態 ===================== */
@@ -400,7 +476,7 @@ function placeRobot(animate){
   if(!animate){ void r.offsetWidth; r.style.transition=""; $("robotInner").style.transition=""; }
 }
 function resetRobot(){
-  robot = { x:stage.robot.x, y:stage.robot.y, dir:stage.robot.dir, items:new Set(), power:0 };
+  robot = { x:stage.robot.x, y:stage.robot.y, dir:stage.robot.dir, items:new Set(), power:stage.power||0 };
   chopped = new Set();
   $("robot").classList.remove("bump","cheer");
   renderTiles(); renderItems(); placeRobot(false); updateHUD();
@@ -421,16 +497,18 @@ function buildPalette(){
   stage.allowed.forEach(op=>{
     const b=document.createElement("button");
     b.className="cmd "+CMD[op].cls;
-    b.innerHTML=`<span class="ico">${CMD[op].ico}</span>${op==="loop"?"くりかえし":CMD[op].label}`;
+    const lbl = op==="loop"?"くりかえし" : op==="cond"?"もし〜なら" : CMD[op].label;
+    b.innerHTML=`<span class="ico">${CMD[op].ico}</span>${lbl}`;
     b.onclick=()=>addCommand(op);
     p.appendChild(b);
   });
 }
 function addCommand(op){
   if(running) return;
-  if(op==="loop"){
-    const blk={loop:true,count:2,body:[]};
-    program.push(blk); openLoop = blk.body;
+  if(op==="loop" || op==="cond"){
+    const blk = op==="loop" ? {loop:true,count:2,body:[]} : {isIf:true,cond:"blocked",body:[]};
+    (openLoop || program).push(blk);   // ひらいている ブロックの なかにも いれられる（ネスト）
+    openLoop = blk.body;               // ついかさきを この ブロックの なかへ
   } else {
     (openLoop || program).push({op});
   }
@@ -440,39 +518,70 @@ function addCommand(op){
 /* ===================== プログラム表示（コンパクト・横ならび） ===================== */
 function renderProgram(){
   const wrap=$("program"); wrap.innerHTML="";
-  if(program.length===0){
-    wrap.innerHTML='<div class="emptyprog">めいれいを タップして<br>ここに ならべよう</div>'; return;
+  if(openLoop!==null){
+    const back=document.createElement("button"); back.className="backmain";
+    back.textContent="⬆ メインに もどす（ブロックの そとに いれる）";
+    back.onclick=()=>{ if(running)return; openLoop=null; renderProgram(); };
+    wrap.appendChild(back);
   }
+  if(program.length===0){
+    const e=document.createElement("div"); e.className="emptyprog";
+    e.innerHTML="めいれいを タップして<br>ここに ならべよう"; wrap.appendChild(e); return;
+  }
+  const list=document.createElement("div"); list.className="proglist";
+  renderList(list, program, true);
+  wrap.appendChild(list);
+}
+// list（配列）を container に さいきてきに びょうが
+function renderList(container, arr, topLevel){
   let n=0;
-  program.forEach((item,idx)=>{
-    if(item.loop){
-      const blk=document.createElement("div");
-      blk.className="step loopblock"+(openLoop===item.body?" open":"");
-      const head=document.createElement("div"); head.className="loophead";
-      head.innerHTML=`<span class="ico">🔁</span><span class="ttl">くりかえし</span>`;
-      const cnt=document.createElement("button"); cnt.className="countbtn"; cnt.textContent="×"+item.count;
-      cnt.onclick=()=>{ if(running)return; item.count=item.count>=5?2:item.count+1; renderProgram(); };
-      head.appendChild(cnt);
-      const tog=document.createElement("button"); tog.className="toggle";
-      tog.textContent = openLoop===item.body ? "とじる" : "ここに いれる";
-      tog.onclick=()=>{ if(running)return; openLoop = openLoop===item.body?null:item.body; renderProgram(); };
-      head.appendChild(tog);
-      const del=document.createElement("button"); del.className="del"; del.textContent="×";
-      del.onclick=()=>{ if(running)return; if(openLoop===item.body)openLoop=null;
-                        program.splice(idx,1); renderProgram(); };
-      head.appendChild(del);
-      blk.appendChild(head);
-      const body=document.createElement("div"); body.className="loopbody";
-      if(item.body.length===0) body.innerHTML='<span class="loopempty">↑ めいれいを いれてね</span>';
-      else item.body.forEach((sub,si)=> body.appendChild(
-        makeStep(sub,null,()=>{ if(running)return; item.body.splice(si,1); renderProgram(); })));
-      blk.appendChild(body);
-      wrap.appendChild(blk);
+  arr.forEach((item,idx)=>{
+    if(item.loop || item.isIf){
+      container.appendChild(makeBlock(item, arr, idx));
     } else {
       n++;
-      wrap.appendChild(makeStep(item,n,()=>{ if(running)return; program.splice(idx,1); renderProgram(); }));
+      container.appendChild(makeStep(item, topLevel?n:null,
+        ()=>{ if(running)return; arr.splice(idx,1); renderProgram(); }));
     }
   });
+}
+function makeBlock(item, parentArr, idx){
+  const isIf=!!item.isIf;
+  const blk=document.createElement("div");
+  blk.className="step "+(isIf?"condblock":"loopblock")+(openLoop===item.body?" open":"");
+  const head=document.createElement("div"); head.className="blockhead";
+  const ico=document.createElement("span"); ico.className="ico"; ico.textContent=isIf?"❓":"🔁";
+  const ttl=document.createElement("span"); ttl.className="ttl"; ttl.textContent=isIf?"もし":"くりかえし";
+  head.appendChild(ico); head.appendChild(ttl);
+  if(isIf){
+    const cb=document.createElement("button"); cb.className="condbtn";
+    const c=CONDS[item.cond]; cb.textContent=c.ico+" "+c.label;
+    cb.onclick=()=>{ if(running)return;
+      item.cond=CONDORDER[(CONDORDER.indexOf(item.cond)+1)%CONDORDER.length]; renderProgram(); };
+    head.appendChild(cb);
+    const nara=document.createElement("span"); nara.className="ttl"; nara.textContent="なら";
+    head.appendChild(nara);
+  } else {
+    const cnt=document.createElement("button"); cnt.className="countbtn"; cnt.textContent="×"+item.count;
+    cnt.onclick=()=>{ if(running)return;
+      item.count=COUNTS[(COUNTS.indexOf(item.count)+1)%COUNTS.length]||2; renderProgram(); };
+    head.appendChild(cnt);
+  }
+  const tog=document.createElement("button"); tog.className="toggle";
+  tog.textContent = openLoop===item.body ? "✓ いれてる" : "ここに いれる";
+  tog.onclick=()=>{ if(running)return; openLoop = openLoop===item.body?null:item.body; renderProgram(); };
+  head.appendChild(tog);
+  const del=document.createElement("button"); del.className="del"; del.textContent="×";
+  del.onclick=()=>{ if(running)return; openLoop=null; parentArr.splice(idx,1); renderProgram(); };
+  head.appendChild(del);
+  blk.appendChild(head);
+  const body=document.createElement("div"); body.className="blockbody";
+  if(item.body.length===0){
+    const ph=document.createElement("span"); ph.className="loopempty";
+    ph.textContent="↑「ここに いれる」で めいれいを いれてね"; body.appendChild(ph);
+  } else renderList(body, item.body, false);
+  blk.appendChild(body);
+  return blk;
 }
 function makeStep(item,num,onDel){
   const c=CMD[item.op];
@@ -485,19 +594,29 @@ function makeStep(item,num,onDel){
   return s;
 }
 
-/* ===================== 展開・カウント ===================== */
-function writtenCount(){
-  let n=0;
-  for(const item of program) n += item.loop ? (1+item.body.length) : 1;
-  return n;
-}
-function flatten(){
-  const ops=[];
-  for(const item of program){
-    if(item.loop){ for(let r=0;r<item.count;r++) for(const sub of item.body) ops.push(sub); }
-    else ops.push(item);
+/* ===================== カウント・インタプリタ ===================== */
+function countList(arr){ let n=0; for(const it of arr) n += (it.loop||it.isIf)?(1+countList(it.body)):1; return n; }
+function writtenCount(){ return countList(program); }
+
+// じょうけん の はんてい（じっこうじの ロボットの じょうたいで）
+function evalCond(cond){
+  const nx=robot.x+DX[robot.dir], ny=robot.y+DY[robot.dir];
+  switch(cond){
+    case "blocked": return !inBounds(nx,ny) || isWall(nx,ny);
+    case "tree":    return inBounds(nx,ny) && isWall(nx,ny);
+    case "battery": return stage.items.some(([x,y])=>x===robot.x&&y===robot.y) && !robot.items.has(robot.x+","+robot.y);
+    case "goal":    return robot.x===stage.goal.x && robot.y===stage.goal.y;
   }
-  return ops;
+  return false;
+}
+// プログラム木を じっこうじに たどり、げんしめいれいを 1つずつ yield する。
+// じょうけんは この時点の ロボット状態で ひょうかされる（おそい評価）。
+function* runProgram(arr){
+  for(const item of arr){
+    if(item.loop){ for(let r=0;r<item.count;r++) yield* runProgram(item.body); }
+    else if(item.isIf){ if(evalCond(item.cond)) yield* runProgram(item.body); }
+    else yield item;
+  }
 }
 
 /* ===================== 実行 ===================== */
@@ -525,14 +644,16 @@ function execOne(item){
     }
   } else if(op==="chop"){
     const nx=robot.x+DX[robot.dir], ny=robot.y+DY[robot.dir], key=nx+","+ny;
-    if(inBounds(nx,ny)&&isWall(nx,ny)&&robot.power>0){
-      // 木が たおれる演出
-      const tree=[...$("board").querySelectorAll(".cell.wall")]
-        .find(e=>e.style.left===nx*(cellSize+gap)+"px"&&e.style.top===ny*(cellSize+gap)+"px");
-      if(tree) tree.classList.add("falling");
-      chopped.add(key); robot.power--;
-      setTimeout(renderTiles,330);
-    } else { flash("🪓 ここでは たおせない…"); }
+    if(!(inBounds(nx,ny)&&isWall(nx,ny)) || robot.power<=0){
+      // 木が ない／🔋が ない ところで たおすと しっぱい（条件分岐を つかう いみが できる）
+      bump(); flash(robot.power<=0 ? "🔋が ないと 木は たおせない…" : "🪓 そこに 木は ないよ");
+      return false;
+    }
+    const tree=[...$("board").querySelectorAll(".cell.wall")]
+      .find(e=>e.style.left===nx*(cellSize+gap)+"px"&&e.style.top===ny*(cellSize+gap)+"px");
+    if(tree) tree.classList.add("falling");
+    chopped.add(key); robot.power--;
+    setTimeout(renderTiles,330);
   }
   placeRobot(true); renderItems(); updateHUD();
   return true;
@@ -545,36 +666,36 @@ function setControls(dis){
 
 function runAll(){
   if(running) return;
-  const ops=flatten();
-  if(ops.length===0){ flash("めいれいを ならべてね！"); return; }
+  if(program.length===0){ flash("めいれいを ならべてね！"); return; }
   resetRobot(); running=true; setControls(true);
-  let i=0;
+  const gen=runProgram(program); let steps=0;
   const tick=()=>{
-    if(i>=ops.length){ finish(); return; }
-    const item=ops[i]; highlight(item);
+    let nx; try{ nx=gen.next(); }catch(e){ nx={done:true}; }
+    if(nx.done || ++steps>3000){ finish(); return; }
+    const item=nx.value; highlight(item);
     const ok=execOne(item);
     if(onGoal()&&allItems()){ setTimeout(finish,360); return; }
     if(!ok){ setTimeout(()=>{ running=false; setControls(false); highlight(null);
                               flash("おっと！ 木か かべに ぶつかった"); },420); return; }
-    i++; setTimeout(tick,370);
+    setTimeout(tick,370);
   };
   setTimeout(tick,200);
 }
 
 function stepOnce(){
   if(stepQueue===null){
-    stepQueue={ops:flatten(), i:0};
-    if(stepQueue.ops.length===0){ stepQueue=null; flash("めいれいを ならべてね！"); return; }
+    if(program.length===0){ flash("めいれいを ならべてね！"); return; }
     resetRobot(); running=true; setControls(true);
+    stepQueue={ gen:runProgram(program), steps:0 };
   }
   const q=stepQueue;
-  if(q.i>=q.ops.length){ stepQueue=null; finish(); return; }
-  const item=q.ops[q.i]; highlight(item);
+  let nx; try{ nx=q.gen.next(); }catch(e){ nx={done:true}; }
+  if(nx.done || ++q.steps>3000){ stepQueue=null; finish(); return; }
+  const item=nx.value; highlight(item);
   const ok=execOne(item);
   if(onGoal()&&allItems()){ stepQueue=null; setTimeout(finish,360); return; }
   if(!ok){ stepQueue=null; running=false; setControls(false);
            setTimeout(()=>{ highlight(null); flash("おっと！ 木か かべに ぶつかった"); },420); return; }
-  q.i++;
 }
 
 function finish(){
