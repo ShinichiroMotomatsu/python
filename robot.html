@@ -78,6 +78,9 @@
   .cmd.chop    { background:#f3cda0; }
   .cmd.loop    { background:#e3d6ff; }
   .cmd.cond    { background:#bfe9e0; }
+  .cmd.take    { background:#ffe0a8; }
+  .cmd.place   { background:#cfe0b0; }
+  .cmd.jump    { background:#c0e8ff; }
 
   /* ---------- Program list (compact wrap chips) ---------- */
   #program { display:flex; flex-direction:column; gap:7px; min-height:60px; }
@@ -97,6 +100,7 @@
   .step.running { outline:3px solid #ff9f0a; outline-offset:2px; }
   .step.forward{ background:#bfe3ff } .step.left{ background:#ffe1b3 } .step.right{ background:#ffd1e6 }
   .step.pickup{ background:#d6f5c6 } .step.chop{ background:#f3cda0 }
+  .step.take{ background:#ffe0a8 } .step.place{ background:#cfe0b0 } .step.jump{ background:#c0e8ff }
 
   .step.loopblock, .step.condblock { flex-basis:100%; width:100%; flex-direction:column;
                     align-items:stretch; padding:7px; min-height:0; }
@@ -159,14 +163,51 @@
   .stagecard .st { font-size:16px; margin-top:4px; }
   .stagecard.locked { opacity:.45; }
   #selectScreen { display:flex; flex-direction:column; align-items:center; width:100%; }
+
+  /* ---------- Mode select ---------- */
+  #modeScreen { display:flex; flex-direction:column; align-items:center; width:100%; }
+  .modegrid { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+  .modecard { background:#fff; border-radius:22px; box-shadow:0 6px 0 #b9c7d6; cursor:pointer;
+              width:240px; max-width:80vw; padding:22px 18px; text-align:center; transition:transform .08s; }
+  .modecard:active { transform:translateY(3px); box-shadow:0 3px 0 #b9c7d6; }
+  .modecard.puzzle  { background:linear-gradient(#eaf3ff,#fff); }
+  .modecard.mission { background:linear-gradient(#fff0e0,#fff); }
+  .modecard .ic { font-size:54px; } .modecard .mt { font-size:20px; font-weight:bold; color:#1b4a6b; margin:6px 0; }
+  .modecard .ms { font-size:12px; color:#567; line-height:1.6; }
+
+  /* ---------- New tiles & carry items ---------- */
+  .cell.hole { background:#2b3a4a; box-shadow:inset 0 0 0 2px #1b2530, inset 0 4px 8px #0008; }
+  .cell.door { background:linear-gradient(#c08a4a,#a06a2c); box-shadow:inset 0 0 0 2px #7a4e1c; }
+  .cell.target { background:#fff0f6; box-shadow:inset 0 0 0 3px #ffc0dd; }
+  #robotHold { position:absolute; top:-2px; left:50%; transform:translateX(-50%); z-index:7;
+               font-size:18px; line-height:1; filter:drop-shadow(0 1px 1px #0006); }
+  .item.carry { z-index:4; }
+  .item.placed { z-index:4; }
 </style>
 </head>
 <body>
-  <h1>🤖 ロボットおつかいパズル</h1>
+  <h1 id="title">🤖 ロボットおつかいパズル</h1>
+
+  <!-- ===== Mode Select (title) Screen ===== -->
+  <div id="modeScreen">
+    <div class="hint">あそびかたを えらんでね</div>
+    <div class="modegrid">
+      <div class="modecard puzzle" id="modePuzzle">
+        <div class="ic">🧩</div><div class="mt">プログラムパズル</div>
+        <div class="ms">めいれいを ならべて ⭐へ。<br>くりかえし・もし を まなぼう</div>
+      </div>
+      <div class="modecard mission" id="modeMission">
+        <div class="ic">📦</div><div class="mt">おつかい大作戦</div>
+        <div class="ms">とる・おく・ジャンプ・かぎ。<br>おつかいミッションに ちょうせん！</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== Stage Select Screen ===== -->
-  <div id="selectScreen">
+  <div id="selectScreen" style="display:none;">
     <div class="topbar">
+      <span class="pill btn" id="modeBackBtn">← モード</span>
+      <span class="pill" id="modeTitlePill">プログラムパズル</span>
       <span class="pill">あつめた ほし ⭐ <span id="totalStars">0</span></span>
     </div>
     <div class="hint">あそぶ ステージを えらんでね</div>
@@ -186,7 +227,7 @@
       <div class="boardcol">
         <div id="boardWrap">
           <div id="board">
-            <div id="robot"><div id="robotInner"><div class="nose">▲</div><div class="face">🤖</div></div></div>
+            <div id="robot"><div id="robotHold"></div><div id="robotInner"><div class="nose">▲</div><div class="face">🤖</div></div></div>
           </div>
         </div>
         <div class="hint" id="goalHint"></div>
@@ -213,7 +254,7 @@
 <script>
 /* ===================== ステージ定義 ===================== */
 /* dir: 0=上 1=右 2=下 3=左   walls=木(🌳)  items=でんち(🔋) */
-const STAGES = [
+const PUZZLE = [
   { name:"はじめのいっぽ", cols:4, rows:1,
     robot:{x:0,y:0,dir:1}, goal:{x:3,y:0}, walls:[], items:[],
     allowed:["forward"], par:3,
@@ -342,7 +383,89 @@ const STAGES = [
     walls:[[0,1],[1,1],[2,1],[3,1],[1,2],[2,2],[3,2],[1,3],[2,3],[3,3],[4,2]], items:[[2,0]],
     allowed:["forward","left","right","pickup","chop","loop","cond"], par:8,
     hint:"ぜんぶ つかう！ もし(木→🪓 かべ→みぎ 🔋→ひろう) すすむ" },
+
+  /* ===== 「おつかい大作戦」モードの 新コマンドを まなぶ ステージ ===== */
+  { name:"とると おく", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0},
+    carries:[{x:2,y:0,kind:"apple"}], targets:[{x:4,y:0,kind:"apple"}],
+    allowed:["forward","take","place"], par:6,
+    hint:"🍎を ✊とって 🏠で 📦おこう" },
+
+  { name:"おとどけ まがる", cols:3, rows:3,
+    robot:{x:0,y:0,dir:1}, goal:{x:2,y:2},
+    carries:[{x:2,y:0,kind:"apple"}], targets:[{x:2,y:2,kind:"apple"}],
+    allowed:["forward","left","right","take","place"], par:7,
+    hint:"🍎を とって、まがって 🏠へ とどけよう" },
+
+  { name:"ジャンプ にゅうもん", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0}, holes:[[2,0]],
+    allowed:["forward","jump"], par:3,
+    hint:"🕳️あなは 🦘ジャンプで とびこえよう！" },
+
+  { name:"あなだらけ", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0}, holes:[[1,0],[3,0]],
+    allowed:["forward","jump","loop"], par:2,
+    hint:"あなが 2つ！ 🔁で ジャンプを くりかえそう" },
+
+  { name:"かぎと とびら", cols:5, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:4,y:0},
+    carries:[{x:1,y:0,kind:"key"}], doors:[[3,0]],
+    allowed:["forward","take"], par:5,
+    hint:"🔑かぎを とると 🚪とびらが あくよ" },
+
+  { name:"おつかい だいさくせん", cols:6, rows:1,
+    robot:{x:0,y:0,dir:1}, goal:{x:5,y:0},
+    carries:[{x:1,y:0,kind:"key"},{x:3,y:0,kind:"apple"}], doors:[[2,0]], targets:[{x:5,y:0,kind:"apple"}],
+    allowed:["forward","take","place"], par:8,
+    hint:"🔑で とびらを あけ、🍎を 🏠へ とどけよう" },
 ];
+
+/* ===================== 「おつかい大作戦」モード ステージ ===================== */
+const MISSION = [
+  { name:"まっすぐ", cols:5, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:4,y:0},
+    allowed:["forward"], par:4, hint:"⬆️すすむを ならべて はたへ いこう" },
+
+  { name:"まがって", cols:3, rows:3, robot:{x:0,y:0,dir:1}, goal:{x:2,y:2},
+    allowed:["forward","left","right"], par:5, hint:"みぎを むいてから すすもう" },
+
+  { name:"りんごの おとどけ", cols:5, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:4,y:0},
+    carries:[{x:2,y:0,kind:"apple"}], targets:[{x:4,y:0,kind:"apple"}],
+    allowed:["forward","take","place"], par:6, hint:"🍎を ✊とって 🏠に 📦おこう" },
+
+  { name:"おてがみ ポストへ", cols:5, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:3,y:0},
+    carries:[{x:1,y:0,kind:"letter"}], targets:[{x:3,y:0,kind:"letter"}],
+    allowed:["forward","take","place"], par:5, hint:"✉️てがみを 📮ポストへ いれよう" },
+
+  { name:"ふたつ おとどけ", cols:6, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:5,y:0},
+    carries:[{x:1,y:0,kind:"apple"},{x:3,y:0,kind:"letter"}],
+    targets:[{x:2,y:0,kind:"apple"},{x:4,y:0,kind:"letter"}],
+    allowed:["forward","take","place"], par:9, hint:"🍎は🏠、✉️は📮へ。じゅんばんに！" },
+
+  { name:"かぎと とびら", cols:6, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:5,y:0},
+    carries:[{x:1,y:0,kind:"key"}], doors:[[3,0]],
+    allowed:["forward","take"], par:6, hint:"🔑を とると 🚪が あくよ" },
+
+  { name:"かぎと おとどけ", cols:7, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:6,y:0},
+    carries:[{x:1,y:0,kind:"key"},{x:4,y:0,kind:"apple"}], doors:[[3,0]], targets:[{x:6,y:0,kind:"apple"}],
+    allowed:["forward","take","place"], par:9, hint:"🔑で とびらを あけ、🍎を おとどけ" },
+
+  { name:"あなを ジャンプ", cols:5, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:4,y:0}, holes:[[2,0]],
+    allowed:["forward","jump"], par:3, hint:"🕳️は 🦘ジャンプで とびこえる" },
+
+  { name:"あなと おとどけ", cols:6, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:5,y:0},
+    carries:[{x:1,y:0,kind:"apple"}], holes:[[3,0]], targets:[{x:5,y:0,kind:"apple"}],
+    allowed:["forward","take","place","jump"], par:6, hint:"🍎を もって あなを とびこえ おとどけ" },
+
+  { name:"くりかえし みち", cols:7, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:6,y:0},
+    allowed:["forward","loop"], par:2, hint:"ながい みち！ 🔁で みじかく" },
+
+  { name:"だいさくせん", cols:9, rows:1, robot:{x:0,y:0,dir:1}, goal:{x:8,y:0},
+    carries:[{x:1,y:0,kind:"key"},{x:3,y:0,kind:"apple"}], doors:[[2,0]], holes:[[5,0]], targets:[{x:8,y:0,kind:"apple"}],
+    allowed:["forward","take","place","jump"], par:10, hint:"かぎ・あな・おとどけ ぜんぶ クリア！" },
+];
+
+let STAGES = PUZZLE;   // いま えらんでいる モードの ステージはいれつ
+let mode = "puzzle";   // "puzzle" | "mission"
 
 const CMD = {
   forward:{ ico:"⬆️", label:"すすむ",  cls:"forward" },
@@ -352,7 +475,13 @@ const CMD = {
   chop:   { ico:"🪓", label:"たおす",  cls:"chop" },
   loop:   { ico:"🔁", label:"くり…",  cls:"loop" },
   cond:   { ico:"❓", label:"もし",    cls:"cond" },
+  take:   { ico:"✊", label:"とる",    cls:"take" },
+  place:  { ico:"📦", label:"おく",    cls:"place" },
+  jump:   { ico:"🦘", label:"ジャンプ", cls:"jump" },
 };
+// はこびもの と とどけさき の え
+const KIND = { apple:"🍎", letter:"✉️", key:"🔑", present:"🎁" };
+const DEST = { apple:"🏠", letter:"📮", present:"🎄" };
 // 「もし …なら」の じょうけん（タップで きりかえ）
 const CONDS = {
   blocked:{ ico:"🧱", label:"まえが かべ" },
@@ -370,21 +499,38 @@ let program = [];        // [{op}] / {loop:true,count,body:[{op}]}
 let openLoop = null;     // タップ追加先のループbody / null=メイン
 let stage = null;
 let cellSize = 60, gap = 4;
-let robot = null;        // {x,y,dir,items:Set,power}
+let robot = null;        // {x,y,dir,items:Set,power,holding}
 let chopped = new Set(); // この実行で たおした木 "x,y"
+let opened  = new Set(); // この実行で あけた とびら "x,y"
+let placed  = {};        // おいた もの  "x,y" -> kind
+let taken   = new Set(); // この実行で とった はこびもの "x,y"
 let running = false;
 let stepQueue = null;
-const best = {};
+const best = {};         // キー: mode+":"+index
 
 /* ===================== 画面切り替え ===================== */
 const $ = id => document.getElementById(id);
+const bkey = i => mode+":"+i;
+const bestOf = i => best[bkey(i)]||0;
+
+function showModeSelect(){
+  $("playScreen").style.display="none";
+  $("selectScreen").style.display="none";
+  $("modeScreen").style.display="flex";
+}
+function setMode(m){
+  mode = m; STAGES = (m==="mission") ? MISSION : PUZZLE;
+  $("modeTitlePill").textContent = (m==="mission") ? "おつかい大作戦" : "プログラムパズル";
+  showSelect();
+}
 function showSelect(){
   $("playScreen").style.display="none";
+  $("modeScreen").style.display="none";
   $("selectScreen").style.display="flex";
   renderStageGrid();
 }
-function totalStars(){ return Object.values(best).reduce((a,b)=>a+b,0); }
-function unlocked(i){ return i===0 ? true : (best[i-1]||0) >= 1; }
+function totalStars(){ return STAGES.reduce((a,_,i)=>a+bestOf(i),0); }
+function unlocked(i){ return i===0 ? true : bestOf(i-1) >= 1; }
 function renderStageGrid(){
   $("totalStars").textContent = totalStars();
   const g = $("stageGrid"); g.innerHTML="";
@@ -392,7 +538,7 @@ function renderStageGrid(){
     const open = unlocked(i);
     const c = document.createElement("div");
     c.className = "stagecard"+(open?"":" locked");
-    const st = best[i]||0;
+    const st = bestOf(i);
     const stars = open ? "★".repeat(st)+"☆".repeat(3-st) : "🔒";
     c.innerHTML = `<div class="no">${i+1}</div><div class="nm">${s.name}</div><div class="st">${stars}</div>`;
     if(open) c.onclick = ()=>startStage(i);
@@ -409,7 +555,7 @@ function startStage(i){
   $("stageNo").textContent = i+1;
   $("stageName").textContent = stage.name;
   $("goalHint").textContent = stage.hint;
-  $("bestPill").textContent = "ベスト "+("★".repeat(best[i]||0)+"☆".repeat(3-(best[i]||0)));
+  $("bestPill").textContent = "ベスト "+("★".repeat(bestOf(i))+"☆".repeat(3-bestOf(i)));
   buildPalette();
   layoutBoard();
   resetRobot();
@@ -417,9 +563,15 @@ function startStage(i){
 }
 
 /* ===================== 盤面 ===================== */
-function isWallOrig(x,y){ return stage.walls.some(w=>w[0]===x&&w[1]===y); }
-function isWall(x,y){ return isWallOrig(x,y) && !chopped.has(x+","+y); }
+function isWallOrig(x,y){ return (stage.walls||[]).some(w=>w[0]===x&&w[1]===y); }
+function isDoor(x,y){ return (stage.doors||[]).some(d=>d[0]===x&&d[1]===y); }
+function isHole(x,y){ return (stage.holes||[]).some(h=>h[0]===x&&h[1]===y); }
+// すすめない（木/かべ or しまった とびら）。あなは isWall ではない（おちる）
+function isWall(x,y){ return (isWallOrig(x,y) && !chopped.has(x+","+y))
+                          || (isDoor(x,y) && !opened.has(x+","+y)); }
 function inBounds(x,y){ return x>=0&&y>=0&&x<stage.cols&&y<stage.rows; }
+function carryAt(x,y){ return (stage.carries||[]).find(c=>c.x===x&&c.y===y); }
+function targetAt(x,y){ return (stage.targets||[]).find(t=>t.x===x&&t.y===y); }
 
 function layoutBoard(){
   const wrap = $("boardWrap");
@@ -436,36 +588,41 @@ function layoutBoard(){
   renderItems();
   if(robot) placeRobot(false);
 }
-// 床・木・ゴールを描画（chopped を反映）。robot と item は触らない
+// 床・木・ゴール・あな・とびら・とどけ先 を描画。robot と item は触らない
 function renderTiles(){
   const board=$("board");
   [...board.querySelectorAll(".cell")].forEach(e=>e.remove());
   for(let y=0;y<stage.rows;y++)for(let x=0;x<stage.cols;x++){
     const c=document.createElement("div");
-    let cls="floor";
-    if(isWall(x,y)) cls="wall";
-    else if(stage.goal.x===x&&stage.goal.y===y) cls="goal";
+    let cls="floor", txt="";
+    if(isWallOrig(x,y) && !chopped.has(x+","+y)){ cls="wall"; txt="🌳"; }
+    else if(isDoor(x,y) && !opened.has(x+","+y)){ cls="door"; txt="🚪"; }
+    else if(isHole(x,y)){ cls="hole"; }
+    else {
+      const t=targetAt(x,y);
+      if(t){ cls="target"; txt=DEST[t.kind]||"🎯"; }
+      else if(stage.goal && stage.goal.x===x && stage.goal.y===y){ cls="goal"; txt="⭐"; }
+    }
     c.className="cell "+cls;
     c.style.width=c.style.height=cellSize+"px";
     c.style.left=x*(cellSize+gap)+"px"; c.style.top=y*(cellSize+gap)+"px";
-    if(cls==="wall") c.textContent="🌳";
-    if(cls==="goal") c.textContent="⭐";
+    if(txt){ c.textContent=txt; if(cls==="target") c.style.opacity="0.95"; }
     board.appendChild(c);
   }
 }
 function renderItems(){
   const board=$("board");
   [...board.querySelectorAll(".item")].forEach(e=>e.remove());
-  stage.items.forEach(([x,y])=>{
-    if(robot && robot.items.has(x+","+y)) return; // 拾い済みは非表示
-    const it=document.createElement("div");
-    it.className="item";
+  const fs=Math.floor(cellSize*0.5)+"px";
+  const put=(x,y,emoji,extra)=>{
+    const it=document.createElement("div"); it.className="item"+(extra?" "+extra:"");
     it.style.width=it.style.height=cellSize+"px";
     it.style.left=x*(cellSize+gap)+"px"; it.style.top=y*(cellSize+gap)+"px";
-    it.style.fontSize=Math.floor(cellSize*0.5)+"px";
-    it.textContent="🔋";
-    board.appendChild(it);
-  });
+    it.style.fontSize=fs; it.textContent=emoji; board.appendChild(it);
+  };
+  (stage.items||[]).forEach(([x,y])=>{ if(!(robot&&robot.items.has(x+","+y))) put(x,y,"🔋"); });
+  (stage.carries||[]).forEach(c=>{ if(!taken.has(c.x+","+c.y)) put(c.x,c.y,KIND[c.kind]||"❔","carry"); });
+  for(const k in placed){ const [x,y]=k.split(",").map(Number); put(x,y,KIND[placed[k]]||"❔","placed"); }
 }
 function placeRobot(animate){
   const r=$("robot");
@@ -476,17 +633,21 @@ function placeRobot(animate){
   if(!animate){ void r.offsetWidth; r.style.transition=""; $("robotInner").style.transition=""; }
 }
 function resetRobot(){
-  robot = { x:stage.robot.x, y:stage.robot.y, dir:stage.robot.dir, items:new Set(), power:stage.power||0 };
-  chopped = new Set();
+  robot = { x:stage.robot.x, y:stage.robot.y, dir:stage.robot.dir, items:new Set(), power:stage.power||0, holding:null };
+  chopped = new Set(); opened = new Set(); placed = {}; taken = new Set();
   $("robot").classList.remove("bump","cheer");
   renderTiles(); renderItems(); placeRobot(false); updateHUD();
 }
 function updateHUD(){
   const p=$("powerPill");
-  const total=stage.items.length, useChop=stage.allowed.includes("chop");
-  if(total===0 && !useChop){ p.style.display="none"; return; }
+  const total=(stage.items||[]).length, useChop=stage.allowed.includes("chop");
+  const useCarry=stage.allowed.includes("take")||stage.allowed.includes("place");
+  $("robotHold").textContent = (robot&&robot.holding) ? (KIND[robot.holding]||"❔") : "";
+  if(total===0 && !useChop && !useCarry){ p.style.display="none"; return; }
   p.style.display="";
-  let t = useChop ? "🔋 "+(robot?robot.power:0) : "";
+  let t = "";
+  if(useChop) t = "🔋 "+(robot?robot.power:0);
+  if(useCarry){ const h=(robot&&robot.holding)?(KIND[robot.holding]||"❔"):"…"; t += (t?"　":"")+"もちもの "+h; }
   if(total>0){ const got=robot?robot.items.size:0; t += (t?"　":"")+"あつめた "+got+"/"+total; }
   p.textContent=t;
 }
@@ -497,7 +658,7 @@ function buildPalette(){
   stage.allowed.forEach(op=>{
     const b=document.createElement("button");
     b.className="cmd "+CMD[op].cls;
-    const lbl = op==="loop"?"くりかえし" : op==="cond"?"もし〜なら" : CMD[op].label;
+    const lbl = op==="loop"?"くりかえし" : op==="cond"?"もし〜なら" : op==="jump"?"ジャンプ" : CMD[op].label;
     b.innerHTML=`<span class="ico">${CMD[op].ico}</span>${lbl}`;
     b.onclick=()=>addCommand(op);
     p.appendChild(b);
@@ -604,8 +765,8 @@ function evalCond(cond){
   switch(cond){
     case "blocked": return !inBounds(nx,ny) || isWall(nx,ny);
     case "tree":    return inBounds(nx,ny) && isWall(nx,ny);
-    case "battery": return stage.items.some(([x,y])=>x===robot.x&&y===robot.y) && !robot.items.has(robot.x+","+robot.y);
-    case "goal":    return robot.x===stage.goal.x && robot.y===stage.goal.y;
+    case "battery": return (stage.items||[]).some(([x,y])=>x===robot.x&&y===robot.y) && !robot.items.has(robot.x+","+robot.y);
+    case "goal":    return !!stage.goal && robot.x===stage.goal.x && robot.y===stage.goal.y;
   }
   return false;
 }
@@ -620,8 +781,10 @@ function* runProgram(arr){
 }
 
 /* ===================== 実行 ===================== */
-function allItems(){ return stage.items.length===0 || stage.items.every(([x,y])=>robot.items.has(x+","+y)); }
-function onGoal(){ return robot.x===stage.goal.x && robot.y===stage.goal.y; }
+function allItems(){ return !stage.items || stage.items.every(([x,y])=>robot.items.has(x+","+y)); }
+function allTargets(){ return !stage.targets || stage.targets.every(t=>placed[t.x+","+t.y]===t.kind); }
+function onGoal(){ return !stage.goal || (robot.x===stage.goal.x && robot.y===stage.goal.y); }
+function won(){ return onGoal() && allItems() && allTargets(); }
 function highlight(item){
   document.querySelectorAll(".step.running").forEach(e=>e.classList.remove("running"));
   if(item && item._el) item._el.classList.add("running");
@@ -634,12 +797,29 @@ function execOne(item){
   if(op==="left")  robot.dir=(robot.dir+3)%4;
   else if(op==="right") robot.dir=(robot.dir+1)%4;
   else if(op==="forward"){
-    const nx=robot.x+DX[robot.dir], ny=robot.y+DY[robot.dir];
-    if(!inBounds(nx,ny)||isWall(nx,ny)){ bump(); return false; }
+    const nx=robot.x+DX[robot.dir], ny=robot.y+DY[robot.dir], key=nx+","+ny;
+    if(!inBounds(nx,ny)){ bump(); return false; }
+    if(isDoor(nx,ny) && !opened.has(key)){            // とびら：かぎを もっていれば あく
+      if(robot.holding==="key"){ opened.add(key); robot.holding=null; setTimeout(renderTiles,50); }
+      else { bump(); flash("🚪 かぎが ないと あかないよ"); return false; }
+    } else if(isWall(nx,ny)){ bump(); return false; }
+    if(isHole(nx,ny)){ robot.x=nx; robot.y=ny; placeRobot(true);
+                       bump(); flash("🕳️ あなに おちた！ ジャンプしよう"); return false; }
     robot.x=nx; robot.y=ny;
+  } else if(op==="jump"){
+    const mx=robot.x+DX[robot.dir], my=robot.y+DY[robot.dir];
+    const lx=robot.x+2*DX[robot.dir], ly=robot.y+2*DY[robot.dir];
+    if(isWall(mx,my)){ bump(); flash("🦘 木や かべは とびこえられない"); return false; }
+    if(!inBounds(lx,ly)||isWall(lx,ly)||isHole(lx,ly)){ bump(); flash("🦘 とんだ さきが ないよ"); return false; }
+    robot.x=lx; robot.y=ly;
+  } else if(op==="take"){
+    const c=carryAt(robot.x,robot.y);
+    if(c && !taken.has(c.x+","+c.y) && robot.holding===null){ taken.add(c.x+","+c.y); robot.holding=c.kind; }
+  } else if(op==="place"){
+    if(robot.holding!==null){ placed[robot.x+","+robot.y]=robot.holding; robot.holding=null; }
   } else if(op==="pickup"){
     const key=robot.x+","+robot.y;
-    if(stage.items.some(([x,y])=>x===robot.x&&y===robot.y) && !robot.items.has(key)){
+    if((stage.items||[]).some(([x,y])=>x===robot.x&&y===robot.y) && !robot.items.has(key)){
       robot.items.add(key); robot.power++;
     }
   } else if(op==="chop"){
@@ -674,7 +854,7 @@ function runAll(){
     if(nx.done || ++steps>3000){ finish(); return; }
     const item=nx.value; highlight(item);
     const ok=execOne(item);
-    if(onGoal()&&allItems()){ setTimeout(finish,360); return; }
+    if(won()){ setTimeout(finish,360); return; }
     if(!ok){ setTimeout(()=>{ running=false; setControls(false); highlight(null);
                               flash("おっと！ 木か かべに ぶつかった"); },420); return; }
     setTimeout(tick,370);
@@ -693,7 +873,7 @@ function stepOnce(){
   if(nx.done || ++q.steps>3000){ stepQueue=null; finish(); return; }
   const item=nx.value; highlight(item);
   const ok=execOne(item);
-  if(onGoal()&&allItems()){ stepQueue=null; setTimeout(finish,360); return; }
+  if(won()){ stepQueue=null; setTimeout(finish,360); return; }
   if(!ok){ stepQueue=null; running=false; setControls(false);
            setTimeout(()=>{ highlight(null); flash("おっと！ 木か かべに ぶつかった"); },420); return; }
 }
@@ -747,10 +927,13 @@ $("stepBtn").onclick=stepOnce;
 $("resetBtn").onclick=()=>{ if(running)return; resetRobot(); stepQueue=null; highlight(null);
                             program=[]; openLoop=null; renderProgram(); };
 $("backBtn").onclick=()=>{ if(running)return; showSelect(); };
+$("modeBackBtn").onclick=()=>{ showModeSelect(); };
+$("modePuzzle").onclick=()=>setMode("puzzle");
+$("modeMission").onclick=()=>setMode("mission");
 window.addEventListener("resize",()=>{ if(stage && $("playScreen").style.display!=="none") layoutBoard(); });
 
 /* ===================== 起動 ===================== */
-showSelect();
+showModeSelect();
 </script>
 </body>
 </html>
