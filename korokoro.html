@@ -31,7 +31,7 @@
    - ▶ ためす でボールがころがる
    - ゴールにはいったら「できた！」
    ========================================================= */
-const { Engine, Bodies, Body, Composite, Events } = Matter;
+const { Engine, Bodies, Body, Composite, Constraint, Events } = Matter;
 
 /* ---------- 定数 ---------- */
 const W = 800, STAGE_H = 480, TOOL_H = 120, H = STAGE_H + TOOL_H;
@@ -49,6 +49,16 @@ const GADGET_DEFS = {
   spring: { label: 'ジャンプだい', w: 84,  h: 26,  flip: false },
   bumper: { label: 'はねかえし',   w: 64,  h: 100, flip: true  },
   fan:    { label: 'せんぷうき',   w: 56,  h: 64,  flip: true  },
+  seesaw: { label: 'シーソー',     w: 160, h: 66,  flip: false }, // アンカー=支点(pivot)中心
+  switch: { label: 'ふむボタン',   w: 80,  h: 18,  flip: false }, // アンカー=下端中央(ゆかの上)
+};
+const SEESAW_LEN = 160, SEESAW_HALF = 80, SEESAW_MAXA = 25 * Math.PI / 180;
+const SEESAW_DROP = 8; // アンカーy=いたの上面。かいてん中心は そこから DROP だけ下。
+// スイッチ床・作動対象の いろ (スイッチと おなじ いろの とびら/はし/せんぷうきが うごく)
+const TRIGGER_COLORS = {
+  blue:   { main: '#3d8bff', dark: '#1f5fd0', light: '#cfe3ff' },
+  red:    { main: '#ef476f', dark: '#c22c50', light: '#ffd4de' },
+  yellow: { main: '#f4b400', dark: '#c68a00', light: '#ffebb0' },
 };
 
 /* ---------- レベルデータ ----------
@@ -61,6 +71,10 @@ function B(x1, y1, x2, y2, kind) {
 function F(x1, x2) { return B(x1, 432, x2, 480, 'floor'); }
 function R(x, y, w, h) { return { x, y, w, h }; }
 function Hn(type, x, y, flip) { return { type, x, y, flip: !!flip }; }
+// 作動対象(ステージに もとから ある しかけ)。color は スイッチと そろえる。
+function Door(color, x, top, h)   { return { kind: 'door',   color, x, y: top, w: 26, h }; }
+function Bridge(color, x, top, w) { return { kind: 'bridge', color, x, y: top, w, h: 16 }; }
+function TFan(color, x, ybottom, dir) { return { kind: 'fan', color, x, y: ybottom, dir: dir || 1 }; }
 
 const LEVELS = [
   { name: 'はじめての さか',
@@ -143,6 +157,131 @@ const LEVELS = [
     gadgets: { ramp: 1, spring: 1, bumper: 1 },
     hints: [Hn('ramp', 120, 432, false), Hn('spring', 288, 432, false), Hn('bumper', 720, 432, true)],
     limit: 16 },
+
+  /* ===== v2 追加ステージ 11〜20 ===== */
+
+  // 11: はじめてのシーソー — あなの うえに おいて はしにする
+  { name: 'はじめての シーソー',
+    ball: { x: 120, y: 120 }, goal: { x: 624, y: 402 },
+    statics: [F(0, 312), F(456, 800)],
+    fixed: [Hn('ramp', 144, 432, false)],
+    seesawBridge: true,
+    area: R(288, 384, 240, 96),
+    gadgets: { seesaw: 1 },
+    hints: [Hn('seesaw', 384, 432, false)],
+    hintText: ['あなの うえに シーソーを おいてみよう', 'まんなかに おいて はしに してみよう', 'ここに おいてみよう'],
+    limit: 14 },
+
+  // 12: かたむくみち — おちると かたむいて さかになる
+  { name: 'かたむく みち',
+    ball: { x: 288, y: 48 }, goal: { x: 384, y: 402 },
+    statics: [F(240, 800)],
+    area: R(144, 336, 312, 144),
+    gadgets: { seesaw: 1 },
+    hints: [Hn('seesaw', 240, 384, false)],
+    hintText: ['ボールが おちる ところに シーソーを おいてみよう', 'かたむくと ころがるよ', 'ここに おいてみよう'],
+    limit: 14 },
+
+  // 13: シーソーとジャンプ — シーソーで はこび、ジャンプで かべを こえる
+  { name: 'シーソーと ジャンプ',
+    ball: { x: 288, y: 48 }, goal: { x: 480, y: 228 },
+    statics: [F(0, 800)],
+    area: R(144, 336, 432, 144),
+    gadgets: { seesaw: 1, spring: 1 },
+    hints: [Hn('seesaw', 240, 384, false), Hn('spring', 480, 432, false)],
+    hintText: ['シーソーで ボールを はこぼう', 'さいごは ジャンプで とびこえよう', 'ジャンプだいで うえの ゴールへ'],
+    limit: 16 },
+
+  // 14: はじめてのスイッチ — ふむと あおい とびらが ひらく
+  { name: 'はじめての スイッチ',
+    ball: { x: 120, y: 120 }, goal: { x: 720, y: 402 },
+    statics: [F(0, 800)],
+    fixed: [Hn('ramp', 144, 432, false)],
+    triggers: [Door('blue', 576, 336, 96)],
+    switchColor: 'blue',
+    area: R(288, 384, 192, 84),
+    gadgets: { switch: 1 },
+    hintText: ['ボールが とおる ところに ボタンを おいてみよう', 'おなじ いろの とびらが ひらくよ', 'ここに おいてみよう'],
+    hints: [Hn('switch', 384, 432, false)],
+    limit: 14 },
+
+  // 15: ボタンで橋を出そう — あかい ボタンで あかい はしが でる
+  { name: 'ボタンで はし',
+    ball: { x: 120, y: 120 }, goal: { x: 720, y: 402 },
+    statics: [F(0, 384), F(504, 800)],
+    fixed: [Hn('ramp', 144, 432, false)],
+    triggers: [Bridge('red', 444, 432, 144)],
+    switchColor: 'red',
+    area: R(240, 384, 144, 84),
+    gadgets: { switch: 1 },
+    hintText: ['あかい ボタンを ふむと あかい はしが でるよ', 'あなの てまえに ボタンを おこう', 'ボールが とおる ところに おいてみよう'],
+    hints: [Hn('switch', 336, 432, false)],
+    limit: 14 },
+
+  // 16: スイッチでとびらをあける — ジャンプで かべを こえ、ボタンで とびらを あける
+  { name: 'スイッチで とびら',
+    ball: { x: 120, y: 96 }, goal: { x: 720, y: 402 },
+    statics: [F(0, 800), B(360, 312, 408, 432)],
+    triggers: [Door('blue', 576, 336, 96)],
+    switchColor: 'blue',
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(216, 384, 336, 84),
+    gadgets: { switch: 1, spring: 1 },
+    hintText: ['かべを ジャンプで こえよう', 'そのあと ボタンを ふませよう', 'とびらが あいたら ゴールへ'],
+    hints: [Hn('spring', 288, 432, false), Hn('switch', 480, 432, false)],
+    limit: 16 },
+
+  // 17: シーソーでスイッチへ — シーソーで ボタンへ はこぶ
+  { name: 'シーソーで スイッチへ',
+    ball: { x: 288, y: 48 }, goal: { x: 528, y: 402 },
+    statics: [F(0, 800)],
+    triggers: [Door('blue', 456, 336, 96)],
+    switchColor: 'blue',
+    area: R(144, 336, 288, 144),
+    gadgets: { seesaw: 1, switch: 1 },
+    hintText: ['ボールが おちる ところに シーソーを おこう', 'シーソーの さきに ボタンを おいてみよう', 'とびらが あいたら ゴールへ'],
+    hints: [Hn('seesaw', 240, 384, false), Hn('switch', 384, 432, false)],
+    limit: 16 },
+
+  // 18: 風をつけよう — きいろい ボタンで きいろい せんぷうきが うごく
+  { name: 'かぜを つけよう',
+    ball: { x: 120, y: 120 }, goal: { x: 720, y: 402 },
+    statics: [F(0, 384), F(480, 800)],
+    fixed: [Hn('ramp', 144, 432, false)],
+    triggers: [TFan('yellow', 336, 432, 1)],
+    switchColor: 'yellow',
+    area: R(216, 384, 144, 84),
+    gadgets: { switch: 1 },
+    hintText: ['きいろい ボタンを ふむと かぜが でるよ', 'あなの てまえに ボタンを おこう', 'かぜで あなを こえよう'],
+    hints: [Hn('switch', 288, 432, false)],
+    limit: 18 },
+
+  // 19: ジャンプしてボタン — かべを ジャンプで こえ、ボタンで はしを だす
+  { name: 'ジャンプして ボタン',
+    ball: { x: 120, y: 96 }, goal: { x: 720, y: 402 },
+    statics: [F(0, 552), F(648, 800), B(360, 312, 408, 432)],
+    triggers: [Bridge('blue', 600, 432, 144)],
+    switchColor: 'blue',
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(216, 384, 336, 84),
+    gadgets: { spring: 1, switch: 1 },
+    hintText: ['かべを ジャンプで こえよう', 'ボタンで はしを だそう', 'はしを わたって ゴールへ'],
+    hints: [Hn('spring', 288, 432, false), Hn('switch', 480, 432, false)],
+    limit: 18 },
+
+  // 20: ころころ大そうち — シーソー→スイッチ(はし)→ジャンプ→ゴール
+  { name: 'ころころ 大そうち',
+    ball: { x: 96, y: 96 }, goal: { x: 744, y: 402 },
+    statics: [F(0, 288), F(384, 552), F(648, 800)],
+    triggers: [Bridge('blue', 600, 432, 144)],
+    switchColor: 'blue',
+    seesawBridge: true,
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(240, 384, 336, 96),
+    gadgets: { seesaw: 1, switch: 1 },
+    hints: [Hn('seesaw', 336, 432, false), Hn('switch', 480, 432, false)],
+    hintText: ['あなに シーソーの はしを かけよう', 'ボタンで あおい はしを だそう', 'ふたつの はしを わたって ゴールへ'],
+    limit: 20 },
 ];
 
 /* ---------- キャンバス ---------- */
@@ -205,6 +344,8 @@ const SND = {
   win:    () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, 'triangle', 0.16, i * 0.11)); },
   miss:   () => { tone(392, 0.16, 'sine', 0.10); tone(330, 0.22, 'sine', 0.10, 0.14); },
   hint:   () => tone(880, 0.12, 'sine', 0.10, 0, 1320),
+  press:  () => tone(300, 0.06, 'square', 0.08),
+  open:   () => { tone(500, 0.10, 'triangle', 0.14); tone(750, 0.14, 'triangle', 0.12, 0.08); },
 };
 
 /* =========================================================
@@ -225,6 +366,13 @@ let runT = 0, contactMs = 0, stallMs = 0, runResult = null, runEndAt = 0;
 let trail = [];
 let springAnims = {};          // key -> anim time
 let confetti = [];
+/* v2: シーソー・スイッチ・作動対象 */
+let seesawList = [];           // {body, px, py, angle, place}
+let switchList = [];           // {place, color, pressMs, x, y}
+let doorList = [];             // {obj, body, opened, openT}
+let bridgeList = [];           // {obj, body, shown, showT}
+let fanTrigList = [];          // {obj}  トリガー連動の せんぷうき
+let triggerStates = {};        // color -> bool
 
 /* ドラッグ状態 */
 let drag = null; // {type, x, y, flip, from:'box'|'stage', origIndex, orig, moved, downX, downY, downT}
@@ -241,10 +389,15 @@ function loadLevel(i) {
 function stopRun() {
   engine = null; ballBody = null; runResult = null;
   trail = []; springAnims = {}; runT = 0; contactMs = 0; stallMs = 0;
+  seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = [];
+  triggerStates = {};
+  for (const p of placements) delete p._angle;
+  if (level && level.fixed) for (const p of level.fixed) delete p._angle;
 }
 
 /* ---------- 配置ルール ---------- */
 function gadgetBBox(type, x, y) {
+  if (type === 'seesaw') return { x: x - SEESAW_HALF - 4, y: y - 36, w: SEESAW_LEN + 8, h: 78 }; // アンカー=いた上面
   const d = GADGET_DEFS[type];
   return { x: x - d.w / 2, y: y - d.h, w: d.w, h: d.h };
 }
@@ -277,15 +430,30 @@ function canPlace(type, x, y, ignoreIndex) {
   // ゴール
   const g = { x: level.goal.x - GOAL_W / 2, y: level.goal.y - GOAL_H / 2, w: GOAL_W, h: GOAL_H };
   if (rectsOverlap(bb, g, 0)) return false;
-  // 固定の壁・ゆか (すこしの重なりはOK: ぴったり置きやすくするため)
+  // スイッチ床は ゆかの うえだけ (くうちゅうには おけない)
+  if (type === 'switch') {
+    let onFloor = false;
+    for (const s of level.statics) {
+      const top = s.y - s.h / 2;
+      if (Math.abs(top - y) < 26 && x > s.x - s.w / 2 - 16 && x < s.x + s.w / 2 + 16) onFloor = true;
+    }
+    if (!onFloor) return false;
+  }
+  // 固定の壁・ゆか (すこしの重なりはOK)。シーソーは あなに はしを かける ので ゆか判定は ゆるめ。
+  const overlapMax = (type === 'seesaw') ? 40 : 14;
   for (const s of level.statics) {
     const sr = { x: s.x - s.w / 2, y: s.y - s.h / 2, w: s.w, h: s.h };
-    if (overlapDepth(bb, sr) > 14) return false;
+    if (overlapDepth(bb, sr) > overlapMax) return false;
+  }
+  // 作動対象(とびら・はし)とも かさならない
+  for (const t of (level.triggers || [])) {
+    if (t.kind === 'door') { if (rectsOverlap(bb, { x: t.x - t.w / 2, y: t.y, w: t.w, h: t.h }, 2)) return false; }
   }
   // ほかのギミック
   const all = placements.concat(level.fixed || []);
   for (let i = 0; i < all.length; i++) {
     if (i === ignoreIndex) continue;
+    if (all[i].fixedSwitch) continue;
     if (rectsOverlap(bb, gadgetBBox(all[i].type, all[i].x, all[i].y), 3)) return false;
   }
   return true;
@@ -330,6 +498,31 @@ function fanBody(x, y) {
   b.plugin = { kind: 'fan' };
   return b;
 }
+function seesawPlank(px, py, rigid) {
+  // 上面(px,py)、かいてん中心(px,py+DROP)。
+  // はしモード=静的でまっすぐ。ふつう=動的な いたを 中心でピン留めし、ボールの重さで かたむく。
+  if (rigid) {
+    const b = Bodies.rectangle(px, py + SEESAW_DROP, SEESAW_LEN, 16, { isStatic: true, friction: 0.012, restitution: 0.08 });
+    b.plugin = { kind: 'seesaw' };
+    return { body: b, pin: null };
+  }
+  const b = Bodies.rectangle(px, py + SEESAW_DROP, SEESAW_LEN, 16, {
+    friction: 0.02, frictionAir: 0.008, restitution: 0.05, density: 0.002,
+  });
+  b.plugin = { kind: 'seesaw' };
+  const pin = Constraint.create({ pointA: { x: px, y: py + SEESAW_DROP }, bodyB: b, pointB: { x: 0, y: 0 }, stiffness: 1, length: 0, damping: 0.1 });
+  return { body: b, pin };
+}
+function doorBody(t) {
+  const b = Bodies.rectangle(t.x, t.y + t.h / 2, t.w, t.h, { isStatic: true, friction: 0.2, restitution: 0.05 });
+  b.plugin = { kind: 'door' };
+  return b;
+}
+function bridgeBodyOf(t) {
+  const b = Bodies.rectangle(t.x, t.y + t.h / 2, t.w, t.h, { isStatic: true, friction: 0.04, restitution: 0.05 });
+  b.plugin = { kind: 'bridge' };
+  return b;
+}
 function buildWorld() {
   engine = Engine.create();
   engine.gravity.y = 1;
@@ -339,12 +532,34 @@ function buildWorld() {
     b.plugin = { kind: 'static' };
     bodies.push(b);
   }
+  // 作動対象(とびら・はし・せんぷうき)を したく
+  seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = [];
+  triggerStates = {};
+  for (const t of (level.triggers || [])) {
+    triggerStates[t.color] = false;
+    if (t.kind === 'door') { const b = doorBody(t); doorList.push({ obj: t, body: b, opened: false, openT: 0 }); bodies.push(b); }
+    else if (t.kind === 'bridge') { bridgeList.push({ obj: t, body: bridgeBodyOf(t), shown: false, showT: 0 }); } // でるまで world に いれない
+    else if (t.kind === 'fan') { fanTrigList.push({ obj: t }); }
+  }
+  if (level.switchColor && !(level.switchColor in triggerStates)) triggerStates[level.switchColor] = false;
+
   const all = placements.concat(level.fixed || []);
   all.forEach((p, i) => {
     if (p.type === 'ramp') bodies.push(rampBody(p.x, p.y, p.flip));
     else if (p.type === 'spring') bodies.push(springBody(p.x, p.y, 'sp' + i));
     else if (p.type === 'bumper') bodies.push(bumperBody(p.x, p.y, p.flip));
     else if (p.type === 'fan') bodies.push(fanBody(p.x, p.y));
+    else if (p.type === 'seesaw') {
+      const rigid = !!level.seesawBridge;
+      const { body: b, pin } = seesawPlank(p.x, p.y, rigid);
+      bodies.push(b);
+      if (pin) bodies.push(pin);
+      p._angle = 0;
+      seesawList.push({ body: b, px: p.x, py: p.y, cy: p.y + SEESAW_DROP, angle: 0, place: p, slow: rigid });
+    } else if (p.type === 'switch') {
+      const color = level.switchColor || 'blue';
+      switchList.push({ place: p, color, pressMs: 0, x: p.x, y: p.y });
+    }
   });
   ballBody = Bodies.circle(level.ball.x, level.ball.y, BALL_R, {
     density: 0.0008, friction: 0.002, frictionStatic: 0.5,
@@ -376,6 +591,14 @@ function buildWorld() {
   });
 }
 
+function activateTrigger(color) {
+  if (triggerStates[color]) return;
+  triggerStates[color] = true;
+  for (const d of doorList) if (d.obj.color === color && !d.opened) { Composite.remove(engine.world, d.body); d.opened = true; d.openT = runT; }
+  for (const br of bridgeList) if (br.obj.color === color && !br.shown) { Composite.add(engine.world, br.body); br.shown = true; br.showT = runT; }
+  if (!simMode) SND.open();
+}
+
 let simMode = false;
 let prevBallVx = 0;
 let pendingSpring = null;
@@ -392,17 +615,52 @@ function stepPhysics(dtMs) {
   if (!engine || runResult) return;
   const steps = Math.round(dtMs / RUN_SUBSTEP);
   for (let i = 0; i < steps; i++) {
-    // 扇風機の風
+    const bp0 = ballBody.position;
+    // 扇風機の風 (どうぐ箱の せんぷうき: つねに ON)
     const all = placements.concat(level.fixed || []);
     for (const p of all) {
       if (p.type !== 'fan') continue;
       const dir = p.flip ? -1 : 1;
       const zx1 = dir > 0 ? p.x - 10 : p.x + 10 - FAN_RANGE;
       const zx2 = zx1 + FAN_RANGE;
-      const bp = ballBody.position;
-      if (bp.x > zx1 && bp.x < zx2 && bp.y > p.y - 110 && bp.y < p.y + 10) {
-        Body.applyForce(ballBody, bp, { x: dir * FAN_FORCE, y: 0 });
+      if (bp0.x > zx1 && bp0.x < zx2 && bp0.y > p.y - 110 && bp0.y < p.y + 10) {
+        Body.applyForce(ballBody, bp0, { x: dir * FAN_FORCE, y: 0 });
       }
+    }
+    // トリガー連動の せんぷうき (スイッチが ON のときだけ)。あなを こえやすいよう すこし うきぎみ。
+    for (const f of fanTrigList) {
+      if (!triggerStates[f.obj.color]) continue;
+      const dir = f.obj.dir;
+      const zx1 = dir > 0 ? f.obj.x - 10 : f.obj.x + 10 - FAN_RANGE;
+      const zx2 = zx1 + FAN_RANGE;
+      if (bp0.x > zx1 && bp0.x < zx2 && bp0.y > f.obj.y - 110 && bp0.y < f.obj.y + 10) {
+        Body.applyForce(ballBody, bp0, { x: dir * FAN_FORCE * 1.0, y: -0.00016 });
+      }
+    }
+    // スイッチ床: ボールが 0.15びょう ふれたら ON
+    for (const sw of switchList) {
+      if (triggerStates[sw.color]) continue;
+      const overX = bp0.x > sw.x - 48 && bp0.x < sw.x + 48;       // 見た目より 左右ひろめ
+      const overY = bp0.y > sw.y - 52 && bp0.y < sw.y + 18;
+      if (overX && overY) { sw.pressMs += RUN_SUBSTEP; if (sw.pressMs >= 150) activateTrigger(sw.color); }
+      else sw.pressMs = Math.max(0, sw.pressMs - RUN_SUBSTEP * 0.5);
+    }
+    // シーソー: ボールの重さで かたむく (動的いた+ピン留め・角度せいげん)
+    for (const s of seesawList) {
+      if (s.slow) { s.place._angle = 0; continue; } // はしモード=まっすぐ(静的)
+      const b = s.body;
+      // 支点が ずれないよう 位置を もどす
+      Body.setPosition(b, { x: s.px, y: s.cy });
+      // 角度せいげん ±25°
+      if (b.angle > SEESAW_MAXA) { Body.setAngle(b, SEESAW_MAXA); if (b.angularVelocity > 0) Body.setAngularVelocity(b, 0); }
+      else if (b.angle < -SEESAW_MAXA) { Body.setAngle(b, -SEESAW_MAXA); if (b.angularVelocity < 0) Body.setAngularVelocity(b, 0); }
+      s.place._angle = b.angle;
+    }
+    // ゴール吸い込み補正: ちかくに きたら すこしだけ ゴールへ ひきよせる
+    {
+      const dgx = level.goal.x - bp0.x, dgy = level.goal.y - bp0.y;
+      const dg = Math.hypot(dgx, dgy);
+      if (dg < 46 && dg > 1) Body.applyForce(ballBody, bp0, { x: dgx / dg * 0.00035, y: dgy / dg * 0.00035 });
     }
     prevBallVx = ballBody.velocity.x;
     pendingSpring = null;
@@ -475,7 +733,7 @@ function simulateSolution(i) {
     stepPhysics(1000 / 60);
     if (runT - lastMark >= 500 && ballBody) {
       lastMark = runT;
-      trace.push({ t: Math.round(runT), x: Math.round(ballBody.position.x), y: Math.round(ballBody.position.y), v: +Math.hypot(ballBody.velocity.x, ballBody.velocity.y).toFixed(1) });
+      trace.push({ t: Math.round(runT), x: Math.round(ballBody.position.x), y: Math.round(ballBody.position.y), vx: +ballBody.velocity.x.toFixed(1), vy: +ballBody.velocity.y.toFixed(1) });
     }
   }
   const out = Object.assign({ trace }, runResult || { result: 'fail', reason: 'no result' });
@@ -524,6 +782,71 @@ function drawStatics() {
     rr(x, y, s.w, Math.min(10, s.h), 5); ctx.fill();
     ctx.strokeStyle = 'rgba(140,90,40,.35)'; ctx.lineWidth = 2;
     rr(x + 1, y + 1, s.w - 2, s.h - 2, 6); ctx.stroke();
+  }
+}
+function drawDoor(t) {
+  const c = TRIGGER_COLORS[t.color];
+  let openOff = 0, alpha = 1;
+  if (scene === 'run') { const d = doorList.find(d => d.obj === t); if (d && d.opened) { const k = Math.min(1, (runT - d.openT) / 400); openOff = k * (t.h + 8); alpha = 1 - k * 0.85; } }
+  ctx.save(); ctx.globalAlpha = alpha;
+  const dx = t.x - t.w / 2, dy = t.y - openOff;
+  ctx.fillStyle = c.main; rr(dx, dy, t.w, t.h, 5); ctx.fill();
+  ctx.strokeStyle = c.dark; ctx.lineWidth = 3; rr(dx, dy, t.w, t.h, 5); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2;
+  for (let yy = dy + 20; yy < dy + t.h - 8; yy += 26) { ctx.beginPath(); ctx.moveTo(dx + 5, yy); ctx.lineTo(dx + t.w - 5, yy); ctx.stroke(); }
+  ctx.restore();
+}
+function drawBridge(t) {
+  const c = TRIGGER_COLORS[t.color];
+  const br = scene === 'run' ? bridgeList.find(b => b.obj === t) : null;
+  const shown = br && br.shown;
+  if (!shown) {
+    ctx.save(); ctx.globalAlpha = 0.5 + Math.sin(globalT / 300) * 0.12;
+    ctx.strokeStyle = c.main; ctx.lineWidth = 2.5; ctx.setLineDash([9, 7]);
+    rr(t.x - t.w / 2, t.y, t.w, t.h, 6); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+  } else {
+    const k = Math.min(1, (runT - br.showT) / 280);
+    ctx.save(); ctx.globalAlpha = k;
+    ctx.fillStyle = c.main; rr(t.x - t.w / 2, t.y, t.w, t.h, 6); ctx.fill();
+    ctx.strokeStyle = c.dark; ctx.lineWidth = 3; rr(t.x - t.w / 2, t.y, t.w, t.h, 6); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2;
+    for (let xx = t.x - t.w / 2 + 16; xx < t.x + t.w / 2 - 8; xx += 20) { ctx.beginPath(); ctx.moveTo(xx, t.y + 3); ctx.lineTo(xx, t.y + t.h - 3); ctx.stroke(); }
+    ctx.restore();
+  }
+}
+function drawFanTrig(t) {
+  const active = scene === 'run' && triggerStates[t.color];
+  const c = TRIGGER_COLORS[t.color]; const x = t.x, y = t.y, dir = t.dir;
+  if (active) {
+    ctx.save(); ctx.globalAlpha = 0.55; ctx.strokeStyle = c.main; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) { const phase = ((globalT / 8) + i * 70) % FAN_RANGE; const wx = x + dir * (28 + phase); const wy = y - 26 - i * 20; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + dir * 22, wy); ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.fillStyle = c.main; rr(x - 24, y - 62, 48, 62, 8); ctx.fill();
+  ctx.strokeStyle = c.dark; ctx.lineWidth = 3; rr(x - 24, y - 62, 48, 62, 8); ctx.stroke();
+  ctx.save(); ctx.translate(x + dir * 6, y - 38); ctx.rotate(active ? globalT / 70 : globalT / 1600);
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < 3; i++) { ctx.rotate(Math.PI * 2 / 3); ctx.beginPath(); ctx.ellipse(0, -9, 4.5, 10, 0, 0, 7); ctx.fill(); }
+  ctx.beginPath(); ctx.fillStyle = c.dark; ctx.arc(0, 0, 4, 0, 7); ctx.fill(); ctx.restore();
+}
+function drawTriggers() {
+  if (!level.triggers || !level.triggers.length) return;
+  // スイッチと 同じ色の 作動対象を てんせんで つなぐ
+  const switches = placements.concat(level.fixed || []).filter(p => p.type === 'switch');
+  const swColor = level.switchColor || 'blue';
+  for (const t of level.triggers) {
+    if (t.color !== swColor) continue;
+    const tx = t.x, ty = t.kind === 'fan' ? t.y - 30 : t.y + (t.h ? t.h / 2 : 0);
+    const c = TRIGGER_COLORS[t.color];
+    for (const sw of switches) {
+      ctx.save(); ctx.globalAlpha = 0.55; ctx.strokeStyle = c.main; ctx.lineWidth = 2; ctx.setLineDash([3, 7]);
+      ctx.beginPath(); ctx.moveTo(sw.x, sw.y - 10); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    }
+  }
+  for (const t of level.triggers) {
+    if (t.kind === 'door') drawDoor(t);
+    else if (t.kind === 'bridge') drawBridge(t);
+    else if (t.kind === 'fan') drawFanTrig(t);
   }
 }
 function drawGoal() {
@@ -658,6 +981,30 @@ function drawGadget(p, alpha, ghost) {
     }
     ctx.beginPath(); ctx.fillStyle = '#40916c'; ctx.arc(0, 0, 4, 0, 7); ctx.fill();
     ctx.restore();
+  } else if (p.type === 'seesaw') {
+    const ang = ghost ? 0 : (p._angle || 0);
+    const cy = y + SEESAW_DROP;                 // かいてん中心
+    // 支点(三角の土台)
+    ctx.fillStyle = '#c79a6b';
+    ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x - 22, cy + 30); ctx.lineTo(x + 22, cy + 30); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#9a7548'; ctx.lineWidth = 2; ctx.stroke();
+    // いた (かたむく)。上面が アンカーy。
+    ctx.save(); ctx.translate(x, cy); ctx.rotate(ang);
+    ctx.fillStyle = '#a98ce0'; rr(-SEESAW_HALF, -8, SEESAW_LEN, 16, 8); ctx.fill();
+    ctx.strokeStyle = '#7a5bc0'; ctx.lineWidth = 3; rr(-SEESAW_HALF, -8, SEESAW_LEN, 16, 8); ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-SEESAW_HALF + 15, 0, 4, 0, 7); ctx.arc(SEESAW_HALF - 15, 0, 4, 0, 7); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#7a5bc0'; ctx.beginPath(); ctx.arc(x, cy, 6, 0, 7); ctx.fill();
+  } else if (p.type === 'switch') {
+    const col = TRIGGER_COLORS[(level && level.switchColor) || 'blue'];
+    const pressed = scene === 'run' && !ghost && triggerStates[(level && level.switchColor)];
+    const by = pressed ? y - 4 : y - 11;
+    ctx.fillStyle = col.dark; rr(x - 40, y - 9, 80, 9, 4); ctx.fill();
+    ctx.fillStyle = col.main; rr(x - 32, by - 8, 64, 13, 6); ctx.fill();
+    ctx.strokeStyle = col.dark; ctx.lineWidth = 2.5; rr(x - 32, by - 8, 64, 13, 6); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.65)';
+    ctx.beginPath(); ctx.arc(x, by - 1, 3.4, 0, 7); ctx.fill();
   }
   if (ghost) {
     const bb = gadgetBBox(p.type, p.x, p.y);
@@ -864,8 +1211,8 @@ function drawToast() {
 }
 function drawHintBubbles() {
   if (hintStage < 1 || scene !== 'edit') return;
-  const msgs = ['このあたりに おいてみよう', 'ひかっている どうぐを つかおう', 'ここに おくと いいかも'];
-  const m = msgs[Math.min(hintStage, 3) - 1];
+  const msgs = level.hintText || ['このあたりに おいてみよう', 'ひかっている どうぐを つかおう', 'ここに おくと いいかも'];
+  const m = msgs[Math.min(hintStage, msgs.length) - 1];
   ctx.save();
   ctx.font = 'bold 17px sans-serif';
   const tw = ctx.measureText(m).width + 46;
@@ -911,11 +1258,12 @@ function drawGame(dt) {
   drawBG();
   drawArea();
   drawStatics();
+  drawTriggers();
   drawGoal();
   // ギミック
   const all = placements.concat(level.fixed || []);
   placements.forEach((p, i) => { p._bi = i; drawGadget(p, drag && drag.from === 'stage' && drag.origIndex === i ? 0 : 1, false); });
-  (level.fixed || []).forEach((p, i) => { p._bi = placements.length + i; drawGadget(p, 0.95, false); });
+  (level.fixed || []).forEach((p, i) => { p._bi = placements.length + i; drawGadget(p, p.fixedSwitch ? 1 : 0.95, false); });
   drawHintBubbles();
   drawTrail();
   // ボール
@@ -1035,33 +1383,33 @@ function drawSelect() {
   ctx.font = 'bold 19px sans-serif'; ctx.fillStyle = '#7c6a45';
   ctx.fillText('どうぐを おいて ボールを ゴールまで はこぼう！', W / 2, 148 + bob);
   ctx.restore();
-  drawBall(W / 2 + Math.sin(globalT / 2600) * 300, 566, globalT / 150);
+  drawBall(88 + Math.sin(globalT / 700) * 6, 96 + Math.abs(Math.sin(globalT / 350)) * -14, globalT / 400);
 
-  // レベルボタン
+  // レベルボタン (5れつ × 4だん)
   selectBtns = [];
   const unlocked = unlockedCount();
   for (let i = 0; i < LEVELS.length; i++) {
     const col = i % 5, row = (i / 5) | 0;
-    const x = W / 2 + (col - 2) * 140;
-    const y = 250 + row * 160;
-    const b = { x, y, r: 52, idx: i };
+    const x = W / 2 + (col - 2) * 148;
+    const y = 202 + row * 96;
+    const b = { x, y, r: 38, idx: i };
     selectBtns.push(b);
     const open = i < unlocked;
     const done = !!progress.stars[i + 1];
     circleBtn(b, done ? '#ffd166' : open ? '#5b9bd5' : '#c5cdd6');
-    if (done) drawStar(x, y - 6, 22, '#fff');
-    ctx.font = 'bold ' + (done ? 17 : 30) + 'px sans-serif'; ctx.textAlign = 'center';
+    if (done) drawStar(x, y - 5, 16, '#fff');
+    ctx.font = 'bold ' + (done ? 13 : 24) + 'px sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.fillText(String(i + 1), x, done ? y + 34 : y + 11);
+    ctx.fillText(String(i + 1), x, done ? y + 26 : y + 9);
     if (!open) {
       ctx.fillStyle = '#8b98a5';
-      rr(x - 11, y - 8, 22, 18, 4); ctx.fill();
-      ctx.strokeStyle = '#8b98a5'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(x, y - 10, 8, Math.PI, 2 * Math.PI); ctx.stroke();
+      rr(x - 9, y - 6, 18, 15, 3); ctx.fill();
+      ctx.strokeStyle = '#8b98a5'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(x, y - 8, 6.5, Math.PI, 2 * Math.PI); ctx.stroke();
     }
-    ctx.font = 'bold 13px sans-serif';
+    ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = '#67573a';
-    ctx.fillText(LEVELS[i].name, x, y + 78);
+    ctx.fillText(LEVELS[i].name, x, y + 52);
   }
 }
 
