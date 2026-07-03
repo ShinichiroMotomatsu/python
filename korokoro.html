@@ -34,7 +34,10 @@
 const { Engine, Bodies, Body, Composite, Constraint, Events } = Matter;
 
 /* ---------- 定数 ---------- */
-const W = 800, STAGE_H = 480, TOOL_H = 120, H = STAGE_H + TOOL_H;
+const STAGE_W = 800, STAGE_H = 480, TOOL_H = 120, SIDE_W = 208;
+const CX = STAGE_W / 2;                 // ステージ中央(UIの中心に使う)
+let W = STAGE_W, H = STAGE_H + TOOL_H;   // キャンバス論理サイズ(むきで かわる)
+let landscape = false;                   // よこながレイアウト(どうぐ箱を みぎに)
 const GRID = 48;
 const BALL_R = 18;
 const GOAL_W = 60, GOAL_H = 60;
@@ -289,14 +292,38 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let viewScale = 1;
 function fitCanvas() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  // よこに ひろい画面(スマホ横向きなど)では どうぐ箱を みぎに おいて はばを ひろく つかう
+  landscape = vw / vh > 1.5;
+  if (landscape) { W = STAGE_W + SIDE_W; H = STAGE_H; }
+  else { W = STAGE_W; H = STAGE_H + TOOL_H; }
+  layoutUI();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const s = Math.min(vw / W, vh / H);
   viewScale = s;
   canvas.style.width = (W * s) + 'px';
   canvas.style.height = (H * s) + 'px';
   canvas.width = Math.round(W * s * dpr);
   canvas.height = Math.round(H * s * dpr);
   ctx.setTransform(s * dpr, 0, 0, s * dpr, 0, 0);
+}
+/* ---------- UI ボタン(むきで いちが かわる) ---------- */
+let BTN = {
+  home:  { x: 38, y: 38, r: 26 },
+  hint:  { x: 700, y: 38, r: 26 },
+  reset: { x: 762, y: 38, r: 26 },
+  start: { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 },
+};
+function layoutUI() {
+  if (landscape) {
+    BTN.hint  = { x: 686, y: 38, r: 26 };
+    BTN.reset = { x: 750, y: 38, r: 26 };
+    BTN.start = { x: STAGE_W + SIDE_W / 2, y: STAGE_H - 70, r: 42 };
+  } else {
+    BTN.hint  = { x: 700, y: 38, r: 26 };
+    BTN.reset = { x: 762, y: 38, r: 26 };
+    BTN.start = { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 };
+  }
 }
 window.addEventListener('resize', fitCanvas);
 fitCanvas();
@@ -1061,13 +1088,7 @@ function burstConfetti(x, y) {
   }
 }
 
-/* ---------- UI ボタン ---------- */
-const BTN = {
-  home:  { x: 38, y: 38, r: 26 },
-  hint:  { x: 700, y: 38, r: 26 },
-  reset: { x: 762, y: 38, r: 26 },
-  start: { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 },
-};
+/* ---------- UI ボタン えがき ---------- */
 function circleBtn(b, color, pressGlow) {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,.12)';
@@ -1083,29 +1104,41 @@ function inBtn(b, x, y) { return Math.hypot(x - b.x, y - b.y) <= b.r + 8; }
 function toolboxSlots() {
   const types = Object.keys(level.gadgets);
   const slots = [];
-  const sw = 118;
-  let x = 26;
-  for (const t of types) {
-    slots.push({ type: t, x, y: STAGE_H + 12, w: 104, h: 96 });
-    x += sw;
+  if (landscape) {
+    // みぎの パネルに たての れつ
+    const sw = 132, sh = 90, gap = 10, x = STAGE_W + (SIDE_W - sw) / 2;
+    let y = 64;
+    for (const t of types) { slots.push({ type: t, x, y, w: sw, h: sh }); y += sh + gap; }
+  } else {
+    const sw = 118; let x = 26;
+    for (const t of types) { slots.push({ type: t, x, y: STAGE_H + 12, w: 104, h: 96 }); x += sw; }
   }
   return slots;
 }
+// ゆびが どうぐ箱の うえに あるか(どうぐを もどす はんてい)
+function overToolbox(x, y) { return landscape ? x > STAGE_W - 4 : y > STAGE_H - 6; }
 function drawToolbox() {
-  ctx.fillStyle = '#fff6e5';
-  ctx.fillRect(0, STAGE_H, W, TOOL_H);
-  ctx.fillStyle = '#f4d8a8';
-  ctx.fillRect(0, STAGE_H, W, 6);
-  const slotsEnd = 26 + Object.keys(level.gadgets).length * 118;
-  ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#cbb083';
-  ctx.fillText('どうぐばこ', slotsEnd + 10, STAGE_H + 64);
-
-  const dragOverBox = drag && drag.y > STAGE_H - 10;
-  if (dragOverBox && drag.from === 'stage') {
-    ctx.fillStyle = 'rgba(255,180,60,.25)';
-    ctx.fillRect(0, STAGE_H, W, TOOL_H);
-    ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c07820';
-    ctx.fillText('どうぐばこに もどす', W / 2 - 60, STAGE_H + 66);
+  if (landscape) {
+    ctx.fillStyle = '#fff6e5'; ctx.fillRect(STAGE_W, 0, SIDE_W, STAGE_H);
+    ctx.fillStyle = '#f4d8a8'; ctx.fillRect(STAGE_W, 0, 6, STAGE_H);
+    ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#cbb083';
+    ctx.fillText('どうぐばこ', STAGE_W + SIDE_W / 2, 42);
+    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+      ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(STAGE_W, 0, SIDE_W, STAGE_H);
+      ctx.font = 'bold 18px sans-serif'; ctx.fillStyle = '#c07820';
+      ctx.fillText('もどす', STAGE_W + SIDE_W / 2, STAGE_H / 2);
+    }
+  } else {
+    ctx.fillStyle = '#fff6e5'; ctx.fillRect(0, STAGE_H, W, TOOL_H);
+    ctx.fillStyle = '#f4d8a8'; ctx.fillRect(0, STAGE_H, W, 6);
+    const slotsEnd = 26 + Object.keys(level.gadgets).length * 118;
+    ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#cbb083';
+    ctx.fillText('どうぐばこ', slotsEnd + 10, STAGE_H + 64);
+    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+      ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(0, STAGE_H, W, TOOL_H);
+      ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c07820';
+      ctx.fillText('どうぐばこに もどす', W / 2 - 60, STAGE_H + 66);
+    }
   }
 
   for (const s of toolboxSlots()) {
@@ -1161,11 +1194,11 @@ function drawTopUI() {
   ctx.font = 'bold 19px sans-serif';
   const tw = ctx.measureText(name).width + 40;
   ctx.fillStyle = 'rgba(255,255,255,.82)';
-  rr(W / 2 - tw / 2, 14, tw, 40, 20); ctx.fill();
+  rr(CX - tw / 2, 14, tw, 40, 20); ctx.fill();
   ctx.strokeStyle = 'rgba(120,140,180,.35)'; ctx.lineWidth = 2;
-  rr(W / 2 - tw / 2, 14, tw, 40, 20); ctx.stroke();
+  rr(CX - tw / 2, 14, tw, 40, 20); ctx.stroke();
   ctx.fillStyle = '#39597a'; ctx.textAlign = 'center';
-  ctx.fillText(name, W / 2, 41);
+  ctx.fillText(name, CX, 41);
   ctx.restore();
 
   // ⌂ もどる
@@ -1202,11 +1235,11 @@ function drawToast() {
   const tw = ctx.measureText(toast.text).width + 60;
   const y = 96;
   ctx.fillStyle = toast.kind === 'miss' ? 'rgba(255,244,214,.95)' : 'rgba(230,247,255,.95)';
-  rr(W / 2 - tw / 2, y, tw, 56, 28); ctx.fill();
+  rr(CX - tw / 2, y, tw, 56, 28); ctx.fill();
   ctx.strokeStyle = toast.kind === 'miss' ? '#ffb703' : '#5b9bd5'; ctx.lineWidth = 3;
-  rr(W / 2 - tw / 2, y, tw, 56, 28); ctx.stroke();
+  rr(CX - tw / 2, y, tw, 56, 28); ctx.stroke();
   ctx.fillStyle = '#6b4b0e'; ctx.textAlign = 'center';
-  ctx.fillText(toast.text, W / 2, y + 38);
+  ctx.fillText(toast.text, CX, y + 38);
   ctx.restore();
 }
 function drawHintBubbles() {
@@ -1217,11 +1250,11 @@ function drawHintBubbles() {
   ctx.font = 'bold 17px sans-serif';
   const tw = ctx.measureText(m).width + 46;
   ctx.fillStyle = 'rgba(255,251,235,.95)';
-  rr(W / 2 - tw / 2, 62, tw, 38, 19); ctx.fill();
+  rr(CX - tw / 2, 62, tw, 38, 19); ctx.fill();
   ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2.5;
-  rr(W / 2 - tw / 2, 62, tw, 38, 19); ctx.stroke();
+  rr(CX - tw / 2, 62, tw, 38, 19); ctx.stroke();
   ctx.fillStyle = '#8a6d00'; ctx.textAlign = 'center';
-  ctx.fillText('💡 ' + m, W / 2, 88);
+  ctx.fillText('💡 ' + m, CX, 88);
   ctx.restore();
   if (hintStage >= 3) {
     for (const h of level.hints) {
@@ -1273,7 +1306,7 @@ function drawGame(dt) {
   // ドラッグ中のプレビュー
   if (drag) {
     const sx = snap(drag.x), sy = snap(Math.min(drag.y, STAGE_H));
-    if (drag.y < STAGE_H - 6) {
+    if (!overToolbox(drag.fx, drag.fy) && drag.x < STAGE_W) {
       const ok = canPlace(drag.type, sx, sy, drag.from === 'stage' ? drag.origIndex : -1);
       ctx.save();
       ctx.globalAlpha = 0.4;
@@ -1283,7 +1316,9 @@ function drawGame(dt) {
       ctx.restore();
       drawGadget({ type: drag.type, x: sx, y: sy, flip: drag.flip }, 0.55, false);
     }
-    drawGadget({ type: drag.type, x: drag.x, y: drag.y, flip: drag.flip }, 0.9, false);
+    // ゆびの うえに もちあげた どうぐ(タッチ時)。ゆびの いちに ちいさな まるも だす。
+    if (drag.lift) { ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.arc(drag.fx, drag.fy, 10, 0, 7); ctx.fill(); }
+    drawGadget({ type: drag.type, x: drag.x, y: drag.y, flip: drag.flip }, 0.92, false);
   }
 
   drawToolbox();
@@ -1297,14 +1332,17 @@ function drawGame(dt) {
     ctx.save();
     ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,.9)';
-    const msg = 'したの「さか」を ドラッグして おいてみよう！';
+    const msg = 'どうぐばこの「さか」を ドラッグして おいてみよう！';
     const tw = ctx.measureText(msg).width + 40;
-    rr(W / 2 - tw / 2, 370 + bob, tw, 40, 20); ctx.fill();
+    rr(CX - tw / 2, 370 + bob, tw, 40, 20); ctx.fill();
     ctx.fillStyle = '#39597a';
-    ctx.fillText(msg, W / 2, 396 + bob);
+    ctx.fillText(msg, CX, 396 + bob);
+    // どうぐ箱の さいしょの スロットへ ゆびマーク
+    const s0 = toolboxSlots()[0];
+    const ax = s0.x + s0.w / 2, ay = s0.y - 8;
     ctx.fillStyle = '#e94f37';
     ctx.beginPath();
-    ctx.moveTo(120, 452 + bob); ctx.lineTo(108, 430 + bob); ctx.lineTo(132, 430 + bob);
+    ctx.moveTo(ax, ay + 22 + bob); ctx.lineTo(ax - 12, ay + bob); ctx.lineTo(ax + 12, ay + bob);
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
@@ -1371,36 +1409,45 @@ function drawSelect() {
     const dx = Math.sin(globalT / 4000 + x) * 8;
     ctx.beginPath(); ctx.arc(x + dx, y, r, 0, 7); ctx.arc(x + dx + r, y + 8, r * 0.7, 0, 7); ctx.fill();
   }
+  // レイアウト (よこながは れつを ふやして たてに おさめる)
+  const cols = landscape ? 7 : 5;
+  const colGap = landscape ? 132 : 148;
+  const r = landscape ? 30 : 38;
+  const gridTop = landscape ? 150 : 202;
+  const rowGap = landscape ? 104 : 96;
+  const half = (cols - 1) / 2;
+
   // タイトル
   ctx.save();
   ctx.textAlign = 'center';
   const bob = Math.sin(globalT / 500) * 4;
-  ctx.font = 'bold 46px sans-serif';
+  ctx.font = 'bold ' + (landscape ? 40 : 46) + 'px sans-serif';
   ctx.fillStyle = '#39597a';
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 9; ctx.lineJoin = 'round';
-  ctx.strokeText('ころころスイッチこうぼう', W / 2, 105 + bob);
-  ctx.fillText('ころころスイッチこうぼう', W / 2, 105 + bob);
-  ctx.font = 'bold 19px sans-serif'; ctx.fillStyle = '#7c6a45';
-  ctx.fillText('どうぐを おいて ボールを ゴールまで はこぼう！', W / 2, 148 + bob);
+  const titleY = landscape ? 66 : 105;
+  ctx.strokeText('ころころスイッチこうぼう', W / 2, titleY + bob);
+  ctx.fillText('ころころスイッチこうぼう', W / 2, titleY + bob);
+  ctx.font = 'bold ' + (landscape ? 16 : 19) + 'px sans-serif'; ctx.fillStyle = '#7c6a45';
+  ctx.fillText('どうぐを おいて ボールを ゴールまで はこぼう！', W / 2, (landscape ? 100 : 148) + bob);
   ctx.restore();
-  drawBall(88 + Math.sin(globalT / 700) * 6, 96 + Math.abs(Math.sin(globalT / 350)) * -14, globalT / 400);
+  if (!landscape) drawBall(88 + Math.sin(globalT / 700) * 6, 96 + Math.abs(Math.sin(globalT / 350)) * -14, globalT / 400);
 
-  // レベルボタン (5れつ × 4だん)
+  // レベルボタン
   selectBtns = [];
   const unlocked = unlockedCount();
   for (let i = 0; i < LEVELS.length; i++) {
-    const col = i % 5, row = (i / 5) | 0;
-    const x = W / 2 + (col - 2) * 148;
-    const y = 202 + row * 96;
-    const b = { x, y, r: 38, idx: i };
+    const col = i % cols, row = (i / cols) | 0;
+    const x = W / 2 + (col - half) * colGap;
+    const y = gridTop + row * rowGap;
+    const b = { x, y, r, idx: i };
     selectBtns.push(b);
     const open = i < unlocked;
     const done = !!progress.stars[i + 1];
     circleBtn(b, done ? '#ffd166' : open ? '#5b9bd5' : '#c5cdd6');
-    if (done) drawStar(x, y - 5, 16, '#fff');
-    ctx.font = 'bold ' + (done ? 13 : 24) + 'px sans-serif'; ctx.textAlign = 'center';
+    if (done) drawStar(x, y - 5, r * 0.42, '#fff');
+    ctx.font = 'bold ' + (done ? 13 : Math.round(r * 0.63)) + 'px sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.fillText(String(i + 1), x, done ? y + 26 : y + 9);
+    ctx.fillText(String(i + 1), x, done ? y + r * 0.7 : y + 9);
     if (!open) {
       ctx.fillStyle = '#8b98a5';
       rr(x - 9, y - 6, 18, 15, 3); ctx.fill();
@@ -1409,7 +1456,7 @@ function drawSelect() {
     }
     ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = '#67573a';
-    ctx.fillText(LEVELS[i].name, x, y + 52);
+    ctx.fillText(LEVELS[i].name, x, y + r + 14);
   }
 }
 
@@ -1431,7 +1478,7 @@ let activePointer = null;
 canvas.addEventListener('pointerdown', e => {
   if (activePointer !== null) return;
   activePointer = e.pointerId;
-  canvas.setPointerCapture(e.pointerId);
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   audio();
   const p = evtPos(e);
 
@@ -1471,11 +1518,13 @@ canvas.addEventListener('pointerdown', e => {
   }
   if (scene !== 'edit') return;
 
+  // ゆびで つかんだ どうぐは、ゆびに かくれないよう すこし うえに もちあげて みせる
+  const lift = e.pointerType === 'touch' ? 82 : 0;
   // どうぐばこから
   for (const s of toolboxSlots()) {
     if (p.x > s.x && p.x < s.x + s.w && p.y > s.y && p.y < s.y + s.h && remainCount(s.type) > 0) {
       SND.pick();
-      drag = { type: s.type, x: p.x, y: p.y - 20, flip: false, from: 'box', origIndex: -1, moved: false, downX: p.x, downY: p.y, downT: performance.now() };
+      drag = { type: s.type, x: p.x, y: p.y - lift - (lift ? 0 : 20), fx: p.x, fy: p.y, lift, flip: false, from: 'box', origIndex: -1, moved: false, downX: p.x, downY: p.y, downT: performance.now() };
       return;
     }
   }
@@ -1484,14 +1533,15 @@ canvas.addEventListener('pointerdown', e => {
   if (idx >= 0) {
     const g0 = placements[idx];
     SND.pick();
-    drag = { type: g0.type, x: p.x, y: p.y, flip: g0.flip, from: 'stage', origIndex: idx, orig: Object.assign({}, g0), moved: false, downX: p.x, downY: p.y, downT: performance.now() };
+    drag = { type: g0.type, x: p.x, y: p.y - lift, fx: p.x, fy: p.y, lift, flip: g0.flip, from: 'stage', origIndex: idx, orig: Object.assign({}, g0), moved: false, downX: p.x, downY: p.y, downT: performance.now() };
     return;
   }
 });
 canvas.addEventListener('pointermove', e => {
   if (e.pointerId !== activePointer || !drag) return;
   const p = evtPos(e);
-  drag.x = p.x; drag.y = p.y;
+  drag.fx = p.x; drag.fy = p.y;
+  drag.x = p.x; drag.y = p.y - drag.lift;
   if (Math.hypot(p.x - drag.downX, p.y - drag.downY) > 10) drag.moved = true;
 });
 function endDrag(e) {
@@ -1499,7 +1549,6 @@ function endDrag(e) {
   activePointer = null;
   if (!drag) return;
   const d = drag; drag = null;
-  const p = evtPos(e);
 
   // タップ(うごかしてない) → はんてん
   if (d.from === 'stage' && !d.moved && performance.now() - d.downT < 400) {
@@ -1508,13 +1557,13 @@ function endDrag(e) {
     else { SND.tap(); }
     return;
   }
-  // どうぐばこへドロップ → もどす
-  if (p.y > STAGE_H - 6) {
+  // どうぐばこへドロップ(ゆびが どうぐ箱の うえ) → もどす
+  if (overToolbox(d.fx, d.fy)) {
     if (d.from === 'stage') { placements.splice(d.origIndex, 1); SND.back(); }
     else SND.back();
     return;
   }
-  const sx = snap(p.x), sy = snap(Math.min(p.y, STAGE_H));
+  const sx = snap(d.x), sy = snap(Math.min(d.y, STAGE_H));
   if (canPlace(d.type, sx, sy, d.from === 'stage' ? d.origIndex : -1)) {
     if (d.from === 'stage') {
       placements[d.origIndex].x = sx; placements[d.origIndex].y = sy;
