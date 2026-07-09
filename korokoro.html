@@ -712,6 +712,25 @@ function remainCount(type) {
   const used = placements.filter(p => p.type === type).length;
   return total - used;
 }
+// ドロップ位置が そのままでは おけない ときは、いちばん ちかい おける マスに すいつく
+// (壁ぎわなどで ぴったり おけない のを たすける)
+function findPlace(type, rawX, rawY, ignoreIndex) {
+  const gy0 = Math.min(rawY, STAGE_H);
+  const sx0 = snap(rawX), sy0 = snap(gy0);
+  if (canPlace(type, sx0, sy0, ignoreIndex)) return { x: sx0, y: sy0 };
+  let best = null, bestD = Infinity;
+  const R = 3;                                   // さがす はんい(グリッドすう)
+  for (let dx = -R; dx <= R; dx++) {
+    for (let dy = -R; dy <= R; dy++) {
+      if (dx === 0 && dy === 0) continue;
+      const x = sx0 + dx * GRID, y = sy0 + dy * GRID;
+      if (!canPlace(type, x, y, ignoreIndex)) continue;
+      const d = Math.hypot(x - rawX, y - gy0);
+      if (d < bestD) { bestD = d; best = { x, y }; }
+    }
+  }
+  return best;                                   // どこにも おけない ときは null
+}
 
 /* =========================================================
    物理 (Matter.js)
@@ -1634,9 +1653,10 @@ function drawGame(dt) {
 
   // ドラッグ中のプレビュー
   if (drag) {
-    const sx = snap(drag.x), sy = snap(Math.min(drag.y, STAGE_H));
     if (!overToolbox(drag.fx, drag.fy) && drag.x < STAGE_W) {
-      const ok = canPlace(drag.type, sx, sy, drag.from === 'stage' ? drag.origIndex : -1);
+      const tgt = findPlace(drag.type, drag.x, drag.y, drag.from === 'stage' ? drag.origIndex : -1);
+      const ok = !!tgt;
+      const sx = tgt ? tgt.x : snap(drag.x), sy = tgt ? tgt.y : snap(Math.min(drag.y, STAGE_H));
       ctx.save();
       ctx.globalAlpha = 0.4;
       const bb = gadgetBBox(drag.type, sx, sy);
@@ -1893,12 +1913,12 @@ function endDrag(e) {
     else SND.back();
     return;
   }
-  const sx = snap(d.x), sy = snap(Math.min(d.y, STAGE_H));
-  if (canPlace(d.type, sx, sy, d.from === 'stage' ? d.origIndex : -1)) {
+  const tgt = findPlace(d.type, d.x, d.y, d.from === 'stage' ? d.origIndex : -1);
+  if (tgt) {
     if (d.from === 'stage') {
-      placements[d.origIndex].x = sx; placements[d.origIndex].y = sy;
+      placements[d.origIndex].x = tgt.x; placements[d.origIndex].y = tgt.y;
     } else {
-      placements.push({ type: d.type, x: sx, y: sy, flip: d.flip });
+      placements.push({ type: d.type, x: tgt.x, y: tgt.y, flip: d.flip });
     }
     SND.put();
   } else {
