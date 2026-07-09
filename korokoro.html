@@ -54,9 +54,18 @@ const GADGET_DEFS = {
   fan:    { label: 'せんぷうき',   w: 56,  h: 64,  flip: true  },
   seesaw: { label: 'シーソー',     w: 160, h: 66,  flip: false }, // アンカー=支点(pivot)中心
   switch: { label: 'ふむボタン',   w: 80,  h: 18,  flip: false }, // アンカー=下端中央(ゆかの上)
+  mover:  { label: 'うごくゆか',   w: 96,  h: 16,  flip: false }, // アンカー=まん中(よこに いったりきたり)
+  pendulum:{ label: 'ふりこ',      w: 24,  h: 24,  flip: false }, // アンカー=支点(うえ)、下に ふれる
 };
 const SEESAW_LEN = 160, SEESAW_HALF = 80, SEESAW_MAXA = 25 * Math.PI / 180;
 const SEESAW_DROP = 8; // アンカーy=いたの上面。かいてん中心は そこから DROP だけ下。
+// うごくゆか: よこに sin で いったりきたり
+const MOVE_HALF = 48, MOVE_AMP = 96, MOVE_W = 2 * Math.PI / 2400;
+// ふりこ: 支点から ロッドが ぶらさがり sin で ふれる
+const PEND_LEN = 90, PEND_AMP = 0.9, PEND_W = 2 * Math.PI / 2200, PEND_BOB = 16;
+const PEND_KICK = 8.2, PEND_LIFT = 6.0;   // ふりこが ボールを まえ+うえ に はじく いきおい
+function moverX(ax, t) { return ax + MOVE_AMP * Math.sin(t * MOVE_W); }
+function pendAngle(t) { return PEND_AMP * Math.sin(t * PEND_W); }
 // スイッチ床・作動対象の いろ (スイッチと おなじ いろの とびら/はし/せんぷうきが うごく)
 const TRIGGER_COLORS = {
   blue:   { main: '#3d8bff', dark: '#1f5fd0', light: '#cfe3ff' },
@@ -425,6 +434,60 @@ const LEVELS = [
     hintText: ['あかい ボールが ポケットで ボタンを おす', 'あおい ボールの あなに シーソーの はしを かけよう', 'はしを わたって ゴールへ'],
     hints: [Hn('seesaw', 432, 432, false)],
     limit: 22 },
+
+  /* ===== v4 追加ステージ 31〜35 (うごくゆか・ふりこ) ===== */
+
+  // 31: はじめての うごくゆか — ボールの したに おくと よこに はこんでくれる
+  { name: 'はじめての うごくゆか',
+    ball: { x: 336, y: 300 }, goal: { x: 420, y: 288 },
+    statics: [B(0, 336, 192, 480), B(504, 336, 800, 480)],
+    area: R(192, 264, 312, 96),
+    gadgets: { mover: 1 },
+    hints: [Hn('mover', 336, 336, false)],
+    hintText: ['ボールの したに うごくゆかを おこう', 'ゆかが よこに うごいて はこんでくれる', 'ここに おいてみよう'],
+    limit: 18 },
+
+  // 32: うごくゆか で ゴールへ — はんたいがわの ゴールまで はこぶ
+  { name: 'うごくゆか で ゴールへ',
+    ball: { x: 432, y: 300 }, goal: { x: 348, y: 288 },
+    statics: [B(0, 336, 264, 480), B(576, 336, 800, 480)],
+    area: R(264, 264, 312, 96),
+    gadgets: { mover: 1 },
+    hints: [Hn('mover', 432, 336, false)],
+    hintText: ['ボールの したに うごくゆかを おこう', 'うごくゆかが ゴールまで はこぶよ', 'ここに おいてみよう'],
+    limit: 18 },
+
+  // 33: はじめての ふりこ — あなの てまえに おくと ボールを ぽーんと とばす
+  { name: 'はじめての ふりこ',
+    ball: { x: 60, y: 384 }, goal: { x: 720, y: 402 },
+    statics: [B(0, 432, 384, 480), B(552, 432, 800, 480)],
+    fixed: [Hn('ramp', 108, 432, false)],
+    area: R(288, 240, 192, 240),
+    gadgets: { pendulum: 1 },
+    hints: [Hn('pendulum', 360, 336, false)],
+    hintText: ['あなの てまえに ふりこを おこう', 'ふりこが ボールを ぽーんと とばす', 'ここに おいてみよう'],
+    limit: 20 },
+
+  // 34: ふりこで とびこえ — かべを ふりこで とびこえる
+  { name: 'ふりこで とびこえ',
+    ball: { x: 60, y: 384 }, goal: { x: 660, y: 402 },
+    statics: [B(0, 432, 800, 480), B(492, 384, 516, 432)],
+    fixed: [Hn('ramp', 108, 432, false)],
+    area: R(288, 240, 192, 240),
+    gadgets: { pendulum: 1 },
+    hints: [Hn('pendulum', 384, 336, false)],
+    hintText: ['かべの てまえに ふりこを おこう', 'ふりこで かべを とびこえよう', 'ここに おいてみよう'],
+    limit: 20 },
+
+  // 35: しんギミック だいそうち — さかで ふりこへ おくり、ふりこで あなを こえる
+  { name: 'しんギミック だいそうち',
+    ball: { x: 60, y: 336 }, goal: { x: 720, y: 402 },
+    statics: [B(0, 432, 384, 480), B(552, 432, 800, 480)],
+    area: R(0, 240, 480, 240),
+    gadgets: { ramp: 1, pendulum: 1 },
+    hints: [Hn('ramp', 96, 432, false), Hn('pendulum', 360, 336, false)],
+    hintText: ['さかで ボールを ふりこへ おくろう', 'ふりこが あなを とびこえさせる', 'さかと ふりこを おいてみよう'],
+    limit: 22 },
 ];
 
 /* ---------- キャンバス ---------- */
@@ -548,6 +611,8 @@ let doorList = [];             // {obj, body, opened, openT}
 let bridgeList = [];           // {obj, body, shown, showT}
 let fanTrigList = [];          // {obj}  トリガー連動の せんぷうき
 let triggerStates = {};        // color -> bool
+let moverList = [];            // {body, ax, ay, prevCx, place}  うごくゆか
+let pendList = [];             // {body, px, py, place}          ふりこ
 
 /* ドラッグ状態 */
 let drag = null; // {type, x, y, flip, from:'box'|'stage', origIndex, orig, moved, downX, downY, downT}
@@ -565,14 +630,23 @@ function stopRun() {
   engine = null; ballBody = null; ballBodies = []; ballMeta = []; runResult = null;
   trail = []; springAnims = {}; runT = 0; contactMs = 0; stallMs = 0;
   seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = [];
+  moverList = []; pendList = [];
   triggerStates = {};
-  for (const p of placements) delete p._angle;
-  if (level && level.fixed) for (const p of level.fixed) delete p._angle;
+  for (const p of placements) { delete p._angle; delete p._cx; delete p._ang; }
+  if (level && level.fixed) for (const p of level.fixed) { delete p._angle; delete p._cx; delete p._ang; }
 }
 
 /* ---------- 配置ルール ---------- */
 function gadgetBBox(type, x, y) {
   if (type === 'seesaw') return { x: x - SEESAW_HALF - 4, y: y - 36, w: SEESAW_LEN + 8, h: 78 }; // アンカー=いた上面
+  if (type === 'mover') { // アンカー=まん中。よこ移動ぶんも ふくむ
+    const half = MOVE_HALF + MOVE_AMP;
+    return { x: x - half, y: y - 8, w: half * 2, h: 16 };
+  }
+  if (type === 'pendulum') { // アンカー=支点(うえ)。下の ふれる はんいを ふくむ
+    const reach = Math.sin(PEND_AMP) * PEND_LEN + PEND_BOB;
+    return { x: x - reach, y: y - 10, w: reach * 2, h: PEND_LEN + PEND_BOB + 12 };
+  }
   const d = GADGET_DEFS[type];
   return { x: x - d.w / 2, y: y - d.h, w: d.w, h: d.h };
 }
@@ -615,7 +689,7 @@ function canPlace(type, x, y, ignoreIndex) {
     if (!onFloor) return false;
   }
   // 固定の壁・ゆか (すこしの重なりはOK)。シーソーは あなに はしを かける ので ゆか判定は ゆるめ。
-  const overlapMax = (type === 'seesaw') ? 40 : 14;
+  const overlapMax = (type === 'seesaw' || type === 'pendulum') ? 40 : (type === 'mover' ? 24 : 14);
   for (const s of level.statics) {
     const sr = { x: s.x - s.w / 2, y: s.y - s.h / 2, w: s.w, h: s.h };
     if (overlapDepth(bb, sr) > overlapMax) return false;
@@ -734,6 +808,18 @@ function buildWorld() {
     } else if (p.type === 'switch') {
       const color = level.switchColor || 'blue';
       switchList.push({ place: p, color, pressMs: 0, x: p.x, y: p.y });
+    } else if (p.type === 'mover') {
+      const b = Bodies.rectangle(p.x, p.y, MOVE_HALF * 2, 16, { isStatic: true, friction: 0.05, restitution: 0.05 });
+      b.plugin = { kind: 'mover' };
+      bodies.push(b);
+      p._cx = p.x;
+      moverList.push({ body: b, ax: p.x, ay: p.y, prevCx: p.x, place: p });
+    } else if (p.type === 'pendulum') {
+      const b = Bodies.circle(p.x, p.y + PEND_LEN, PEND_BOB, { isStatic: true, isSensor: true });
+      b.plugin = { kind: 'pendulum' };
+      bodies.push(b);
+      p._ang = 0;
+      pendList.push({ body: b, px: p.x, py: p.y, place: p });
     }
   });
   ballBodies = []; ballMeta = [];
@@ -836,6 +922,50 @@ function stepPhysics(dtMs) {
       if (b.angle > SEESAW_MAXA) { Body.setAngle(b, SEESAW_MAXA); if (b.angularVelocity > 0) Body.setAngularVelocity(b, 0); }
       else if (b.angle < -SEESAW_MAXA) { Body.setAngle(b, -SEESAW_MAXA); if (b.angularVelocity < 0) Body.setAngularVelocity(b, 0); }
       s.place._angle = b.angle;
+    }
+    // うごくゆか: よこに いどう。上に のっている ボールを しっかり いっしょに はこぶ
+    for (const mv of moverList) {
+      const cx = moverX(mv.ax, runT);
+      const dx = cx - mv.prevCx;
+      Body.setPosition(mv.body, { x: cx, y: mv.ay });
+      mv.prevCx = cx; mv.place._cx = cx;
+      const topY = mv.ay - 8;
+      for (const bb of ballBodies) {
+        const bp = bb.position;
+        const near = bp.x > cx - MOVE_HALF - 2 && bp.x < cx + MOVE_HALF + 2 && bp.y > topY - BALL_R - 12 && bp.y < topY + 6 && bb.velocity.y > -1.2;
+        // ゴールの すいこみに ちかい ときは はなす(すいこまれる ように)
+        const nearGoal = Math.hypot(g.x - bp.x, g.y - bp.y) < 52;
+        if (near && !nearGoal) {
+          // だいに のった いちを おぼえ、だいに ぴったり くっつけて はこぶ
+          if (bb._moff == null) bb._moff = Math.max(-MOVE_HALF + BALL_R, Math.min(MOVE_HALF - BALL_R, bp.x - cx));
+          Body.setPosition(bb, { x: cx + bb._moff, y: topY - BALL_R + 1 });
+          Body.setVelocity(bb, { x: dx, y: Math.min(bb.velocity.y, 0) });
+        } else {
+          bb._moff = null;
+        }
+      }
+    }
+    // ふりこ: おもりが まえに ふれる とき、ボールを まえ+うえ に ぽーんと はじく
+    for (const pd of pendList) {
+      const ang = pendAngle(runT);
+      const bx = pd.px + Math.sin(ang) * PEND_LEN, by = pd.py + Math.cos(ang) * PEND_LEN;
+      Body.setPosition(pd.body, { x: bx, y: by });
+      pd.place._ang = ang;
+      const speed = PEND_AMP * PEND_W * Math.cos(runT * PEND_W); // rad/ms
+      const bobVx = Math.cos(ang) * PEND_LEN * speed;            // おもりの よこの うごき
+      const dir = pd.place.flip ? -1 : 1;                        // はじく むき
+      for (let bi = 0; bi < ballBodies.length; bi++) {
+        const bb = ballBodies[bi], bp = bb.position;
+        if (Math.hypot(bp.x - bx, bp.y - by) < PEND_BOB + BALL_R + 4 && Math.sign(bobVx) === dir) {
+          if (!pd.knockT) pd.knockT = {};
+          if (!pd.knockT[bi] || runT - pd.knockT[bi] > 260) {
+            pd.knockT[bi] = runT;
+            // まえ(dir)+うえ に いつも おなじ むきで はじく → たよれる
+            Body.setVelocity(bb, { x: dir * PEND_KICK, y: -PEND_LIFT });
+            if (!simMode) SND.pon();
+          }
+        }
+      }
     }
     pendingSprings = [];
     Engine.update(engine, RUN_SUBSTEP);
@@ -1083,7 +1213,7 @@ function drawBall(x, y, angle, ci) {
   ctx.beginPath(); ctx.arc(0, 2, 6, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
   ctx.restore();
 }
-function drawGadget(p, alpha, ghost) {
+function drawGadget(p, alpha, ghost, mini) {
   const d = GADGET_DEFS[p.type];
   ctx.save();
   ctx.globalAlpha = alpha == null ? 1 : alpha;
@@ -1190,6 +1320,33 @@ function drawGadget(p, alpha, ghost) {
     ctx.strokeStyle = col.dark; ctx.lineWidth = 2.5; rr(x - 32, by - 8, 64, 13, 6); ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.65)';
     ctx.beginPath(); ctx.arc(x, by - 1, 3.4, 0, 7); ctx.fill();
+  } else if (p.type === 'mover') {
+    // よこに うごく ゆか。run中は 物理の位置、それ以外は プレビューで うごかす
+    const cx = (ghost || mini) ? x : (scene === 'run' && p._cx != null ? p._cx : moverX(x, globalT));
+    // うごく はんい(うすい レール)
+    ctx.save(); ctx.globalAlpha *= 0.28;
+    ctx.strokeStyle = '#8a6cc0'; ctx.lineWidth = 3; ctx.setLineDash([4, 8]);
+    ctx.beginPath(); ctx.moveTo(x - MOVE_AMP, y + 2); ctx.lineTo(x + MOVE_AMP, y + 2); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    ctx.fillStyle = '#b39ddb'; rr(cx - MOVE_HALF, y - 8, MOVE_HALF * 2, 16, 6); ctx.fill();
+    ctx.strokeStyle = '#7e57c2'; ctx.lineWidth = 3; rr(cx - MOVE_HALF, y - 8, MOVE_HALF * 2, 16, 6); ctx.stroke();
+    // よこ矢印
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    for (const s of [-1, 1]) { const ax2 = cx + s * 26; ctx.beginPath(); ctx.moveTo(ax2, y); ctx.lineTo(ax2 - s * 8, y - 5); ctx.moveTo(ax2, y); ctx.lineTo(ax2 - s * 8, y + 5); ctx.stroke(); }
+  } else if (p.type === 'pendulum') {
+    const ang = mini ? 0.55 : (ghost ? 0 : (scene === 'run' && p._ang != null ? p._ang : pendAngle(globalT)));
+    const bx = x + Math.sin(ang) * PEND_LEN, by = y + Math.cos(ang) * PEND_LEN;
+    // ロッド
+    ctx.strokeStyle = '#9a7548'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(bx, by); ctx.stroke();
+    // 支点
+    ctx.fillStyle = '#c79a6b'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#9a7548'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.stroke();
+    // おもり
+    const gb = ctx.createRadialGradient(bx - 5, by - 5, 3, bx, by, PEND_BOB + 2);
+    gb.addColorStop(0, '#ffd27f'); gb.addColorStop(1, '#e59a2e');
+    ctx.fillStyle = gb; ctx.beginPath(); ctx.arc(bx, by, PEND_BOB, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#b9761a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(bx, by, PEND_BOB, 0, 7); ctx.stroke();
   }
   if (ghost) {
     const bb = gadgetBBox(p.type, p.x, p.y);
@@ -1316,12 +1473,18 @@ function drawToolbox() {
     rr(s.x, s.y, s.w, s.h, 12); ctx.stroke();
     // ミニチュア
     ctx.save();
-    ctx.translate(s.x + s.w / 2, s.y + 58);
     const d = GADGET_DEFS[s.type];
-    const sc = Math.min(70 / d.w, 46 / d.h);
-    ctx.scale(sc, sc);
     ctx.globalAlpha = n > 0 ? 1 : 0.35;
-    drawGadget({ type: s.type, x: 0, y: 0, flip: false }, 1, false);
+    if (s.type === 'pendulum') {
+      ctx.translate(s.x + s.w / 2 - 12, s.y + 24); ctx.scale(0.4, 0.4);
+    } else if (s.type === 'mover') {
+      ctx.translate(s.x + s.w / 2, s.y + 52); ctx.scale(0.46, 0.46);
+    } else {
+      ctx.translate(s.x + s.w / 2, s.y + 58);
+      const sc = Math.min(70 / d.w, 46 / d.h);
+      ctx.scale(sc, sc);
+    }
+    drawGadget({ type: s.type, x: 0, y: 0, flip: false }, 1, false, true);
     ctx.restore();
     // なまえ・のこりかず
     ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
