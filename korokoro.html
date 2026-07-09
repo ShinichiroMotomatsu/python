@@ -34,7 +34,10 @@
 const { Engine, Bodies, Body, Composite, Constraint, Events } = Matter;
 
 /* ---------- 定数 ---------- */
-const W = 800, STAGE_H = 480, TOOL_H = 120, H = STAGE_H + TOOL_H;
+const STAGE_W = 800, STAGE_H = 480, TOOL_H = 120, SIDE_W = 208;
+const CX = STAGE_W / 2;                 // ステージ中央(UIの中心に使う)
+let W = STAGE_W, H = STAGE_H + TOOL_H;   // キャンバス論理サイズ(むきで かわる)
+let landscape = false;                   // よこながレイアウト(どうぐ箱を みぎに)
 const GRID = 48;
 const BALL_R = 18;
 const GOAL_W = 60, GOAL_H = 60;
@@ -113,9 +116,9 @@ const LEVELS = [
   { name: 'ふたつの さか',
     ball: { x: 96, y: 24 }, goal: { x: 216, y: 402 },
     statics: [F(0, 800), B(0, 288, 336, 312)],
-    area: R(48, 192, 720, 288),
+    area: R(0, 192, 720, 288),
     gadgets: { ramp: 2 },
-    hints: [Hn('ramp', 120, 288, false), Hn('ramp', 624, 432, true)],
+    hints: [Hn('ramp', 144, 288, false), Hn('ramp', 480, 432, true)],
     limit: 14 },
 
   { name: 'はねかえして もどる',
@@ -123,7 +126,7 @@ const LEVELS = [
     statics: [F(0, 800), B(0, 336, 560, 360)],
     area: R(48, 240, 720, 240),
     gadgets: { ramp: 1, bumper: 1 },
-    hints: [Hn('ramp', 144, 336, false), Hn('bumper', 696, 432, true)],
+    hints: [Hn('ramp', 144, 336, false), Hn('bumper', 720, 432, true)],
     limit: 14 },
 
   { name: 'ふたつの あな',
@@ -131,7 +134,7 @@ const LEVELS = [
     statics: [B(0, 432, 288, 480), B(384, 432, 624, 480), B(696, 432, 800, 480), B(776, 120, 800, 432)],
     area: R(48, 288, 576, 192),
     gadgets: { ramp: 1, spring: 2 },
-    hints: [Hn('ramp', 120, 432, false), Hn('spring', 240, 432, false), Hn('spring', 576, 432, false)],
+    hints: [Hn('ramp', 144, 432, false), Hn('spring', 288, 432, false), Hn('spring', 576, 432, false)],
     limit: 14 },
 
   { name: 'かべを こえて',
@@ -139,7 +142,7 @@ const LEVELS = [
     statics: [F(0, 800), B(384, 312, 432, 432)],
     area: R(48, 240, 288, 240),
     gadgets: { ramp: 1, spring: 1 },
-    hints: [Hn('ramp', 120, 432, false), Hn('spring', 288, 432, false)],
+    hints: [Hn('ramp', 144, 432, false), Hn('spring', 288, 432, false)],
     limit: 14 },
 
   { name: 'かぜの ちから',
@@ -155,7 +158,7 @@ const LEVELS = [
     statics: [B(0, 432, 336, 480), B(456, 432, 800, 480), B(528, 288, 672, 312)],
     area: R(48, 192, 720, 288),
     gadgets: { ramp: 1, spring: 1, bumper: 1 },
-    hints: [Hn('ramp', 120, 432, false), Hn('spring', 288, 432, false), Hn('bumper', 720, 432, true)],
+    hints: [Hn('ramp', 144, 432, false), Hn('spring', 288, 432, false), Hn('bumper', 720, 432, true)],
     limit: 16 },
 
   /* ===== v2 追加ステージ 11〜20 ===== */
@@ -282,6 +285,135 @@ const LEVELS = [
     hints: [Hn('seesaw', 336, 432, false), Hn('switch', 480, 432, false)],
     hintText: ['あなに シーソーの はしを かけよう', 'ボタンで あおい はしを だそう', 'ふたつの はしを わたって ゴールへ'],
     limit: 20 },
+
+  /* ===== v3 追加ステージ 21〜30 (3段・2つのボール。座標は 48マスに そろえる) ===== */
+
+  // 21: さんだんの さか — 3段の だんを さかで つないで おりる
+  { name: 'さんだんの さか',
+    ball: { x: 96, y: 96 }, goal: { x: 456, y: 402 },
+    statics: [B(0, 240, 240, 264), B(288, 336, 432, 360), F(0, 528), B(504, 336, 528, 432)],
+    area: R(0, 144, 480, 336),
+    gadgets: { ramp: 2 },
+    hints: [Hn('ramp', 144, 240, false), Hn('ramp', 384, 336, false)],
+    hintText: ['うえの だんに さかを おこう', 'つぎの だんにも さかを おこう', 'したまで ころがそう'],
+    limit: 18 },
+
+  // 22: ふたつの ボール — あかい ボールで ボタンを おし、あおい ボールが ゴール
+  { name: 'ふたつの ボール',
+    balls: [{ x: 480, y: 96 }, { x: 96, y: 120 }],
+    goal: { x: 744, y: 402 },
+    statics: [F(0, 800), B(384, 240, 576, 264)],
+    triggers: [Door('blue', 648, 336, 96)],
+    switchColor: 'blue',
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(384, 216, 192, 84),
+    gadgets: { switch: 1 },
+    hintText: ['あかい ボールが おちる ところに ボタンを おこう', 'あかい ボールが ボタンを おすと とびらが あく', 'あおい ボールが ゴールへ'],
+    hints: [Hn('switch', 480, 240, false)],
+    limit: 18 },
+
+  // 23: はしを かけて — あかい ボールで はしを だし、あおい ボールが わたる
+  { name: 'はしを かけて',
+    balls: [{ x: 336, y: 96 }, { x: 96, y: 120 }],
+    goal: { x: 720, y: 402 },
+    statics: [F(0, 384), F(504, 800), B(240, 240, 432, 264)],
+    triggers: [Bridge('red', 444, 432, 144)],
+    switchColor: 'red',
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(240, 216, 192, 84),
+    gadgets: { switch: 1 },
+    hintText: ['あかい ボールが おちる ところに ボタンを おこう', 'あかい ボタンで あかい はしが でる', 'あおい ボールが はしを わたる'],
+    hints: [Hn('switch', 336, 240, false)],
+    limit: 18 },
+
+  // 24: さんだんと とびら — うえの だんで ボタンを おし、したの とびらを あける
+  { name: 'さんだんと とびら',
+    ball: { x: 96, y: 96 }, goal: { x: 612, y: 402 },
+    statics: [B(0, 240, 384, 264), B(432, 336, 576, 360), F(0, 800), B(648, 336, 672, 432)],
+    triggers: [Door('blue', 528, 336, 96)],
+    switchColor: 'blue',
+    area: R(0, 144, 600, 336),
+    gadgets: { ramp: 2, switch: 1 },
+    hints: [Hn('ramp', 144, 240, false), Hn('switch', 288, 240, false), Hn('ramp', 480, 336, false)],
+    hintText: ['うえの だんに さかと ボタンを おこう', 'ボタンを おすと したの とびらが あく', 'したまで ころがして ゴールへ'],
+    limit: 20 },
+
+  // 25: かぜで わたそう — あかい ボールで せんぷうきを つけ、あおい ボールを あなの むこうへ
+  { name: 'かぜで わたそう',
+    balls: [{ x: 336, y: 96 }, { x: 96, y: 120 }],
+    goal: { x: 720, y: 402 },
+    statics: [F(0, 408), F(504, 800), B(240, 240, 432, 264)],
+    triggers: [TFan('yellow', 360, 408, 1)],
+    switchColor: 'yellow',
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(240, 216, 192, 84),
+    gadgets: { switch: 1 },
+    hintText: ['あかい ボールが おちる ところに ボタンを おこう', 'きいろい ボタンで かぜが でる', 'かぜで あおい ボールを おくろう'],
+    hints: [Hn('switch', 336, 240, false)],
+    limit: 20 },
+
+  // 26: さんだん シーソー — 3段の まん中に シーソーの はしを かける
+  { name: 'さんだん シーソー',
+    ball: { x: 96, y: 120 }, goal: { x: 708, y: 402 },
+    statics: [B(0, 240, 336, 264), B(480, 336, 672, 360), F(0, 240), F(480, 800), B(744, 336, 768, 432)],
+    seesawBridge: true,
+    area: R(0, 168, 552, 300),
+    gadgets: { ramp: 1, seesaw: 1 },
+    hints: [Hn('ramp', 144, 240, false), Hn('seesaw', 432, 336, false)],
+    hintText: ['うえの だんに さかを おこう', 'まん中の あなに シーソーの はしを かけよう', 'したまで ころがそう'],
+    limit: 20 },
+
+  // 27: おもさで かたむけ — あかい ボールの おもさで シーソーを かたむけ、あおい ボールが ころがる
+  { name: 'おもさで かたむけ',
+    balls: [{ x: 528, y: 72 }, { x: 168, y: 300 }],
+    goal: { x: 720, y: 402 },
+    statics: [B(0, 336, 336, 360), F(0, 800)],
+    area: R(288, 300, 240, 132),
+    gadgets: { seesaw: 1 },
+    hints: [Hn('seesaw', 432, 384, false)],
+    hintText: ['あなの てまえに シーソーを おこう', 'あかい ボールが おちて かたむける', 'あおい ボールが ころがって ゴール'],
+    limit: 20 },
+
+  // 28: さんだん だいそうち — さか2つで 3段を おり、ボタンで はしを だす
+  { name: 'さんだん だいそうち',
+    ball: { x: 96, y: 96 }, goal: { x: 768, y: 402 },
+    statics: [B(0, 240, 240, 264), B(288, 336, 432, 360), F(0, 576), F(720, 800), B(792, 336, 800, 432)],
+    triggers: [Bridge('blue', 648, 432, 144)],
+    switchColor: 'blue',
+    area: R(0, 144, 576, 336),
+    gadgets: { ramp: 2, switch: 1 },
+    hints: [Hn('ramp', 144, 240, false), Hn('ramp', 384, 336, false), Hn('switch', 528, 432, false)],
+    hintText: ['うえの だんに さかを おこう', 'まん中の だんにも さかを おこう', 'ボタンで はしを だして ゴールへ'],
+    limit: 22 },
+
+  // 29: ふたりで わたろう — あかい ボールで とびらを あけ、あおい ボールが はしを わたって ゴール
+  { name: 'ふたりで わたろう',
+    balls: [{ x: 288, y: 96 }, { x: 96, y: 120 }],
+    goal: { x: 720, y: 402 },
+    statics: [F(0, 384), F(504, 800), B(240, 240, 384, 264), B(768, 336, 792, 432)],
+    triggers: [Door('blue', 624, 336, 96)],
+    switchColor: 'blue',
+    seesawBridge: true,
+    fixed: [Hn('ramp', 144, 432, false)],
+    area: R(240, 216, 336, 264),
+    gadgets: { seesaw: 1, switch: 1 },
+    hintText: ['あかい ボールで ボタンを おして とびらを あけよう', 'あおい ボールは シーソーの はしで あなを わたる', 'とびらを こえて ゴールへ'],
+    hints: [Hn('switch', 288, 240, false), Hn('seesaw', 432, 432, false)],
+    limit: 22 },
+
+  // 30: ころころ だいレース — 3段と ふたつの ボールの そうしあげ
+  { name: 'ころころ だいレース',
+    balls: [{ x: 576, y: 72 }, { x: 96, y: 96 }],
+    goal: { x: 744, y: 402 },
+    statics: [B(0, 240, 264, 264), B(312, 336, 480, 360), F(0, 552), F(696, 800), B(480, 240, 672, 264), B(780, 336, 804, 432)],
+    triggers: [Bridge('blue', 624, 432, 144)],
+    switchColor: 'blue',
+    fixed: [Hn('ramp', 144, 240, false)],
+    area: R(312, 144, 336, 336),
+    gadgets: { ramp: 1, switch: 1 },
+    hints: [Hn('switch', 576, 240, false), Hn('ramp', 384, 336, false)],
+    hintText: ['あかい ボールで ボタンを おして はしを だそう', 'あおい ボールは さかで 3段を おりる', 'はしを わたって ゴールへ'],
+    limit: 24 },
 ];
 
 /* ---------- キャンバス ---------- */
@@ -289,14 +421,38 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let viewScale = 1;
 function fitCanvas() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  // よこに ひろい画面(スマホ横向きなど)では どうぐ箱を みぎに おいて はばを ひろく つかう
+  landscape = vw / vh > 1.5;
+  if (landscape) { W = STAGE_W + SIDE_W; H = STAGE_H; }
+  else { W = STAGE_W; H = STAGE_H + TOOL_H; }
+  layoutUI();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const s = Math.min(vw / W, vh / H);
   viewScale = s;
   canvas.style.width = (W * s) + 'px';
   canvas.style.height = (H * s) + 'px';
   canvas.width = Math.round(W * s * dpr);
   canvas.height = Math.round(H * s * dpr);
   ctx.setTransform(s * dpr, 0, 0, s * dpr, 0, 0);
+}
+/* ---------- UI ボタン(むきで いちが かわる) ---------- */
+let BTN = {
+  home:  { x: 38, y: 38, r: 26 },
+  hint:  { x: 700, y: 38, r: 26 },
+  reset: { x: 762, y: 38, r: 26 },
+  start: { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 },
+};
+function layoutUI() {
+  if (landscape) {
+    BTN.hint  = { x: 686, y: 38, r: 26 };
+    BTN.reset = { x: 750, y: 38, r: 26 };
+    BTN.start = { x: STAGE_W + SIDE_W / 2, y: STAGE_H - 70, r: 42 };
+  } else {
+    BTN.hint  = { x: 700, y: 38, r: 26 };
+    BTN.reset = { x: 762, y: 38, r: 26 };
+    BTN.start = { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 };
+  }
 }
 window.addEventListener('resize', fitCanvas);
 fitCanvas();
@@ -362,10 +518,18 @@ let globalT = 0;               // 演出用時刻(ms)
 
 /* 実験(RUN)の状態 */
 let engine = null, ballBody = null;
+let ballBodies = [], ballMeta = [];    // 複数ボール対応
 let runT = 0, contactMs = 0, stallMs = 0, runResult = null, runEndAt = 0;
 let trail = [];
 let springAnims = {};          // key -> anim time
 let confetti = [];
+// ボールの いろ (2つめ以降を みわけやすく)
+const BALL_COLORS = [
+  { g0: '#ff8f6b', g1: '#e94f37', stroke: 'rgba(120,20,10,.4)', face: '#5b2333' }, // あかいボール
+  { g0: '#7fd0ff', g1: '#2f8fe0', stroke: 'rgba(10,55,105,.45)', face: '#123a5b' }, // あおいボール
+  { g0: '#a6e06b', g1: '#5fb03a', stroke: 'rgba(40,90,20,.45)', face: '#234d12' }, // みどりのボール
+];
+function ballStarts() { return level.balls || (level.ball ? [level.ball] : []); }
 /* v2: シーソー・スイッチ・作動対象 */
 let seesawList = [];           // {body, px, py, angle, place}
 let switchList = [];           // {place, color, pressMs, x, y}
@@ -387,7 +551,7 @@ function loadLevel(i) {
   stopRun();
 }
 function stopRun() {
-  engine = null; ballBody = null; runResult = null;
+  engine = null; ballBody = null; ballBodies = []; ballMeta = []; runResult = null;
   trail = []; springAnims = {}; runT = 0; contactMs = 0; stallMs = 0;
   seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = [];
   triggerStates = {};
@@ -425,8 +589,8 @@ function canPlace(type, x, y, ignoreIndex) {
   if (bb.x < A.x - 1 || bb.y < A.y - 1 || bb.x + bb.w > A.x + A.w + 1 || bb.y + bb.h > A.y + A.h + 1) return false;
   // 画面内
   if (bb.x < 0 || bb.x + bb.w > W || bb.y < 0 || y > STAGE_H) return false;
-  // ボールのスタート位置
-  if (circleRectDist(level.ball.x, level.ball.y, bb) < BALL_R + 6) return false;
+  // ボールのスタート位置(すべての ボール)
+  for (const s of ballStarts()) if (circleRectDist(s.x, s.y, bb) < BALL_R + 6) return false;
   // ゴール
   const g = { x: level.goal.x - GOAL_W / 2, y: level.goal.y - GOAL_H / 2, w: GOAL_W, h: GOAL_H };
   if (rectsOverlap(bb, g, 0)) return false;
@@ -561,27 +725,35 @@ function buildWorld() {
       switchList.push({ place: p, color, pressMs: 0, x: p.x, y: p.y });
     }
   });
-  ballBody = Bodies.circle(level.ball.x, level.ball.y, BALL_R, {
-    density: 0.0008, friction: 0.002, frictionStatic: 0.5,
-    frictionAir: 0.0001, restitution: 0.3,
+  ballBodies = []; ballMeta = [];
+  ballStarts().forEach((s, bi) => {
+    const bb = Bodies.circle(s.x, s.y, BALL_R, {
+      density: 0.0008, friction: 0.002, frictionStatic: 0.5,
+      frictionAir: 0.0001, restitution: 0.3,
+    });
+    bb.plugin = { kind: 'ball', idx: bi };
+    ballBodies.push(bb);
+    ballMeta.push({ contactMs: 0, stallMs: 0, alive: true, trail: [] });
+    bodies.push(bb);
   });
-  ballBody.plugin = { kind: 'ball' };
-  bodies.push(ballBody);
+  ballBody = ballBodies[0] || null;
   Composite.add(engine.world, bodies);
 
   const springCooldown = {};
   Events.on(engine, 'collisionStart', ev => {
     for (const pair of ev.pairs) {
-      const kinds = [pair.bodyA.plugin && pair.bodyA.plugin.kind, pair.bodyB.plugin && pair.bodyB.plugin.kind];
-      if (!kinds.includes('ball')) continue;
-      const other = kinds[0] === 'ball' ? pair.bodyB : pair.bodyA;
+      const pa = pair.bodyA.plugin, pb = pair.bodyB.plugin;
+      let ball = null, other = null;
+      if (pa && pa.kind === 'ball') { ball = pair.bodyA; other = pair.bodyB; }
+      else if (pb && pb.kind === 'ball') { ball = pair.bodyB; other = pair.bodyA; }
+      if (!ball) continue;
       const k = other.plugin && other.plugin.kind;
       if (k === 'spring') {
-        const key = other.plugin.key;
+        const key = other.plugin.key + '#' + ball.plugin.idx;
         if (!springCooldown[key] || runT - springCooldown[key] > 350) {
           springCooldown[key] = runT;
-          pendingSpring = other;
-          springAnims[key] = 0;
+          pendingSprings.push({ ball, spring: other });
+          springAnims[other.plugin.key] = 0;
           if (!simMode) SND.boing();
         }
       } else if (k === 'bumper') {
@@ -600,8 +772,7 @@ function activateTrigger(color) {
 }
 
 let simMode = false;
-let prevBallVx = 0;
-let pendingSpring = null;
+let pendingSprings = [];
 function startRun(sim) {
   simMode = !!sim;
   stopRun();
@@ -614,88 +785,85 @@ function startRun(sim) {
 function stepPhysics(dtMs) {
   if (!engine || runResult) return;
   const steps = Math.round(dtMs / RUN_SUBSTEP);
+  const all = placements.concat(level.fixed || []);
+  const g = level.goal;
+  const gr = { x: g.x - GOAL_W / 2, y: g.y - GOAL_H / 2, w: GOAL_W, h: GOAL_H };
   for (let i = 0; i < steps; i++) {
-    const bp0 = ballBody.position;
-    // 扇風機の風 (どうぐ箱の せんぷうき: つねに ON)
-    const all = placements.concat(level.fixed || []);
-    for (const p of all) {
-      if (p.type !== 'fan') continue;
-      const dir = p.flip ? -1 : 1;
-      const zx1 = dir > 0 ? p.x - 10 : p.x + 10 - FAN_RANGE;
-      const zx2 = zx1 + FAN_RANGE;
-      if (bp0.x > zx1 && bp0.x < zx2 && bp0.y > p.y - 110 && bp0.y < p.y + 10) {
-        Body.applyForce(ballBody, bp0, { x: dir * FAN_FORCE, y: 0 });
+    // ちからを かける まえに 各ボールの よこの いきおいを おぼえる
+    for (const bb of ballBodies) bb._pvx = bb.velocity.x;
+    // 風・ゴール吸い込みは 各ボールに
+    for (const bb of ballBodies) {
+      const bp = bb.position;
+      for (const p of all) {
+        if (p.type !== 'fan') continue;
+        const dir = p.flip ? -1 : 1;
+        const zx1 = dir > 0 ? p.x - 10 : p.x + 10 - FAN_RANGE;
+        if (bp.x > zx1 && bp.x < zx1 + FAN_RANGE && bp.y > p.y - 110 && bp.y < p.y + 10) Body.applyForce(bb, bp, { x: dir * FAN_FORCE, y: 0 });
       }
-    }
-    // トリガー連動の せんぷうき (スイッチが ON のときだけ)。あなを こえやすいよう すこし うきぎみ。
-    for (const f of fanTrigList) {
-      if (!triggerStates[f.obj.color]) continue;
-      const dir = f.obj.dir;
-      const zx1 = dir > 0 ? f.obj.x - 10 : f.obj.x + 10 - FAN_RANGE;
-      const zx2 = zx1 + FAN_RANGE;
-      if (bp0.x > zx1 && bp0.x < zx2 && bp0.y > f.obj.y - 110 && bp0.y < f.obj.y + 10) {
-        Body.applyForce(ballBody, bp0, { x: dir * FAN_FORCE * 1.0, y: -0.00016 });
+      for (const f of fanTrigList) {
+        if (!triggerStates[f.obj.color]) continue;
+        const dir = f.obj.dir;
+        const zx1 = dir > 0 ? f.obj.x - 10 : f.obj.x + 10 - FAN_RANGE;
+        if (bp.x > zx1 && bp.x < zx1 + FAN_RANGE && bp.y > f.obj.y - 110 && bp.y < f.obj.y + 10) Body.applyForce(bb, bp, { x: dir * FAN_FORCE, y: -0.00016 });
       }
+      const dgx = g.x - bp.x, dgy = g.y - bp.y, dg = Math.hypot(dgx, dgy);
+      if (dg < 46 && dg > 1) Body.applyForce(bb, bp, { x: dgx / dg * 0.00035, y: dgy / dg * 0.00035 });
     }
-    // スイッチ床: ボールが 0.15びょう ふれたら ON
+    // スイッチ床: どれかの ボールが 0.15びょう ふめば ON
     for (const sw of switchList) {
       if (triggerStates[sw.color]) continue;
-      const overX = bp0.x > sw.x - 48 && bp0.x < sw.x + 48;       // 見た目より 左右ひろめ
-      const overY = bp0.y > sw.y - 52 && bp0.y < sw.y + 18;
-      if (overX && overY) { sw.pressMs += RUN_SUBSTEP; if (sw.pressMs >= 150) activateTrigger(sw.color); }
+      let over = false;
+      for (const bb of ballBodies) { const bp = bb.position; if (bp.x > sw.x - 48 && bp.x < sw.x + 48 && bp.y > sw.y - 52 && bp.y < sw.y + 18) { over = true; break; } }
+      if (over) { sw.pressMs += RUN_SUBSTEP; if (sw.pressMs >= 150) activateTrigger(sw.color); }
       else sw.pressMs = Math.max(0, sw.pressMs - RUN_SUBSTEP * 0.5);
     }
     // シーソー: ボールの重さで かたむく (動的いた+ピン留め・角度せいげん)
     for (const s of seesawList) {
-      if (s.slow) { s.place._angle = 0; continue; } // はしモード=まっすぐ(静的)
+      if (s.slow) { s.place._angle = 0; continue; }
       const b = s.body;
-      // 支点が ずれないよう 位置を もどす
       Body.setPosition(b, { x: s.px, y: s.cy });
-      // 角度せいげん ±25°
       if (b.angle > SEESAW_MAXA) { Body.setAngle(b, SEESAW_MAXA); if (b.angularVelocity > 0) Body.setAngularVelocity(b, 0); }
       else if (b.angle < -SEESAW_MAXA) { Body.setAngle(b, -SEESAW_MAXA); if (b.angularVelocity < 0) Body.setAngularVelocity(b, 0); }
       s.place._angle = b.angle;
     }
-    // ゴール吸い込み補正: ちかくに きたら すこしだけ ゴールへ ひきよせる
-    {
-      const dgx = level.goal.x - bp0.x, dgy = level.goal.y - bp0.y;
-      const dg = Math.hypot(dgx, dgy);
-      if (dg < 46 && dg > 1) Body.applyForce(ballBody, bp0, { x: dgx / dg * 0.00035, y: dgy / dg * 0.00035 });
-    }
-    prevBallVx = ballBody.velocity.x;
-    pendingSpring = null;
+    pendingSprings = [];
     Engine.update(engine, RUN_SUBSTEP);
-    if (pendingSpring) {
-      // 衝突かいけつ後に うわがき: 台の上にのせてから、いきおいをたもって うえへ
-      const topY = pendingSpring.bounds.min.y - BALL_R - 1;
-      if (ballBody.position.y > topY) Body.setPosition(ballBody, { x: ballBody.position.x, y: topY });
-      Body.setVelocity(ballBody, { x: prevBallVx, y: -SPRING_V });
-      pendingSpring = null;
+    for (const ps of pendingSprings) {
+      const topY = ps.spring.bounds.min.y - BALL_R - 1;
+      if (ps.ball.position.y > topY) Body.setPosition(ps.ball, { x: ps.ball.position.x, y: topY });
+      Body.setVelocity(ps.ball, { x: ps.ball._pvx, y: -SPRING_V });
     }
+    pendingSprings = [];
     runT += RUN_SUBSTEP;
 
-    // ゴール判定: 中心がゴールの中 or 0.3びょう いじょう ふれる
-    const g = level.goal;
-    const gr = { x: g.x - GOAL_W / 2, y: g.y - GOAL_H / 2, w: GOAL_W, h: GOAL_H };
-    const bp = ballBody.position;
-    const centerIn = bp.x > gr.x && bp.x < gr.x + gr.w && bp.y > gr.y && bp.y < gr.y + gr.h;
-    const touching = circleRectDist(bp.x, bp.y, gr) < BALL_R;
-    if (touching) contactMs += RUN_SUBSTEP; else contactMs = 0;
-    if (centerIn || contactMs >= 300) { finishRun('win'); return; }
-
-    // しっぱい: がめんの そと
-    if (bp.y > STAGE_H + 140 || bp.x < -80 || bp.x > W + 80) { finishRun('fail', 'そとに でちゃった'); return; }
-    // しっぱい: とまった
-    const sp = Math.hypot(ballBody.velocity.x, ballBody.velocity.y);
-    if (runT > 1200 && sp < 0.22) stallMs += RUN_SUBSTEP; else stallMs = 0;
-    if (stallMs > 1300) { finishRun('fail', 'とまっちゃった'); return; }
-    // しっぱい: じかんぎれ
+    // ゴール判定(どれかの ボール) & しっぱい判定
+    let aliveCount = 0, allStalled = true;
+    for (let bi = 0; bi < ballBodies.length; bi++) {
+      const bb = ballBodies[bi], m = ballMeta[bi];
+      if (!m.alive) continue;
+      const bp = bb.position;
+      const centerIn = bp.x > gr.x && bp.x < gr.x + gr.w && bp.y > gr.y && bp.y < gr.y + gr.h;
+      const touching = circleRectDist(bp.x, bp.y, gr) < BALL_R;
+      if (touching) m.contactMs += RUN_SUBSTEP; else m.contactMs = 0;
+      if (centerIn || m.contactMs >= 300) { finishRun('win'); return; }
+      // がめんの そとに でた ボールは たいじょう(みちを つくる ボールは でても OK)
+      if (bp.y > STAGE_H + 140 || bp.x < -80 || bp.x > STAGE_W + 80) { m.alive = false; continue; }
+      aliveCount++;
+      const sp = Math.hypot(bb.velocity.x, bb.velocity.y);
+      if (runT > 1200 && sp < 0.22) m.stallMs += RUN_SUBSTEP; else m.stallMs = 0;
+      if (m.stallMs <= 1300) allStalled = false;
+    }
+    if (aliveCount === 0) { finishRun('fail', 'そとに でちゃった'); return; }
+    if (allStalled) { finishRun('fail', 'とまっちゃった'); return; }
     if (runT > level.limit * 1000) { finishRun('fail', 'じかんぎれ'); return; }
   }
-  // 演出用トレイル
-  if (!simMode && ballBody) {
-    trail.push({ x: ballBody.position.x, y: ballBody.position.y, t: globalT });
-    if (trail.length > 90) trail.shift();
+  // 演出用トレイル(各ボール)
+  if (!simMode) {
+    for (let bi = 0; bi < ballBodies.length; bi++) {
+      const m = ballMeta[bi]; if (!m.alive) continue;
+      m.trail.push({ x: ballBodies[bi].position.x, y: ballBodies[bi].position.y });
+      if (m.trail.length > 70) m.trail.shift();
+    }
   }
 }
 
@@ -722,8 +890,10 @@ function finishRun(result, reason) {
 function simulateSolution(i) {
   loadLevel(i);
   for (const h of LEVELS[i].hints) {
-    if (!canPlace(h.type, h.x, h.y, -1)) return { result: 'error', reason: 'hint placement invalid: ' + JSON.stringify(h) };
-    placements.push({ type: h.type, x: h.x, y: h.y, flip: !!h.flip });
+    // プレイヤーと おなじく グリッドに スナップして おく
+    const sx = snap(h.x), sy = snap(Math.min(h.y, STAGE_H));
+    if (!canPlace(h.type, sx, sy, -1)) return { result: 'error', reason: 'hint snaps invalid: ' + JSON.stringify({ t: h.type, hx: h.x, hy: h.y, sx, sy }) };
+    placements.push({ type: h.type, x: sx, y: sy, flip: !!h.flip });
   }
   startRun(true);
   const maxMs = (level.limit + 4) * 1000;
@@ -731,9 +901,10 @@ function simulateSolution(i) {
   let lastMark = -500;
   while (!runResult && runT < maxMs) {
     stepPhysics(1000 / 60);
-    if (runT - lastMark >= 500 && ballBody) {
+    if (runT - lastMark >= 500 && ballBodies.length) {
       lastMark = runT;
-      trace.push({ t: Math.round(runT), x: Math.round(ballBody.position.x), y: Math.round(ballBody.position.y), vx: +ballBody.velocity.x.toFixed(1), vy: +ballBody.velocity.y.toFixed(1) });
+      trace.push({ t: Math.round(runT), x: Math.round(ballBodies[0].position.x), y: Math.round(ballBodies[0].position.y), vx: +ballBodies[0].velocity.x.toFixed(1),
+        b: ballBodies.map((bb, k) => [Math.round(bb.position.x), Math.round(bb.position.y), ballMeta[k].alive ? 1 : 0]) });
     }
   }
   const out = Object.assign({ trace }, runResult || { result: 'fail', reason: 'no result' });
@@ -880,21 +1051,22 @@ function drawStar(x, y, r, color) {
   }
   ctx.closePath(); ctx.fill(); ctx.restore();
 }
-function drawBall(x, y, angle) {
+function drawBall(x, y, angle, ci) {
+  const c = BALL_COLORS[(ci || 0) % BALL_COLORS.length];
   ctx.save(); ctx.translate(x, y);
   ctx.fillStyle = 'rgba(0,0,0,.10)';
   ctx.beginPath(); ctx.ellipse(0, BALL_R - 2, BALL_R * 0.8, 5, 0, 0, 7); ctx.fill();
   ctx.rotate(angle || 0);
   const g = ctx.createRadialGradient(-6, -7, 3, 0, 0, BALL_R + 2);
-  g.addColorStop(0, '#ff8f6b'); g.addColorStop(1, '#e94f37');
+  g.addColorStop(0, c.g0); g.addColorStop(1, c.g1);
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(0, 0, BALL_R, 0, 7); ctx.fill();
-  ctx.strokeStyle = 'rgba(120,20,10,.4)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = c.stroke; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(0, 0, BALL_R - 1, 0, 7); ctx.stroke();
   // かお
-  ctx.fillStyle = '#5b2333';
+  ctx.fillStyle = c.face;
   ctx.beginPath(); ctx.arc(-6, -4, 2.4, 0, 7); ctx.arc(6, -4, 2.4, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#5b2333'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.strokeStyle = c.face; ctx.lineWidth = 2; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.arc(0, 2, 6, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
   ctx.restore();
 }
@@ -1034,12 +1206,15 @@ function drawArea() {
   }
 }
 function drawTrail() {
-  for (let i = 0; i < trail.length; i++) {
-    const p = trail[i];
-    const a = (i / trail.length) * 0.35;
-    ctx.fillStyle = `rgba(233,79,55,${a})`;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, 7); ctx.fill();
+  for (let bi = 0; bi < ballMeta.length; bi++) {
+    const m = ballMeta[bi], c = BALL_COLORS[bi % BALL_COLORS.length];
+    ctx.fillStyle = c.g1;
+    for (let i = 0; i < m.trail.length; i++) {
+      ctx.globalAlpha = (i / m.trail.length) * 0.3;
+      ctx.beginPath(); ctx.arc(m.trail[i].x, m.trail[i].y, 3, 0, 7); ctx.fill();
+    }
   }
+  ctx.globalAlpha = 1;
 }
 function drawConfetti(dt) {
   const colors = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f78c6b'];
@@ -1061,13 +1236,7 @@ function burstConfetti(x, y) {
   }
 }
 
-/* ---------- UI ボタン ---------- */
-const BTN = {
-  home:  { x: 38, y: 38, r: 26 },
-  hint:  { x: 700, y: 38, r: 26 },
-  reset: { x: 762, y: 38, r: 26 },
-  start: { x: 726, y: STAGE_H + TOOL_H / 2, r: 45 },
-};
+/* ---------- UI ボタン えがき ---------- */
 function circleBtn(b, color, pressGlow) {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,.12)';
@@ -1083,29 +1252,41 @@ function inBtn(b, x, y) { return Math.hypot(x - b.x, y - b.y) <= b.r + 8; }
 function toolboxSlots() {
   const types = Object.keys(level.gadgets);
   const slots = [];
-  const sw = 118;
-  let x = 26;
-  for (const t of types) {
-    slots.push({ type: t, x, y: STAGE_H + 12, w: 104, h: 96 });
-    x += sw;
+  if (landscape) {
+    // みぎの パネルに たての れつ
+    const sw = 132, sh = 90, gap = 10, x = STAGE_W + (SIDE_W - sw) / 2;
+    let y = 64;
+    for (const t of types) { slots.push({ type: t, x, y, w: sw, h: sh }); y += sh + gap; }
+  } else {
+    const sw = 118; let x = 26;
+    for (const t of types) { slots.push({ type: t, x, y: STAGE_H + 12, w: 104, h: 96 }); x += sw; }
   }
   return slots;
 }
+// ゆびが どうぐ箱の うえに あるか(どうぐを もどす はんてい)
+function overToolbox(x, y) { return landscape ? x > STAGE_W - 4 : y > STAGE_H - 6; }
 function drawToolbox() {
-  ctx.fillStyle = '#fff6e5';
-  ctx.fillRect(0, STAGE_H, W, TOOL_H);
-  ctx.fillStyle = '#f4d8a8';
-  ctx.fillRect(0, STAGE_H, W, 6);
-  const slotsEnd = 26 + Object.keys(level.gadgets).length * 118;
-  ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#cbb083';
-  ctx.fillText('どうぐばこ', slotsEnd + 10, STAGE_H + 64);
-
-  const dragOverBox = drag && drag.y > STAGE_H - 10;
-  if (dragOverBox && drag.from === 'stage') {
-    ctx.fillStyle = 'rgba(255,180,60,.25)';
-    ctx.fillRect(0, STAGE_H, W, TOOL_H);
-    ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c07820';
-    ctx.fillText('どうぐばこに もどす', W / 2 - 60, STAGE_H + 66);
+  if (landscape) {
+    ctx.fillStyle = '#fff6e5'; ctx.fillRect(STAGE_W, 0, SIDE_W, STAGE_H);
+    ctx.fillStyle = '#f4d8a8'; ctx.fillRect(STAGE_W, 0, 6, STAGE_H);
+    ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#cbb083';
+    ctx.fillText('どうぐばこ', STAGE_W + SIDE_W / 2, 42);
+    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+      ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(STAGE_W, 0, SIDE_W, STAGE_H);
+      ctx.font = 'bold 18px sans-serif'; ctx.fillStyle = '#c07820';
+      ctx.fillText('もどす', STAGE_W + SIDE_W / 2, STAGE_H / 2);
+    }
+  } else {
+    ctx.fillStyle = '#fff6e5'; ctx.fillRect(0, STAGE_H, W, TOOL_H);
+    ctx.fillStyle = '#f4d8a8'; ctx.fillRect(0, STAGE_H, W, 6);
+    const slotsEnd = 26 + Object.keys(level.gadgets).length * 118;
+    ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#cbb083';
+    ctx.fillText('どうぐばこ', slotsEnd + 10, STAGE_H + 64);
+    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+      ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(0, STAGE_H, W, TOOL_H);
+      ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c07820';
+      ctx.fillText('どうぐばこに もどす', W / 2 - 60, STAGE_H + 66);
+    }
   }
 
   for (const s of toolboxSlots()) {
@@ -1161,11 +1342,11 @@ function drawTopUI() {
   ctx.font = 'bold 19px sans-serif';
   const tw = ctx.measureText(name).width + 40;
   ctx.fillStyle = 'rgba(255,255,255,.82)';
-  rr(W / 2 - tw / 2, 14, tw, 40, 20); ctx.fill();
+  rr(CX - tw / 2, 14, tw, 40, 20); ctx.fill();
   ctx.strokeStyle = 'rgba(120,140,180,.35)'; ctx.lineWidth = 2;
-  rr(W / 2 - tw / 2, 14, tw, 40, 20); ctx.stroke();
+  rr(CX - tw / 2, 14, tw, 40, 20); ctx.stroke();
   ctx.fillStyle = '#39597a'; ctx.textAlign = 'center';
-  ctx.fillText(name, W / 2, 41);
+  ctx.fillText(name, CX, 41);
   ctx.restore();
 
   // ⌂ もどる
@@ -1202,11 +1383,11 @@ function drawToast() {
   const tw = ctx.measureText(toast.text).width + 60;
   const y = 96;
   ctx.fillStyle = toast.kind === 'miss' ? 'rgba(255,244,214,.95)' : 'rgba(230,247,255,.95)';
-  rr(W / 2 - tw / 2, y, tw, 56, 28); ctx.fill();
+  rr(CX - tw / 2, y, tw, 56, 28); ctx.fill();
   ctx.strokeStyle = toast.kind === 'miss' ? '#ffb703' : '#5b9bd5'; ctx.lineWidth = 3;
-  rr(W / 2 - tw / 2, y, tw, 56, 28); ctx.stroke();
+  rr(CX - tw / 2, y, tw, 56, 28); ctx.stroke();
   ctx.fillStyle = '#6b4b0e'; ctx.textAlign = 'center';
-  ctx.fillText(toast.text, W / 2, y + 38);
+  ctx.fillText(toast.text, CX, y + 38);
   ctx.restore();
 }
 function drawHintBubbles() {
@@ -1217,11 +1398,11 @@ function drawHintBubbles() {
   ctx.font = 'bold 17px sans-serif';
   const tw = ctx.measureText(m).width + 46;
   ctx.fillStyle = 'rgba(255,251,235,.95)';
-  rr(W / 2 - tw / 2, 62, tw, 38, 19); ctx.fill();
+  rr(CX - tw / 2, 62, tw, 38, 19); ctx.fill();
   ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2.5;
-  rr(W / 2 - tw / 2, 62, tw, 38, 19); ctx.stroke();
+  rr(CX - tw / 2, 62, tw, 38, 19); ctx.stroke();
   ctx.fillStyle = '#8a6d00'; ctx.textAlign = 'center';
-  ctx.fillText('💡 ' + m, W / 2, 88);
+  ctx.fillText('💡 ' + m, CX, 88);
   ctx.restore();
   if (hintStage >= 3) {
     for (const h of level.hints) {
@@ -1231,26 +1412,27 @@ function drawHintBubbles() {
   }
 }
 function drawDropMarker() {
-  // ボールがそらにあるとき: おちるよマーク
-  const b = level.ball;
-  let onGround = false;
-  for (const s of level.statics) {
-    const sr = { x: s.x - s.w / 2, y: s.y - s.h / 2, w: s.w, h: s.h };
-    if (b.x > sr.x - 4 && b.x < sr.x + sr.w + 4 && Math.abs((b.y + BALL_R) - sr.y) < 6) onGround = true;
+  if (scene !== 'edit') return;
+  for (const b of ballStarts()) {
+    let onGround = false;
+    for (const s of level.statics) {
+      const sr = { x: s.x - s.w / 2, y: s.y - s.h / 2, w: s.w, h: s.h };
+      if (b.x > sr.x - 4 && b.x < sr.x + sr.w + 4 && Math.abs((b.y + BALL_R) - sr.y) < 6) onGround = true;
+    }
+    if (onGround) continue;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(233,79,55,.4)'; ctx.lineWidth = 2.5; ctx.setLineDash([4, 8]);
+    ctx.beginPath(); ctx.moveTo(b.x, b.y + BALL_R + 6); ctx.lineTo(b.x, b.y + BALL_R + 44); ctx.stroke();
+    ctx.setLineDash([]);
+    const bob = Math.sin(globalT / 260) * 4;
+    ctx.fillStyle = 'rgba(233,79,55,.55)';
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y + BALL_R + 52 + bob);
+    ctx.lineTo(b.x - 8, b.y + BALL_R + 40 + bob);
+    ctx.lineTo(b.x + 8, b.y + BALL_R + 40 + bob);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
-  if (onGround || scene !== 'edit') return;
-  ctx.save();
-  ctx.strokeStyle = 'rgba(233,79,55,.4)'; ctx.lineWidth = 2.5; ctx.setLineDash([4, 8]);
-  ctx.beginPath(); ctx.moveTo(b.x, b.y + BALL_R + 6); ctx.lineTo(b.x, b.y + BALL_R + 44); ctx.stroke();
-  ctx.setLineDash([]);
-  const bob = Math.sin(globalT / 260) * 4;
-  ctx.fillStyle = 'rgba(233,79,55,.55)';
-  ctx.beginPath();
-  ctx.moveTo(b.x, b.y + BALL_R + 52 + bob);
-  ctx.lineTo(b.x - 8, b.y + BALL_R + 40 + bob);
-  ctx.lineTo(b.x + 8, b.y + BALL_R + 40 + bob);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
 }
 
 /* ---------- シーンえがき ---------- */
@@ -1266,14 +1448,18 @@ function drawGame(dt) {
   (level.fixed || []).forEach((p, i) => { p._bi = placements.length + i; drawGadget(p, p.fixedSwitch ? 1 : 0.95, false); });
   drawHintBubbles();
   drawTrail();
-  // ボール
-  if (scene === 'run' && ballBody) drawBall(ballBody.position.x, ballBody.position.y, ballBody.angle);
-  else { drawBall(level.ball.x, level.ball.y, 0); drawDropMarker(); }
+  // ボール(複数対応)
+  if (scene === 'run' && ballBodies.length) {
+    for (let bi = 0; bi < ballBodies.length; bi++) { if (!ballMeta[bi].alive) continue; drawBall(ballBodies[bi].position.x, ballBodies[bi].position.y, ballBodies[bi].angle, bi); }
+  } else {
+    ballStarts().forEach((s, bi) => drawBall(s.x, s.y, 0, bi));
+    drawDropMarker();
+  }
 
   // ドラッグ中のプレビュー
   if (drag) {
     const sx = snap(drag.x), sy = snap(Math.min(drag.y, STAGE_H));
-    if (drag.y < STAGE_H - 6) {
+    if (!overToolbox(drag.fx, drag.fy) && drag.x < STAGE_W) {
       const ok = canPlace(drag.type, sx, sy, drag.from === 'stage' ? drag.origIndex : -1);
       ctx.save();
       ctx.globalAlpha = 0.4;
@@ -1283,7 +1469,9 @@ function drawGame(dt) {
       ctx.restore();
       drawGadget({ type: drag.type, x: sx, y: sy, flip: drag.flip }, 0.55, false);
     }
-    drawGadget({ type: drag.type, x: drag.x, y: drag.y, flip: drag.flip }, 0.9, false);
+    // ゆびの うえに もちあげた どうぐ(タッチ時)。ゆびの いちに ちいさな まるも だす。
+    if (drag.lift) { ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.arc(drag.fx, drag.fy, 10, 0, 7); ctx.fill(); }
+    drawGadget({ type: drag.type, x: drag.x, y: drag.y, flip: drag.flip }, 0.92, false);
   }
 
   drawToolbox();
@@ -1297,14 +1485,17 @@ function drawGame(dt) {
     ctx.save();
     ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,.9)';
-    const msg = 'したの「さか」を ドラッグして おいてみよう！';
+    const msg = 'どうぐばこの「さか」を ドラッグして おいてみよう！';
     const tw = ctx.measureText(msg).width + 40;
-    rr(W / 2 - tw / 2, 370 + bob, tw, 40, 20); ctx.fill();
+    rr(CX - tw / 2, 370 + bob, tw, 40, 20); ctx.fill();
     ctx.fillStyle = '#39597a';
-    ctx.fillText(msg, W / 2, 396 + bob);
+    ctx.fillText(msg, CX, 396 + bob);
+    // どうぐ箱の さいしょの スロットへ ゆびマーク
+    const s0 = toolboxSlots()[0];
+    const ax = s0.x + s0.w / 2, ay = s0.y - 8;
     ctx.fillStyle = '#e94f37';
     ctx.beginPath();
-    ctx.moveTo(120, 452 + bob); ctx.lineTo(108, 430 + bob); ctx.lineTo(132, 430 + bob);
+    ctx.moveTo(ax, ay + 22 + bob); ctx.lineTo(ax - 12, ay + bob); ctx.lineTo(ax + 12, ay + bob);
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
@@ -1371,36 +1562,46 @@ function drawSelect() {
     const dx = Math.sin(globalT / 4000 + x) * 8;
     ctx.beginPath(); ctx.arc(x + dx, y, r, 0, 7); ctx.arc(x + dx + r, y + 8, r * 0.7, 0, 7); ctx.fill();
   }
+  // レイアウト (よこながは れつを ふやし、だんの かずに あわせて たてに おさめる)
+  const cols = landscape ? 7 : 5;
+  const rows = Math.ceil(LEVELS.length / cols);
+  const colGap = landscape ? 132 : 148;
+  const half = (cols - 1) / 2;
+  const gridTop = landscape ? 132 : 176;
+  const rowGap = Math.min(landscape ? 100 : 92, (H - gridTop - 18) / rows);
+  const r = Math.max(18, Math.min(landscape ? 30 : 36, rowGap * 0.4));
+
   // タイトル
   ctx.save();
   ctx.textAlign = 'center';
   const bob = Math.sin(globalT / 500) * 4;
-  ctx.font = 'bold 46px sans-serif';
+  ctx.font = 'bold ' + (landscape ? 40 : 46) + 'px sans-serif';
   ctx.fillStyle = '#39597a';
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 9; ctx.lineJoin = 'round';
-  ctx.strokeText('ころころスイッチこうぼう', W / 2, 105 + bob);
-  ctx.fillText('ころころスイッチこうぼう', W / 2, 105 + bob);
-  ctx.font = 'bold 19px sans-serif'; ctx.fillStyle = '#7c6a45';
-  ctx.fillText('どうぐを おいて ボールを ゴールまで はこぼう！', W / 2, 148 + bob);
+  const titleY = landscape ? 66 : 105;
+  ctx.strokeText('ころころスイッチこうぼう', W / 2, titleY + bob);
+  ctx.fillText('ころころスイッチこうぼう', W / 2, titleY + bob);
+  ctx.font = 'bold ' + (landscape ? 16 : 19) + 'px sans-serif'; ctx.fillStyle = '#7c6a45';
+  ctx.fillText('どうぐを おいて ボールを ゴールまで はこぼう！', W / 2, (landscape ? 100 : 148) + bob);
   ctx.restore();
-  drawBall(88 + Math.sin(globalT / 700) * 6, 96 + Math.abs(Math.sin(globalT / 350)) * -14, globalT / 400);
+  if (!landscape) drawBall(88 + Math.sin(globalT / 700) * 6, 96 + Math.abs(Math.sin(globalT / 350)) * -14, globalT / 400);
 
-  // レベルボタン (5れつ × 4だん)
+  // レベルボタン
   selectBtns = [];
   const unlocked = unlockedCount();
   for (let i = 0; i < LEVELS.length; i++) {
-    const col = i % 5, row = (i / 5) | 0;
-    const x = W / 2 + (col - 2) * 148;
-    const y = 202 + row * 96;
-    const b = { x, y, r: 38, idx: i };
+    const col = i % cols, row = (i / cols) | 0;
+    const x = W / 2 + (col - half) * colGap;
+    const y = gridTop + row * rowGap;
+    const b = { x, y, r, idx: i };
     selectBtns.push(b);
     const open = i < unlocked;
     const done = !!progress.stars[i + 1];
     circleBtn(b, done ? '#ffd166' : open ? '#5b9bd5' : '#c5cdd6');
-    if (done) drawStar(x, y - 5, 16, '#fff');
-    ctx.font = 'bold ' + (done ? 13 : 24) + 'px sans-serif'; ctx.textAlign = 'center';
+    if (done) drawStar(x, y - 5, r * 0.42, '#fff');
+    ctx.font = 'bold ' + (done ? 13 : Math.round(r * 0.63)) + 'px sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.fillText(String(i + 1), x, done ? y + 26 : y + 9);
+    ctx.fillText(String(i + 1), x, done ? y + r * 0.7 : y + 9);
     if (!open) {
       ctx.fillStyle = '#8b98a5';
       rr(x - 9, y - 6, 18, 15, 3); ctx.fill();
@@ -1409,7 +1610,7 @@ function drawSelect() {
     }
     ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = '#67573a';
-    ctx.fillText(LEVELS[i].name, x, y + 52);
+    ctx.fillText(LEVELS[i].name, x, y + r + 14);
   }
 }
 
@@ -1431,7 +1632,7 @@ let activePointer = null;
 canvas.addEventListener('pointerdown', e => {
   if (activePointer !== null) return;
   activePointer = e.pointerId;
-  canvas.setPointerCapture(e.pointerId);
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   audio();
   const p = evtPos(e);
 
@@ -1471,11 +1672,13 @@ canvas.addEventListener('pointerdown', e => {
   }
   if (scene !== 'edit') return;
 
+  // ゆびで つかんだ どうぐは、ゆびに かくれないよう すこし うえに もちあげて みせる
+  const lift = e.pointerType === 'touch' ? 82 : 0;
   // どうぐばこから
   for (const s of toolboxSlots()) {
     if (p.x > s.x && p.x < s.x + s.w && p.y > s.y && p.y < s.y + s.h && remainCount(s.type) > 0) {
       SND.pick();
-      drag = { type: s.type, x: p.x, y: p.y - 20, flip: false, from: 'box', origIndex: -1, moved: false, downX: p.x, downY: p.y, downT: performance.now() };
+      drag = { type: s.type, x: p.x, y: p.y - lift - (lift ? 0 : 20), fx: p.x, fy: p.y, lift, flip: false, from: 'box', origIndex: -1, moved: false, downX: p.x, downY: p.y, downT: performance.now() };
       return;
     }
   }
@@ -1484,14 +1687,15 @@ canvas.addEventListener('pointerdown', e => {
   if (idx >= 0) {
     const g0 = placements[idx];
     SND.pick();
-    drag = { type: g0.type, x: p.x, y: p.y, flip: g0.flip, from: 'stage', origIndex: idx, orig: Object.assign({}, g0), moved: false, downX: p.x, downY: p.y, downT: performance.now() };
+    drag = { type: g0.type, x: p.x, y: p.y - lift, fx: p.x, fy: p.y, lift, flip: g0.flip, from: 'stage', origIndex: idx, orig: Object.assign({}, g0), moved: false, downX: p.x, downY: p.y, downT: performance.now() };
     return;
   }
 });
 canvas.addEventListener('pointermove', e => {
   if (e.pointerId !== activePointer || !drag) return;
   const p = evtPos(e);
-  drag.x = p.x; drag.y = p.y;
+  drag.fx = p.x; drag.fy = p.y;
+  drag.x = p.x; drag.y = p.y - drag.lift;
   if (Math.hypot(p.x - drag.downX, p.y - drag.downY) > 10) drag.moved = true;
 });
 function endDrag(e) {
@@ -1499,7 +1703,6 @@ function endDrag(e) {
   activePointer = null;
   if (!drag) return;
   const d = drag; drag = null;
-  const p = evtPos(e);
 
   // タップ(うごかしてない) → はんてん
   if (d.from === 'stage' && !d.moved && performance.now() - d.downT < 400) {
@@ -1508,13 +1711,13 @@ function endDrag(e) {
     else { SND.tap(); }
     return;
   }
-  // どうぐばこへドロップ → もどす
-  if (p.y > STAGE_H - 6) {
+  // どうぐばこへドロップ(ゆびが どうぐ箱の うえ) → もどす
+  if (overToolbox(d.fx, d.fy)) {
     if (d.from === 'stage') { placements.splice(d.origIndex, 1); SND.back(); }
     else SND.back();
     return;
   }
-  const sx = snap(p.x), sy = snap(Math.min(p.y, STAGE_H));
+  const sx = snap(d.x), sy = snap(Math.min(d.y, STAGE_H));
   if (canPlace(d.type, sx, sy, d.from === 'stage' ? d.origIndex : -1)) {
     if (d.from === 'stage') {
       placements[d.origIndex].x = sx; placements[d.origIndex].y = sy;
