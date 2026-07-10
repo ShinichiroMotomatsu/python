@@ -34,14 +34,33 @@
  *      - Google Sheets への読み書き
  *      - 外部API呼び出し (Gemini)
  *      - スクリプトプロパティの読み書き
+ *
+ *  結果の通知:
+ *    結果は Google Sheets に蓄積されます。受験者本人は提出直後の結果画面、
+ *    管理者は <URL>?page=dashboard でダッシュボードを参照してください。
  * ============================================================================
  */
 
 // ---------------- Configuration ----------------
+// dashboard.html の CLIENT_BUILD と必ず一致させる。Code.gs を更新したら
+// この値も更新して、Web App の「新バージョン」デプロイを発行する。
+// ダッシュボード上のバッジに DASH/SRV 双方のビルド ID が並び、Web App
+// デプロイが古いままだと SRV 側が一致せず赤バッジで警告される。
+const SERVER_BUILD        = '2026-06-01-offline-json-upload';
+function getServerVersion() { return SERVER_BUILD; }
+
 const SHEET_ID_PROP       = 'ASSESSMENT_SHEET_ID';
 const GEMINI_API_KEY_PROP = 'GEMINI_API_KEY';
 const SHEET_NAME          = 'Results';
 const GEMINI_MODEL        = 'gemini-2.5-flash';
+// 503/429/5xx のときは順にフォールバックを試す。最初に成功したモデルの結果を採用する。
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash'
+];
+// 各モデルでこの回数までリトライ(初回 + リトライ)。バックオフは 2s, 5s, 11s …
+const GEMINI_MAX_ATTEMPTS = 4;
 
 // 合格カテゴリの閾値 (SaaS企業 ビジネスサイド管理職の期待水準)
 const PASS_PCT      = 0.60;   // 60% 未満は「要努力」
@@ -102,18 +121,20 @@ function setupSpreadsheet() {
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     sheet.appendRow([
-      'submissionId','受験日時','氏名','所属','受験者メール','評価者メール','所要(秒)',
-      'A_got','A_max','B_got','B_max','C_got','C_max','E_got','E_max','D_got','D_max',
+      'submissionId','受験日時','氏名','所属','所要(秒)',
+      'A_got','A_max','B_got','B_max','C_got','C_max','D_got','D_max',
       '総合','満点','達成率(%)','カテゴリ',
-      'Gemini評価(JSON)','回答ログ(JSON)'
+      'Gemini評価(JSON)','回答ログ(JSON)',
+      'モード','職種大分類','職種(詳細)','AI活用記述','AI評価アドバイス(JSON)'
     ]);
     sheet.setFrozenRows(1);
     sheet.getRange(1,1,1,sheet.getLastColumn()).setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
-    // Reasonable widths
     sheet.setColumnWidth(1, 280); // submissionId
     sheet.setColumnWidth(2, 150); // timestamp
     sheet.setColumnWidth(3, 120); // 氏名
-    sheet.setColumnWidth(22, 200); sheet.setColumnWidth(23, 200);
+    sheet.setColumnWidth(18, 200); sheet.setColumnWidth(19, 200); // JSON columns
+    sheet.setColumnWidth(20, 90); sheet.setColumnWidth(21, 140); sheet.setColumnWidth(22, 200);
+    sheet.setColumnWidth(23, 280); sheet.setColumnWidth(24, 280);
   }
   const url = ss.getUrl();
   Logger.log('結果保存シートを準備しました: ' + url);
@@ -125,9 +146,9 @@ function setupSpreadsheet() {
  * クライアントから提出された結果を受け取り、Gemini で D を採点し、保存する。
  * payload schema:
  *   {
- *     examinee: { name, role, email, evaluatorEmail },
+ *     examinee: { name, role },
  *     elapsedSec: number,
- *     autoScores: { A:{got,max}, B:{got,max}, C:{got,max}, E:{got,max} },
+ *     autoScores: { A:{got,max}, B:{got,max}, C:{got,max} },
  *     sectionD: [ { id, skill, prompt, rubric:[5項目], answer, points } ],
  *     questionsLog: [ ... 監査用 ... ]
  *   }
@@ -143,20 +164,40 @@ function submitAssessment(payload) {
 
     // 2) スコア集計
     const sec = payload.autoScores;
-    const totalAuto = (sec.A.got||0) + (sec.B.got||0) + (sec.C.got||0) + (sec.E.got||0);
-    const maxAuto   = (sec.A.max||0) + (sec.B.max||0) + (sec.C.max||0) + (sec.E.max||0);
+    const totalAuto = (sec.A.got||0) + (sec.B.got||0) + (sec.C.got||0);
+    const maxAuto   = (sec.A.max||0) + (sec.B.max||0) + (sec.C.max||0);
     const totalScore = totalAuto + dResult.totalScore;
     const totalMax   = maxAuto + dResult.totalMax;
     const dPct = dResult.totalMax > 0 ? (dResult.totalScore / dResult.totalMax) : 0;
     const totalPct = totalMax > 0 ? (totalScore / totalMax) : 0;
     const category = categorize_(totalPct, dPct);
 
-    // 3) Sheets に保存
+    // 3) Gemini に「総合評価・現状の使い方コメント・今後のアドバイス」を生成依頼
+    //    失敗しても提出は成功扱いとし、advice 部分は空で記録する
+    let advice = null;
+    try {
+      advice = generateAssessmentAdvice_({
+        examinee: payload.examinee,
+        sec, dResult, totalScore, totalMax,
+        totalPct: totalPct * 100, dPct: dPct * 100,
+        category, dailyUsage: payload.dailyUsage || ''
+      });
+    } catch (adviceErr) {
+      Logger.log('advice generation failed: ' + (adviceErr.message || adviceErr));
+      advice = { _error: String(adviceErr.message || adviceErr) };
+    }
+
+    // 4) Sheets に保存
     const submissionId = Utilities.getUuid();
     saveToSheet_({
       submissionId, examinee: payload.examinee, elapsedSec: payload.elapsedSec || 0,
       sec, dResult, totalScore, totalMax, category,
-      questionsLog: payload.questionsLog || []
+      questionsLog: payload.questionsLog || [],
+      mode: payload.examinee.mode || '',
+      jobCategory: payload.examinee.jobCategory || '',
+      jobTitle: payload.examinee.jobTitle || '',
+      dailyUsage: payload.dailyUsage || '',
+      advice: advice
     });
 
     return {
@@ -171,11 +212,175 @@ function submitAssessment(payload) {
         passPct: PASS_PCT * 100,
         excellentPct: EXCELLENT_PCT * 100,
         dMinPct: D_MIN_PCT * 100
-      }
+      },
+      advice: advice
     };
   } catch (err) {
     return { success: false, error: String(err.message || err) };
   }
+}
+
+// ---------------- AI 評価アドバイス生成 ----------------
+/**
+ * Gemini に「総合評価 / カテゴリ別理解状況 / 現状の使い方の評価 / 今後のアドバイス」
+ * を一括生成依頼する。職種・モードに応じてプロンプトを切り替える。
+ */
+function generateAssessmentAdvice_(s) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty(GEMINI_API_KEY_PROP);
+  if (!apiKey) throw new Error('GEMINI_API_KEY 未設定のため、アドバイス生成をスキップします');
+
+  const modeLabel = s.examinee.mode === 'onboarding' ? '管理職オンボーディング(昇格後3か月時点)' : '昇格試験(非管理職)';
+  const audienceLabel = s.examinee.mode === 'onboarding'
+    ? '管理職オンボーディングモード(昇格後3か月時点での役員面談の補助資料)'
+    : '昇格試験モード(管理職昇格試験の面接の補助資料)';
+
+  // セクション別評価のサマリ
+  const dEvalsSummary = (s.dResult.evaluations || []).map((e, i) =>
+    'D' + (i+1) + ' [' + (e.skill||'') + '] ' + (e.subtotal||0) + '/' + (e.maxPoints||15) +
+    ' (' + (e.verdict||'') + ')'
+  ).join('\n');
+
+  const dailyUsageBlock = (s.dailyUsage && s.dailyUsage.trim().length > 0)
+    ? s.dailyUsage.trim()
+    : '(受験者からの記載なし)';
+
+  const prompt =
+    'あなたは、ある SaaS 企業(ラクス)の人材開発を支援する評価コメンテーターです。\n' +
+    '受験者の AI アセスメント結果と本人の業務上の AI 活用状況の自由記載をもとに、面談で使う補助資料として\n' +
+    '「総合評価」「セクション別の理解状況コメント」「現状の使い方への評価」「今後推奨される使い方のアドバイス」\n' +
+    'を、職種特性を踏まえて日本語で生成してください。\n\n' +
+    '【利用シーン】\n' + audienceLabel + '\n\n' +
+    '【受験者情報】\n' +
+    '- 氏名:' + (s.examinee.name || '') + '\n' +
+    '- 所属:' + (s.examinee.role || '') + '\n' +
+    '- 職種大分類:' + (s.examinee.jobCategory || '') + '\n' +
+    '- 職種(詳細):' + (s.examinee.jobTitle || '') + '\n' +
+    '- 受験モード:' + modeLabel + '\n\n' +
+    '【スコア】\n' +
+    '- A. L1 基礎理解              : ' + s.sec.A.got + '/' + s.sec.A.max + '\n' +
+    '- B. L2 業務活用判断          : ' + s.sec.B.got + '/' + s.sec.B.max + '\n' +
+    '- C. L3 マネジメント応用      : ' + s.sec.C.got + '/' + s.sec.C.max + '\n' +
+    '- D. プロンプト記述 (Gemini)  : ' + s.dResult.totalScore + '/' + s.dResult.totalMax + '\n' +
+    '- 総合                       : ' + s.totalScore + '/' + s.totalMax + ' (' + Math.round(s.totalPct*10)/10 + '%)\n' +
+    '- 判定カテゴリ               : ' + s.category + '\n\n' +
+    '【セクションDの個別評価】\n' + (dEvalsSummary || '(評価無し)') + '\n\n' +
+    '【受験者本人による「日々の業務で AI をどう使っているか」の自由記載】\n' + dailyUsageBlock + '\n\n' +
+    '【生成上の注意】\n' +
+    '- 全文を通して敬体(です・ます)で書くこと\n' +
+    '- 受験者の職種特性を踏まえて、当該職種で AI 活用が効くシーンを具体的に挙げること\n' +
+    (s.examinee.mode === 'onboarding'
+      ? '- 「数値マネジメント」「ピープルマネジメント」での AI 活用を必ず一言以上触れること\n'
+      : '- 個人業務の効率化と、チームの成果最大化(非管理職でもできる範囲)の両面を触れること\n') +
+    '- 称賛だけでなく、実行可能な具体提案(プロンプトの型・ツール選び・運用習慣)を 2〜4 個含めること\n' +
+    '- 自由記載が無い場合は「日常活用の言語化が不足している」点を率直に指摘すること\n' +
+    '- セキュリティ(ラクス AIサービス利活用ガイドライン:認証情報・NDA下他社秘密・顧客委託個人情報の入力NG)に反する記載があれば、必ず注意喚起すること';
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      overall_summary:          { type: 'STRING' },
+      category_assessment: {
+        type: 'OBJECT',
+        properties: {
+          A: { type: 'STRING' },
+          B: { type: 'STRING' },
+          C: { type: 'STRING' },
+          D: { type: 'STRING' }
+        },
+        required: ['A','B','C','D']
+      },
+      current_usage_assessment: { type: 'STRING' },
+      advice:                   { type: 'STRING' }
+    },
+    required: ['overall_summary','category_assessment','current_usage_assessment','advice']
+  };
+
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.3,
+      responseMimeType: 'application/json',
+      responseSchema: schema
+    }
+  };
+
+  const { jsonStr } = callGeminiWithRetry_(body, apiKey);
+  const parsed = JSON.parse(jsonStr);
+  return parsed;
+}
+
+// HTTP コードが transient(リトライする価値あり)か判定
+function isTransientHttpCode_(code) {
+  return code === 429 || code === 500 || code === 502 || code === 503 || code === 504;
+}
+
+// Gemini API を1モデル × 1回呼び出して { code, text } を返す
+function callGeminiOnce_(model, body, apiKey) {
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model +
+              ':generateContent?key=' + encodeURIComponent(apiKey);
+  const res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  });
+  return { code: res.getResponseCode(), text: res.getContentText() };
+}
+
+/**
+ * GEMINI_MODELS の各モデルに対して指数バックオフでリトライしつつ呼び出す。
+ * 503/429/5xx は transient とみなしリトライ。
+ * いずれかのモデルが 2xx を返したら { jsonStr, modelUsed } を返す。
+ * 全モデル全リトライが失敗した場合のみ throw。
+ */
+function callGeminiWithRetry_(body, apiKey) {
+  const errors = [];
+  for (let m = 0; m < GEMINI_MODELS.length; m++) {
+    const model = GEMINI_MODELS[m];
+    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+      let code, text;
+      try {
+        const r = callGeminiOnce_(model, body, apiKey);
+        code = r.code; text = r.text;
+      } catch (netErr) {
+        // ネットワーク/タイムアウト系も transient 扱いで再試行
+        errors.push(model + ' attempt ' + attempt + ': ' + String(netErr.message || netErr));
+        if (attempt < GEMINI_MAX_ATTEMPTS) { Utilities.sleep(backoffMs_(attempt)); continue; }
+        break;
+      }
+
+      if (code >= 200 && code < 300) {
+        let data;
+        try { data = JSON.parse(text); } catch (e) {
+          errors.push(model + ' attempt ' + attempt + ': JSON parse failed');
+          break;
+        }
+        if (!data.candidates || !data.candidates[0] ||
+            !data.candidates[0].content || !data.candidates[0].content.parts ||
+            !data.candidates[0].content.parts[0]) {
+          errors.push(model + ' attempt ' + attempt + ': empty candidates (finishReason=' + (data.candidates && data.candidates[0] && data.candidates[0].finishReason) + ')');
+          break;
+        }
+        return { jsonStr: data.candidates[0].content.parts[0].text, modelUsed: model };
+      }
+
+      errors.push(model + ' attempt ' + attempt + ': HTTP ' + code + ' ' + text.substring(0, 200));
+      if (!isTransientHttpCode_(code)) break; // 4xx (auth/quota永続) はモデル変えても無駄なので次へ
+      if (attempt < GEMINI_MAX_ATTEMPTS) Utilities.sleep(backoffMs_(attempt));
+    }
+  }
+  throw new Error(
+    'Gemini API が一時的に応答しません(' + GEMINI_MODELS.length + 'モデル × ' + GEMINI_MAX_ATTEMPTS +
+    '回まで再試行しました)。数分待ってから再提出してください。\n詳細:\n  - ' +
+    errors.slice(-6).join('\n  - ')
+  );
+}
+
+// attempt=1 → 2000ms, attempt=2 → 5000ms, attempt=3 → 11000ms, attempt=4 → 23000ms (±20% jitter)
+function backoffMs_(attempt) {
+  const base = Math.pow(2, attempt) * 1000 + Math.pow(2, attempt - 1) * 1000;
+  const jitter = base * 0.2 * (Math.random() * 2 - 1);
+  return Math.round(base + jitter);
 }
 
 function categorize_(totalPct, dPct) {
@@ -222,7 +427,6 @@ function gradeSectionDWithGemini_(sectionDQAs) {
     required: ['evaluations','totalScore','overallSummary']
   };
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(apiKey);
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
@@ -232,20 +436,11 @@ function gradeSectionDWithGemini_(sectionDQAs) {
     }
   };
 
-  const response = UrlFetchApp.fetch(url, {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(body),
-    muteHttpExceptions: true
-  });
-  const code = response.getResponseCode();
-  const text = response.getContentText();
-  if (code >= 400) throw new Error('Gemini API エラー (HTTP ' + code + '): ' + text.substring(0, 500));
-
-  const data = JSON.parse(text);
-  if (!data.candidates || !data.candidates[0]) throw new Error('Gemini レスポンスが空です');
-  const jsonStr = data.candidates[0].content.parts[0].text;
+  const { jsonStr, modelUsed } = callGeminiWithRetry_(body, apiKey);
   const parsed = JSON.parse(jsonStr);
+  if (modelUsed !== GEMINI_MODELS[0]) {
+    Logger.log('Gemini fallback model used: ' + modelUsed);
+  }
 
   // Sanity-clamp scores per question, recompute totals
   let runningTotal = 0;
@@ -316,19 +511,21 @@ function saveToSheet_(o) {
     new Date(),
     o.examinee.name || '',
     o.examinee.role || '',
-    o.examinee.email || '',
-    o.examinee.evaluatorEmail || '',
     o.elapsedSec || 0,
     o.sec.A.got, o.sec.A.max,
     o.sec.B.got, o.sec.B.max,
     o.sec.C.got, o.sec.C.max,
-    o.sec.E.got, o.sec.E.max,
     o.dResult.totalScore, o.dResult.totalMax,
     o.totalScore, o.totalMax,
     o.totalMax > 0 ? (o.totalScore / o.totalMax * 100).toFixed(1) : '0',
     o.category,
     JSON.stringify(o.dResult),
-    JSON.stringify(o.questionsLog).substring(0, 49000) // セル上限対策
+    JSON.stringify(o.questionsLog).substring(0, 49000), // セル上限対策
+    o.mode || '',
+    o.jobCategory || '',
+    o.jobTitle || '',
+    (o.dailyUsage || '').substring(0, 4900),
+    o.advice ? JSON.stringify(o.advice).substring(0, 9000) : ''
   ]);
 }
 
@@ -357,15 +554,17 @@ function getDashboardData() {
     dMaxSum += parseInt(r[ix['D_max']] || 0);
 
     rows.push({
+      rowIndex: i + 1, // 1-based sheet row number (header is row 1)
       submissionId: r[ix['submissionId']],
       timestamp: r[ix['受験日時']] ? Utilities.formatDate(new Date(r[ix['受験日時']]), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm') : '',
       name: r[ix['氏名']],
       role: r[ix['所属']],
-      email: r[ix['受験者メール']],
+      mode: ix['モード'] != null ? r[ix['モード']] : '',
+      jobCategory: ix['職種大分類'] != null ? r[ix['職種大分類']] : '',
+      jobTitle: ix['職種(詳細)'] != null ? r[ix['職種(詳細)']] : '',
       A: r[ix['A_got']] + '/' + r[ix['A_max']],
       B: r[ix['B_got']] + '/' + r[ix['B_max']],
       C: r[ix['C_got']] + '/' + r[ix['C_max']],
-      E: r[ix['E_got']] + '/' + r[ix['E_max']],
       D: r[ix['D_got']] + '/' + r[ix['D_max']],
       total: r[ix['総合']] + '/' + r[ix['満点']],
       percent: r[ix['達成率(%)']],
@@ -392,25 +591,317 @@ function getDashboardData() {
   };
 }
 
-function getSubmissionDetail(submissionId) {
-  const sheet = getOrCreateSheet_();
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const idCol = headers.indexOf('submissionId');
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][idCol] === submissionId) {
-      const obj = {};
-      headers.forEach((h, j) => obj[h] = data[i][j]);
-      try { obj.dResultParsed = JSON.parse(obj['Gemini評価(JSON)']); } catch (e) { obj.dResultParsed = null; }
-      try { obj.qLogParsed = JSON.parse(obj['回答ログ(JSON)']); } catch (e) { obj.qLogParsed = null; }
-      // timestamp 整形
-      if (obj['受験日時']) {
-        obj.timestamp = Utilities.formatDate(new Date(obj['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
-      }
-      return obj;
+/**
+ * 指定された行(1-based、ヘッダ行は1)の受験詳細を返す。
+ * シート schema の差異/ヘッダ名のズレ/列位置の変動に強い設計:
+ *  1) ヘッダ行と対象行をそのまま読む
+ *  2) ヘッダ名で obj を作る(ヘッダ通りのアクセスが効く場合)
+ *  3) ヘッダが壊れていても、行内の文字列値をスキャンして
+ *     dResult JSON / qLog JSON を発見できれば拾う
+ *  4) 必ずオブジェクトを返す(null を返さない)。何かおかしければ
+ *     _diagnostic にその情報を入れる。
+ */
+function getSubmissionByRow(rowIndex) {
+  const out = { _diagnostic: {} };
+  try {
+    const sheet = getOrCreateSheet_();
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    out._diagnostic.sheetName    = sheet.getName();
+    out._diagnostic.lastRow      = lastRow;
+    out._diagnostic.lastCol      = lastCol;
+    out._diagnostic.requestedRow = rowIndex;
+
+    if (!rowIndex || rowIndex < 2 || rowIndex > lastRow) {
+      out._diagnostic.error = 'rowIndex が範囲外です (要求=' + rowIndex + ', 有効=2〜' + lastRow + ')';
+      return out;
     }
+
+    const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    const row     = sheet.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
+    out._diagnostic.headers = headers;
+
+    headers.forEach((h, j) => { if (h) out[String(h).trim()] = row[j]; });
+
+    // dResult / qLog JSON の発掘
+    let dJsonRaw = out['Gemini評価(JSON)'];
+    let qJsonRaw = out['回答ログ(JSON)'];
+    if (typeof dJsonRaw !== 'string' || typeof qJsonRaw !== 'string') {
+      // ヘッダ名と一致しなくても、行内の文字列値からそれっぽいものを拾う
+      for (let i = 0; i < row.length; i++) {
+        const v = row[i];
+        if (typeof v !== 'string') continue;
+        const s = v.trim();
+        if ((typeof dJsonRaw !== 'string') && s.charAt(0) === '{' && s.indexOf('"evaluations"') >= 0) dJsonRaw = s;
+        if ((typeof qJsonRaw !== 'string') && s.charAt(0) === '[') qJsonRaw = s;
+      }
+    }
+
+    try { out.dResultParsed = (typeof dJsonRaw === 'string') ? JSON.parse(dJsonRaw) : null; }
+    catch (e) { out.dResultParsed = null; out._diagnostic.dParseError = String(e.message || e); }
+    try { out.qLogParsed = (typeof qJsonRaw === 'string') ? JSON.parse(qJsonRaw) : null; }
+    catch (e) { out.qLogParsed = null; out._diagnostic.qParseError = String(e.message || e); }
+
+    // AI 評価アドバイス JSON もパース
+    const adviceRaw = out['AI評価アドバイス(JSON)'];
+    if (typeof adviceRaw === 'string' && adviceRaw.trim().length > 0) {
+      try { out.adviceParsed = JSON.parse(adviceRaw); }
+      catch (e) { out.adviceParsed = null; out._diagnostic.adviceParseError = String(e.message || e); }
+    } else {
+      out.adviceParsed = null;
+    }
+
+    if (out['受験日時']) {
+      try { out.timestamp = Utilities.formatDate(new Date(out['受験日時']), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm'); } catch (e) {}
+    }
+    return out;
+  } catch (e) {
+    out._diagnostic.error = String(e.message || e);
+    return out;
   }
-  return null;
+}
+
+/**
+ * 後方互換: submissionId 文字列から行を引く。
+ * 新規 UI は getSubmissionDetailFlexible を使うこと。
+ */
+function getSubmissionDetail(submissionId) {
+  return getSubmissionDetailFlexible({ submissionId: submissionId });
+}
+
+/**
+ * 行番号 / submissionId のどちらか(または両方)で受験詳細を取得する。
+ *   1) rowIndex が有効ならそれで読む
+ *   2) ダメなら submissionId 列を探して該当行を見つけて読む
+ *   3) どちらも失敗したら必ず _diagnostic 入りオブジェクトを返す
+ * クライアントは null チェックする必要なく、d._diagnostic.error の有無で
+ * 結果の信頼性を判断できる。
+ */
+function getSubmissionDetailFlexible(query) {
+  query = query || {};
+  const sheet = getOrCreateSheet_();
+  const lastRow = sheet.getLastRow();
+
+  // (1) rowIndex 直接
+  if (query.rowIndex && Number(query.rowIndex) >= 2 && Number(query.rowIndex) <= lastRow) {
+    const r = getSubmissionByRow(Number(query.rowIndex));
+    if (r && !r._diagnostic.error) return r;
+  }
+
+  // (2) submissionId フォールバック
+  if (query.submissionId) {
+    const data = sheet.getDataRange().getValues();
+    if (data && data.length >= 2) {
+      const headers = data[0];
+      let idCol = headers.indexOf('submissionId');
+      // ヘッダ名がブレている場合は列0(常に submissionId を最初に書いている)を当てにする
+      if (idCol < 0) idCol = 0;
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][idCol]) === String(query.submissionId)) {
+          const r = getSubmissionByRow(i + 1);
+          r._diagnostic.matchedBy = 'submissionId';
+          return r;
+        }
+      }
+    }
+    return {
+      _diagnostic: {
+        error: 'submissionId に一致する行が見つかりませんでした',
+        searchedSubmissionId: query.submissionId,
+        sheetName: sheet.getName(),
+        lastRow: lastRow
+      }
+    };
+  }
+
+  return {
+    _diagnostic: {
+      error: 'rowIndex も submissionId も指定されていません',
+      query: query
+    }
+  };
+}
+
+/**
+ * 同上を「JSON 文字列で返す」バリアント。
+ * 既知の問題: google.script.run はサーバ側で正しく構築したオブジェクトを
+ * クライアントへ運ぶ際に null に化けるケースが報告されている(オブジェクト内に
+ * Date / 親オブジェクトキーが括弧を含む等の組み合わせで発生しうる)。
+ * ここでは responseObj を JSON.stringify してプレーン文字列として返すことで、
+ * 経路の serialize 周りの揺れを回避する。クライアント側で JSON.parse する。
+ */
+function getSubmissionDetailFlexibleString(query) {
+  const obj = getSubmissionDetailFlexible(query);
+  try {
+    // 受験日時(Date) を文字列化してから stringify(循環参照は元から無いが念のため)
+    const safe = (function clone(v){
+      if (v === null || v === undefined) return v;
+      if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+      if (Array.isArray(v)) return v.map(clone);
+      if (typeof v === 'object') {
+        const out = {};
+        Object.keys(v).forEach(k => { out[k] = clone(v[k]); });
+        return out;
+      }
+      return v;
+    })(obj);
+    return JSON.stringify(safe);
+  } catch (e) {
+    return JSON.stringify({ _diagnostic: { error: 'serializeError: ' + (e.message || e) } });
+  }
+}
+
+// ---------------- Sheet migration ----------------
+/**
+ * シートを現行の 24 列スキーマに正規化する。
+ *
+ * 過去のバージョンでヘッダが {21列(メール列あり) / 19列(メール列なし) /
+ * 24列(現行)} と変わってきており、運用中のシートではヘッダ行と
+ * 実データの位置がズレている可能性がある。本関数は:
+ *   1) 元のシートを Results_backup_yyyyMMdd_HHmmss にリネームして退避
+ *   2) 新しい Results シートを 24 列スキーマで再作成
+ *   3) 旧データを 1 行ずつ「内容」から書式バージョンを推定して正規化し再書き込み
+ *
+ * 推定ロジック: 5列目(E列)がメールアドレスっぽい文字列なら 21列スキーマ、
+ *               そうでなければ 19列もしくは 24列スキーマと判定する。
+ *
+ * 実行手順(スクリプトエディタから):
+ *   1. シートを開いて事前に手動バックアップ(念のため)
+ *   2. migrateSheetToCanonicalSchema を実行
+ *   3. 実行ログでバックアップ名と移行件数を確認
+ *   4. 新 Results シートを開いて、列ヘッダと値の整合を目視確認
+ *
+ * 一度しか実行する必要はない。再実行する場合はバックアップシートが
+ * もう一段増えるだけ。
+ */
+
+
+function migrateSheetToCanonicalSchema() {
+  const ssId = PropertiesService.getScriptProperties().getProperty(SHEET_ID_PROP);
+  if (!ssId) throw new Error('SHEET_ID_PROP が未設定です。先に setupSpreadsheet を実行してください。');
+  const ss = SpreadsheetApp.openById(ssId);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) throw new Error('"' + SHEET_NAME + '" シートが見つかりません');
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 1) { Logger.log('データが無いため移行不要'); return; }
+
+  const CANONICAL_HEADERS = [
+    'submissionId','受験日時','氏名','所属','所要(秒)',
+    'A_got','A_max','B_got','B_max','C_got','C_max','D_got','D_max',
+    '総合','満点','達成率(%)','カテゴリ',
+    'Gemini評価(JSON)','回答ログ(JSON)',
+    'モード','職種大分類','職種(詳細)','AI活用記述','AI評価アドバイス(JSON)'
+  ];
+
+  // メール文字列っぽいか(@ を含むか) を判定するヘルパ
+  const looksEmail = v => typeof v === 'string' && v.indexOf('@') > 0;
+
+  const normalized = [];
+  const stats = { v21:0, v19:0, v24:0, unknown:0 };
+
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    // 行のスキーマを推定
+    const col4 = r[4], col5 = r[5];
+    let schema;
+    if (looksEmail(col4) || looksEmail(col5)) {
+      schema = 21; // 受験者メール / 評価者メール 列が残っている
+    } else if (r.length >= 20 && (r[19] === 'promotion' || r[19] === 'onboarding')) {
+      schema = 24; // モード列が入っている現行
+    } else {
+      schema = 19; // メール列無し、追加5列も無し
+    }
+    stats['v' + schema]++;
+
+    let row;
+    if (schema === 21) {
+      row = [
+        r[0], r[1], r[2], r[3],          // subId, date, name, role
+        r[6],                             // elapsed(7番目)
+        r[7], r[8], r[9], r[10], r[11], r[12], r[13], r[14],
+        r[15], r[16], r[17], r[18],
+        r[19], r[20],
+        '', '', '', '', ''
+      ];
+    } else if (schema === 19) {
+      row = [
+        r[0], r[1], r[2], r[3], r[4],
+        r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12],
+        r[13], r[14], r[15], r[16],
+        r[17], r[18],
+        '', '', '', '', ''
+      ];
+    } else {
+      // 24 列(現行スキーマ)はそのまま24列分を取り出す
+      row = [];
+      for (let j = 0; j < 24; j++) row.push(j < r.length ? r[j] : '');
+    }
+    normalized.push(row);
+  }
+
+  // 旧シートをタイムスタンプ付きでリネームしてバックアップ
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
+  const backupName = SHEET_NAME + '_backup_' + stamp;
+  sheet.setName(backupName);
+
+  // 新しい Results シートを 24 列スキーマで作成
+  const ns = ss.insertSheet(SHEET_NAME);
+  ns.appendRow(CANONICAL_HEADERS);
+  ns.setFrozenRows(1);
+  ns.getRange(1, 1, 1, CANONICAL_HEADERS.length)
+    .setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+  ns.setColumnWidth(1, 280); ns.setColumnWidth(2, 150); ns.setColumnWidth(3, 120);
+  ns.setColumnWidth(18, 200); ns.setColumnWidth(19, 200);
+  ns.setColumnWidth(20, 90);  ns.setColumnWidth(21, 140); ns.setColumnWidth(22, 200);
+  ns.setColumnWidth(23, 280); ns.setColumnWidth(24, 280);
+
+  if (normalized.length > 0) {
+    ns.getRange(2, 1, normalized.length, CANONICAL_HEADERS.length).setValues(normalized);
+  }
+
+  Logger.log('Migration 完了');
+  Logger.log('  バックアップ: ' + backupName + ' (元データはそのまま保持)');
+  Logger.log('  移行件数: ' + normalized.length + ' 行');
+  Logger.log('  スキーマ別内訳: 21列(旧emailあり)=' + stats.v21 +
+             ' / 19列(emailなし)=' + stats.v19 +
+             ' / 24列(現行)=' + stats.v24);
+}
+
+/**
+ * デバッグ用: ダッシュボードの「詳細」ボタンと同じ経路でサーバ側を呼び出し、
+ * 戻り値の構造を Logger.log で確認する。スクリプトエディタから直接実行する。
+ *
+ * 「サーバから空の応答が返りました」が出るケースの切り分けに使う:
+ *   - この関数で `out` がオブジェクトとして返れば、サーバ側のロジックは健全。
+ *     → 原因はクライアント側のキャッシュやデプロイバージョン古い問題。
+ *   - この関数自体がエラーで止まれば、サーバ側にバグあり。エラー文を確認。
+ *   - 期待した内容と違う(例:diagnostic にエラー)ならログを共有。
+ */
+function debugSubmissionDetailLookup(rowIndex) {
+  const rIdx = Number(rowIndex) || 2;
+  Logger.log('=== getSubmissionDetailFlexible({rowIndex: ' + rIdx + '}) を実行 ===');
+  let r;
+  try {
+    r = getSubmissionDetailFlexible({ rowIndex: rIdx, submissionId: '' });
+  } catch (e) {
+    Logger.log('!! サーバー関数自体が例外: ' + (e.message || e));
+    Logger.log('   stack: ' + (e.stack || '(stack なし)'));
+    return { error: String(e.message || e) };
+  }
+  Logger.log('returned typeof: ' + typeof r);
+  Logger.log('returned is null?: ' + (r === null));
+  Logger.log('returned is undefined?: ' + (r === undefined));
+  if (r && typeof r === 'object') {
+    Logger.log('keys: ' + Object.keys(r).join(', '));
+    if (r._diagnostic) Logger.log('_diagnostic: ' + JSON.stringify(r._diagnostic, null, 2));
+    Logger.log('氏名: ' + r['氏名']);
+    Logger.log('カテゴリ: ' + r['カテゴリ']);
+    Logger.log('総合/満点: ' + r['総合'] + ' / ' + r['満点']);
+    Logger.log('dResultParsed type: ' + typeof r.dResultParsed);
+    Logger.log('adviceParsed type: ' + typeof r.adviceParsed);
+  }
+  return r;
 }
 
 // Optional: quick health check from the script editor.

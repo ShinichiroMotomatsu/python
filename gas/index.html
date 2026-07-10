@@ -107,19 +107,21 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 
   <h2>受験要領</h2>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>70分</b>(時間切れで自動提出)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>全29問 / セクションA〜E / 152点満点</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 98/152 点(64%)以上</b> かつ <b>セクションD ≧ 45/75 点</b></td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>セクションA〜C は自動採点 / セクションD は提出後にAIによる評価(評価者がGeminiに評価プロンプトを貼って実施)</td></tr>
-    <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
+    <tr><td style="padding:6px 0;width:120px;color:var(--c-ink-2);">所要時間</td><td><b>60分</b>(時間切れで自動提出。タブを閉じて再開してもタイマーは止まりません)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">構成</td><td>セクションA〜D + AI活用ヒアリング(自由記述)<br>
+      <b>昇格試験モード</b>: 約 24 問 / 104 点 ・ <b>管理職オンボーディングモード</b>: 約 26 問 / 114 点<br>
+      <span class="muted" style="font-size:12px;">各スキルの問題は毎回バリアントが抽選されるため、再受験時にも内容が変わります。</span></td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">合格基準</td><td><b>総合 60%(及第点)以上</b> かつ <b>セクションD ≧ 50%</b>(優良は 80% 以上)</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">採点</td><td>全セクション <b>自動採点</b>(A〜C はルール採点、D は Gemini による自動採点)。提出後に AI が職種・自由記載をもとに評価コメントとアドバイスを生成します。</td></tr>
+    <tr><td style="padding:6px 0;color:var(--c-ink-2);">参照</td><td>自身の業務メモ・配布資料の参照は <b>不可</b> / 他者と相談・AI生成回答の貼付は <b>不可</b></td></tr>
   </table>
 
   <h2>セクション構成と測定スキル</h2>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 6問 · 12点
+      <span class="tag A">Section A</span> <b>L1 基礎理解</b> · 7問 · 14点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティ</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span><span>NotebookLM の特性</span>
+        <span>LLMの動作原理</span><span>ハルシネーション対策</span><span>情報セキュリティの境界</span><span>得意/不得意の見極め</span><span>プロンプトの欠陥識別</span><span>NotebookLM の特性</span><span>AI利活用ガイドラインの遵守</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
@@ -129,23 +131,40 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag C">Section C</span> <b>L3 マネジメント応用</b> · 3問 · 15点
+      <span class="tag C">Section C</span> <b>L3 マネジメント応用</b> · 昇格試験:3問/15点 / 管理職オンボ:5問/25点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>1on1への活用</span><span>FB・評価への活用</span><span>組織課題の構造化</span><span>AIに渡さない領域の判断</span>
+        <span>1on1への活用</span><span>FB・評価への活用</span><span>組織課題の構造化</span>
+        <span style="background:#f3e8fd;color:#5e35b1;">+ 数値マネジメント(管理職オンボのみ)</span>
+        <span style="background:#f3e8fd;color:#5e35b1;">+ ピープルマネジメント(管理職オンボのみ)</span>
       </div>
     </div>
     <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;">
-      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 5問 · 75点
+      <span class="tag D">Section D</span> <b>プロンプト記述</b> · 6問のプールから <b>3問抽選</b> · 45点
       <div class="skill-pills" style="margin-top:8px;">
-        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span>
+        <span>業務プロンプト設計力(5要素)</span><span>マネジメント判断の線引き</span><span>業務自動化の設計(AI/スクリプト/人)</span><span>高度な資料作成プロンプト</span><span>NotebookLM オンボーディング設計</span><span>顧客ヒアリング→ Slides 提案</span>
       </div>
     </div>
-    <div style="border:1px solid var(--c-line);border-radius:8px;padding:14px;grid-column:span 2;background:#faf7ff;">
-      <span class="tag E">Section E</span> <b>複数選択(該当をすべて選べ)</b> · 5問 · 20点
-      <div class="skill-pills" style="margin-top:8px;">
-        <span>情報セキュリティ判断</span><span>ハルシネーション対策の実践</span><span>プロンプト5要素の網羅</span><span>NotebookLM 適合業務の見極め</span><span>1on1への正しいAI活用</span>
-      </div>
-      <div style="margin-top:8px;font-size:12px;color:var(--c-danger);"><b>採点ルール:</b> 各問とも正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば0点(部分点なし)。</div>
+  </div>
+
+  <div class="callout" style="border-color:#5e35b1;background:#ede7f6;margin-top:14px;">
+    <b>セクション A・B・C の選択問題は「複数選択(strict採点)」</b>です。各問とも、正解の選択肢を過不足なく選択した場合のみ満点。1つでも過不足があれば <b>0点</b>(部分点なし)。<br>
+    <b>セクション D の記述問題は Gemini が観点別に採点</b>します(役割・背景・依頼・制約・出力形式 などの観点ごとに加点 / 減点され、<b>部分点あり</b>)。</div>
+
+  <h2>動作モードの選択</h2>
+  <div class="callout" style="background:#f8f9fa;border-color:#dadce0;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <label style="display:block;padding:14px;border:2px solid #dadce0;border-radius:8px;cursor:pointer;" id="modePromotionLabel">
+        <input type="radio" name="assessmentMode" value="promotion" id="modePromotion" checked> <b>昇格試験モード</b>
+        <div style="font-size:12px;color:var(--c-ink-2);margin-top:6px;line-height:1.5;">
+          非管理職向け。日々の業務効率・精度を上げる AI 活用と、チームの成果最大化のための活用を確認します。<b>管理職昇格試験の面接</b>の補助資料として使われます。
+        </div>
+      </label>
+      <label style="display:block;padding:14px;border:2px solid #dadce0;border-radius:8px;cursor:pointer;" id="modeOnboardingLabel">
+        <input type="radio" name="assessmentMode" value="onboarding" id="modeOnboarding"> <b>管理職オンボーディングモード</b>
+        <div style="font-size:12px;color:var(--c-ink-2);margin-top:6px;line-height:1.5;">
+          管理職昇格後 3 ヶ月時点向け。上記に加えて、<b>数値マネジメント</b>と <b>ピープルマネジメント</b>での AI 活用を確認します。<b>役員との 3 ヶ月面談</b>の補助資料として使われます。
+        </div>
+      </label>
     </div>
   </div>
 
@@ -153,14 +172,14 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
     <div><label>氏名(または受験番号) <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeName" placeholder="例: 山田太郎 / E2026-042"></div>
     <div><label>所属・現職 <span style="color:var(--c-danger);">*</span></label><input type="text" id="examineeRole" placeholder="例: セールス部 / シニアプレイヤー"></div>
-    <div><label>受験者メールアドレス(記録用) <span style="color:var(--c-danger);">*</span></label><input type="email" id="examineeEmail" placeholder="例: yamada@company.co.jp"></div>
-    <div><label>評価者メールアドレス(記録用・任意)</label><input type="email" id="evaluatorEmail" placeholder="例: hr-promotion@company.co.jp"></div>
+    <div><label>職種大分類 <span style="color:var(--c-danger);">*</span></label><select id="jobCategory" onchange="onJobCategoryChange()"><option value="">選択してください</option></select></div>
+    <div><label>職種(詳細) <span style="color:var(--c-danger);">*</span></label><div id="jobTitleWrap"><select id="jobTitle"><option value="">先に大分類を選択</option></select></div></div>
   </div>
 
   <div class="callout info" style="margin-top:14px;">
-    開始ボタンを押すと <b>70分のタイマーが起動</b>します。問題は受験ごとに自動生成されるため、再受験時にも内容が異なります。<br>
-    提出後、セクションA・B・C・E は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
-    あなたの判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)は結果画面に表示されます。
+    開始ボタンを押すと <b>60分のタイマーが起動</b>します。各スキルの問題は受験ごとにランダムなバリアントが選ばれるため、再受験時にも内容が変わります。タイマーはタブを別ウィンドウに切り替えても停止しません。<br>
+    提出後、セクションA・B・C は<b>自動採点</b>、セクションD(記述)は<b>Gemini APIで自動採点</b>され、結果が社内シートに保存されます。<br>
+    判定カテゴリ(<b>要努力 / 及第点 / 優良</b>)に加え、<b>AI が職種・自由記載をもとに「総合評価・現状の使い方の評価・今後のアドバイス」を生成</b>します。これは面談時の補助資料として管理者がダッシュボードから参照できます。
   </div>
 
   <div style="margin-top:18px;text-align:right;">
@@ -176,7 +195,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       <span>セクション <b id="qSection">A</b></span>
     </div>
     <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div class="timer" id="timer">70:00</div>
+    <div class="timer" id="timer">80:00</div>
   </div>
 
   <div id="questionContainer"></div>
@@ -194,7 +213,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
   <div class="card" style="text-align:center;padding:48px;">
     <div style="font-size:36px;margin-bottom:18px;">⏳</div>
     <h1>採点中…</h1>
-    <p style="font-size:14px;color:var(--c-ink-2);">セクションDの記述回答を Gemini API で評価しています。<br>20〜60秒ほどお待ちください。</p>
+    <p style="font-size:14px;color:var(--c-ink-2);">セクションDの記述回答を Gemini API で評価しています。<br>通常 20〜60 秒、API が混雑している場合は自動で再試行するため最大 2 分ほどかかることがあります。</p>
     <div style="margin-top:24px;width:300px;margin-left:auto;margin-right:auto;background:#e8eaed;border-radius:999px;height:8px;overflow:hidden;">
       <div id="loadingBar" style="width:0%;background:var(--c-primary);height:100%;animation:loadingAnim 2s ease-in-out infinite;"></div>
     </div>
@@ -205,7 +224,7 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 <section id="screen-result" class="hide">
   <div class="card">
     <h1>採点結果</h1>
-    <p class="sub">セクションA・B・C・E は自動採点、セクションD は Gemini が採点しました。結果は集計シートに保存済みです。</p>
+    <p class="sub">セクションA・B・C は自動採点、セクションD は Gemini が採点しました。結果は集計シートに保存済みです。</p>
 
     <!-- Category Badge -->
     <div id="categoryBadge" style="text-align:center;margin:24px 0;padding:28px;border-radius:12px;border:3px solid var(--c-line);">
@@ -228,26 +247,28 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
       </div>
     </div>
 
-    <div class="kpi" style="grid-template-columns:repeat(5,1fr);">
-      <div class="b"><div class="v" id="scoreA">0/12</div><div class="l">A. L1 基礎理解</div></div>
+    <div class="kpi">
+      <div class="b"><div class="v" id="scoreA">0/14</div><div class="l">A. L1 基礎理解</div></div>
       <div class="b"><div class="v" id="scoreB">0/30</div><div class="l">B. L2 業務活用判断</div></div>
       <div class="b"><div class="v" id="scoreC">0/15</div><div class="l">C. L3 マネジメント応用</div></div>
-      <div class="b"><div class="v" id="scoreE">0/20</div><div class="l">E. 複数選択</div></div>
-      <div class="b"><div class="v" id="scoreD">0/75</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(Gemini評価)</span></div></div>
+      <div class="b"><div class="v" id="scoreD">0/45</div><div class="l">D. プロンプト記述<br><span style="font-size:9px;">(Gemini評価)</span></div></div>
     </div>
 
     <h2>スキル別到達度(自動採点分)</h2>
     <div id="skillBreakdown"></div>
 
+    <h2>AI による総合評価とアドバイス</h2>
+    <div id="aiAdvice"><div class="muted">この受験結果に対する AI コメントを生成しています…</div></div>
+
     <h2>Gemini評価 — セクションD 記述問題</h2>
     <div id="geminiResult"></div>
 
-    <h2>個別フィードバック(セクションA・B・C・E)</h2>
+    <h2>個別フィードバック(セクションA・B・C)</h2>
     <div id="feedback"></div>
 
     <hr>
     <div id="saveStatus" class="callout good" style="display:none;">
-      <b>✓ 結果は保存されました。</b><br>
+      <b>✓ 結果は集計シートに保存されました。</b><br>
       <span class="muted" id="savedIdLabel" style="font-size:12px;"></span>
     </div>
     <div class="flex between no-print" style="flex-wrap:wrap;gap:8px;margin-top:18px;">
@@ -263,7 +284,8 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
     <h1 style="color:var(--c-danger);">提出エラー</h1>
     <p class="sub">Gemini API での評価または結果保存に失敗しました。</p>
     <div id="errorMsg" class="callout danger"></div>
-    <p>下のボタンから JSON で結果を保存し、管理者に連絡してください。</p>
+    <p>下のボタンから JSON で結果を保存し、管理者に連絡してください。<br>
+    <small style="color:var(--c-ink-2);">※ 管理者はダッシュボードの「📥 JSON 取り込み」ボタンから、このファイルをアップロードして再採点できます。</small></p>
     <div class="flex between no-print" style="margin-top:18px;">
       <button class="primary" onclick="retrySubmit()">再送信</button>
       <button class="ghost" onclick="downloadOfflineJSON()">⬇️ JSON で保存</button>
@@ -280,6 +302,61 @@ hr{border:none;border-top:1px solid var(--c-line);margin:20px 0;}
 // Each item has the same measured skill, but multiple variants & variable pools
 // so the surface form is different every time, while the assessed competency is fixed.
 // ========================================================================
+
+// ラクスの職種一覧(CSV由来)。動作モードに依らず共通。
+const JOB_POSITIONS = [
+  { category:'セールス',     title:'インサイドセールス(IS)',           desc:'マーケティングが獲得したリード(見込み顧客)へのアプローチ、課題ヒアリング、商談獲得(案件化)' },
+  { category:'セールス',     title:'フィールドセールス(FS)',           desc:'商談から提案、受注・契約までを担当' },
+  { category:'セールス',     title:'エンタープライズセールス',           desc:'大手企業や一括導入を検討する大規模顧客を専門に担当する営業' },
+  { category:'セールス',     title:'カスタマーサクセス(CS)',           desc:'契約後のシステム導入(オンボーディング)から定着化、活用促進、解約防止、アップセルを担う' },
+  { category:'セールス',     title:'営業企画 / CS企画',                 desc:'営業・CS組織の戦略立案、プロセス改善、ツールの導入・運用などを支援' },
+  { category:'マーケティング', title:'オンラインマーケティング',           desc:'Web広告運用、SEO、コンテンツマーケティング、SNS運用などを担当' },
+  { category:'マーケティング', title:'データマーケティング',               desc:'MAツールの運用や、各種データの分析・施策へのフィードバックを担う' },
+  { category:'マーケティング', title:'マーケティング戦略',                 desc:'市場分析、プロダクトごとのプロモーションやマーケティング全体の戦略立案・マネジメント' },
+  { category:'企画',         title:'PMM(プロダクトマーケティングマネージャー)', desc:'担当プロダクトの市場投入戦略、価格設計、プロモーション企画、競合分析などを牽引' },
+  { category:'企画',         title:'事業企画',                           desc:'中期経営計画や事業計画の策定、予算管理、新規事業の推進などを担当' },
+  { category:'エンジニア',   title:'プロダクトマネージャー(PdM)',       desc:'プロダクトの機能要件定義、ロードマップ策定など、開発の方向性を決定' },
+  { category:'エンジニア',   title:'サーバサイドエンジニア(バックエンド)', desc:'JavaやPHPを用いたWebアプリケーションの開発' },
+  { category:'エンジニア',   title:'フロントエンドエンジニア',             desc:'ユーザーが直接触れるWebインターフェースの開発' },
+  { category:'エンジニア',   title:'インフラエンジニア(SRE)',           desc:'AWSやKubernetesなどを用いたクラウドインフラの設計・構築・運用、自動化' },
+  { category:'エンジニア',   title:'AI・機械学習エンジニア',               desc:'新規事業やプロダクトへのAI(生成AI含む)の組み込み・データ解析' },
+  { category:'エンジニア',   title:'コーポレートエンジニア(社内SE)',     desc:'社内の情報システム(社内IT、販売管理システムなど)の開発・リプレイス、社内DX・セキュリティ企画の推進' },
+  { category:'エンジニア',   title:'開発管理(エンジニアリングマネージャー:EM)', desc:'エンジニア組織のマネジメント、採用、育成、評価' },
+  { category:'デザイナー',   title:'UI/UXデザイナー',                    desc:'プロダクト(SaaS画面)の使いやすさ、ユーザー体験(UX)の向上を担う' },
+  { category:'デザイナー',   title:'Webデザイナー',                      desc:'サービスサイト、LP(ランディングページ)、バナー、プロモーション用素材の制作' },
+  { category:'コーポレート', title:'人事・労務',                          desc:'採用(新卒・中途)、研修、人事制度設計・運用、労務管理' },
+  { category:'コーポレート', title:'法務',                                desc:'契約書レビュー、コンプライアンス体制の整備' },
+  { category:'コーポレート', title:'財務・経理',                          desc:'日々の経理業務、決算対応、税務' },
+  { category:'コーポレート', title:'IR(投資家向け広報)',                desc:'投資家対応(取材対応)、決算説明資料の作成、適時開示' },
+  { category:'コーポレート', title:'内部統制・内部監査',                  desc:'リスク管理や業務プロセスの監査' },
+  { category:'コーポレート', title:'事務(業務改善・フロー設計)',         desc:'ミドルオフィスにおける業務効率化やオペレーション設計の推進' },
+];
+
+// 動作モード定数
+const MODE_PROMOTION  = 'promotion';   // 昇格試験モード(非管理職向け)
+const MODE_ONBOARDING = 'onboarding';  // 管理職オンボーディングモード(昇格後3か月)
+
+// 大分類の一意リスト + 「その他(自由入力)」
+const OTHER_CATEGORY = 'その他';
+const JOB_CATEGORIES = Array.from(new Set(JOB_POSITIONS.map(j => j.category))).concat([OTHER_CATEGORY]);
+
+// 大分類変更時に職種(詳細)欄を連動更新。
+// 「その他」が選ばれたら <select> を <input type="text"> に差し替えて自由入力にする。
+function onJobCategoryChange(){
+  const cat = document.getElementById('jobCategory').value;
+  const wrap = document.getElementById('jobTitleWrap');
+  if(!wrap) return;
+  if(cat === OTHER_CATEGORY){
+    wrap.innerHTML = '<input type="text" id="jobTitle" placeholder="職種名を自由に入力してください(例: 広報、社内ヘルプデスク、新規事業立ち上げ など)">';
+    return;
+  }
+  let html = '<select id="jobTitle"><option value="">職種を選択してください</option>';
+  JOB_POSITIONS.filter(j => j.category === cat).forEach(j => {
+    html += `<option value="${j.title.replace(/"/g,'&quot;')}">${j.title}</option>`;
+  });
+  html += '</select>';
+  wrap.innerHTML = html;
+}
 
 // Variable pools (used by templated questions)
 const POOLS = {
@@ -302,556 +379,659 @@ function pickN(arr,n){ const a=[...arr];const r=[];for(let i=0;i<n && a.length;i
 function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 function fill(tpl,vars){ return tpl.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??_); }
 
-// -------------------- SECTION A: L1 基礎理解 (5問 × 2点 = 10点) --------------------
+// 複数選択問題用ヘルパー: 正解・不正解の両方を最低 minCorrect/minWrong 個ずつ含むよう total 個を抽出
+function pickMix(pool, total, minCorrect, minWrong){
+  const corrects = pool.filter(p=>p.c);
+  const wrongs   = pool.filter(p=>!p.c);
+  const maxCorrect = Math.min(corrects.length, total - minWrong);
+  const minC = Math.max(minCorrect, total - wrongs.length);
+  const correctN = minC + Math.floor(Math.random()*Math.max(0,(maxCorrect - minC + 1)));
+  return shuffle([...pickN(corrects, correctN), ...pickN(wrongs, total - correctN)]);
+}
+function buildMS(pool, prompt, total, minC, minW){
+  const opts = pickMix(pool, total||6, minC||2, minW||2);
+  return {
+    prompt,
+    options: opts.map(o=>o.t),
+    correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+  };
+}
+
+// -------------------- SECTION A: L1 基礎理解 (各スキル2バリアントから1問抽選) --------------------
+// 構造: { skill, section, points, multiSelect, variants:[{build}, ...] }
+// 試験生成時に各スキルから 1 バリアントをランダム選択。出題ごとに内容が変わる。
 const BANK_A = [
-  // A1: LLMの動作原理
-  {
-    id:'A1', section:'A', skill:'LLMの動作原理', points:2,
-    build: ()=> {
-      const correct = '学習データから得られた「単語の繋がりやすさ」の確率分布をもとに、入力に続く単語を1つずつ確率的にサンプリングして文章を生成している';
-      const distractors = shuffle([
-        '事前に学習した膨大な文章を内部にそのまま記憶しており、質問に最も近い文章を検索して引用している',
-        '学習データから類似する過去のQ&Aペアを検索し、最も意味的に近い既存の回答を再構成して返している',
-        '巨大なニューラルネットワークの中で論理推論エンジンが動作し、前提から結論を演繹的に導いて回答している',
-        '社外の公開Web情報をリアルタイムに参照し、最新の事実を取得した上で回答を組み立てている',
-      ]).slice(0,3);
-      const opts = shuffle([{t:correct,c:true},...distractors.map(t=>({t,c:false}))]);
-      return {
-        prompt: 'LLM(大規模言語モデル)が回答を生成する仕組みとして、最も正確な説明はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // A2: ハルシネーション
-  {
-    id:'A2', section:'A', skill:'ハルシネーション対策', points:2,
-    build: ()=> {
-      const cases = [
-        {
-          ctx:'あなたは新規参入を検討する市場の調査資料を作成するため、AIに「競合A社の昨年度ARRと従業員数」を質問した。AIは即座に「ARR 約120億円、従業員数 850名」と数値を断定的に回答した。A社は非上場企業である。',
-        },
-        {
-          ctx:'あなたは社外向け資料に引用するため、AIに「ある業界レポートの調査結果」を質問した。AIは結果に加えて「(出典:○○調査会社 2024年版レポート、p.42)」というそれらしい引用を併記してきた。',
-        },
-        {
-          ctx:'あなたは取引先との交渉前に、AIに「ある法令の最新改正内容と、それが自社契約に与える影響」を質問した。AIは条文番号と改正日まで含めて、整った回答を返してきた。',
-        },
-      ];
-      const c = pick(cases);
-      const correct = '一次情報源(該当企業のIR・公式発表、法令の場合は e-Gov等の原典、レポートの場合は発行元の公式サイト)に当たって事実を裏取りしてから採用する';
-      const distractors = [
-        '同じ質問を別の表現で3回投げ、3回とも数値や引用元が完全に一致したら、その整合性を根拠に採用する',
-        'AIに続けて「この回答の出典URLと信頼度パーセンテージを併記して」と依頼し、URLと高い数値が返ってきたものを採用する',
-        '社内で広く使われている別のLLMサービスにも同じ質問を投げ、両者の回答が一致したら相互検証ができたとして採用する',
-        '回答に具体的な数値・固有名詞・日付が含まれていれば、AI内部の検証を経たものとして十分とみなす',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: c.ctx + '\n\nこの回答に対する、最も適切な扱い方はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // A3: 情報セキュリティ
-  {
-    id:'A3', section:'A', skill:'情報セキュリティ判断', points:2,
-    build: ()=> {
-      const cases = [
-        { ctx:'あなたの会社は Google Workspace 法人契約(Gemini Pro 込み)を結んでおり、社内利用の入力は学習に使われない設定であることが情シスから周知されている。あなたは来月の評価会議の準備のため、部下10名分の評価コメント草案を Gemini で起案しようとしている。手元には実名・等級・人事評価点・直近の健康面の不調(本人から相談あり)を含む元データがある。',
-          correct:'評価コメントを書くのに必須でない実名・健康情報は伏字化し、「メンバーA・主任・営業3年目」のような抽象化形式で職務行動の事実と評価点のみを入力する',
-          distractors:[
-            '学習に使われない契約のため、生産性を優先して実名・健康情報を含めた元データをそのまま入力する',
-            '全項目を一旦抽象化したうえで、AI出力を見ながら必要な箇所だけ実名・固有情報を手動で書き戻す方式にする',
-            '評価関連情報は機微性が高いため、AIには関わらせず、すべて自分の手書きで起案する方式に切り替える',
-          ]
-        },
-        { ctx:'あなたは来週木曜に発表予定のプレスリリース(M&A案件、発表前は社外秘)を、文案推敲のために Gemini に渡したい。発表まで5営業日、社内法務のチェック前である。',
-          correct:'未発表のM&Aは社外秘度が極めて高く、契約上学習されない設定でも入力リスク(誤操作・スクショ流出等)を残すため、原案には固有名詞を伏字化(「対象会社をX社」等)してから推敲を依頼する',
-          distractors:[
-            '会社契約のGeminiは学習に使われない設定のため、発表前であっても原文のまま貼り付けて推敲を依頼する',
-            '推敲は構成の確認が主目的のため、タイトルと冒頭1段落だけを入力し、本文部分は伏せる',
-            '一度プレス文案を社内Slackに自分の DM に下書きしてから、その内容を Gemini に渡す手順を踏む',
-          ]
-        },
-        { ctx:'採用部門から、応募者3名分の履歴書(氏名・大学名・前職企業名・職務経歴を含むPDF)が共有された。あなたは一次面接の評価観点を整理するため、Gemini に履歴書の要点整理を頼みたい。',
-          correct:'候補者の特定可能な個人情報(氏名・大学名・前職企業名)は入力せず、「30代前半・大手SaaS企業 営業 8年・マネジメント経験あり」のように属性レベルに抽象化したテキストのみを Gemini に渡す',
-          distractors:[
-            '会社契約の Gemini はセキュアな環境のため、履歴書PDFをそのままアップロードして要約を依頼する',
-            '氏名は伏字化するが、評価の参考になる大学名・前職企業名は実情報のまま入力する',
-            'AIに先頭で「以下の個人情報は記憶せず、出力後は破棄してください」と明示すれば、原文のまま入力してよい',
-          ]
-        },
-      ];
-      const c = pick(cases);
-      const opts = shuffle([{t:c.correct,c:true},...c.distractors.map(t=>({t,c:false}))]);
-      return {
-        prompt: c.ctx + '\n\nこの時、最も適切な対応はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // A4: 得意/不得意の見極め
-  {
-    id:'A4', section:'A', skill:'AIの得意/不得意', points:2,
-    build: ()=> {
-      // 「AIに最終アウトプットを任せるのが不適切」=「人が責任を負うべき判断 or 検証不能な事実生成」
-      const tasks = [
-        {t:'メンバー10名分の今期業績評価ランクを、過去評価データと今期実績を投入してAIに最終決定させ、人事システムに直接登録する',ai:false},
-        {t:'未公開の競合A社(非上場)の今期ARRと従業員数を、AI単体に推定させ、その数値を経営会議の参考データとして提示する',ai:false},
-        {t:'毎月の費用精算で、レシート画像からの金額抜き出しと部門コード分類を、AIに任せて経理システムへ自動連携する(後段で経理担当が承認)',ai:true},
-        {t:'長文の海外パートナー契約書の各条項について、論点リストと過去契約との差分をAIに整理させ、法務レビューの素材として使う',ai:true},
-        {t:'1時間の Meet 文字起こしから、決定事項・ToDo(担当/期限)・未解決論点を3ブロックに整理し、議事録ドラフトとして使う',ai:true},
-        {t:'部下に伝えにくいフィードバックを、3パターン(事実中心/配慮厚め/踏み込み)の言い回し案として出させ、自分で1つ選んで対面で伝える',ai:true},
-        {t:'過去5年分の自社売上推移の単純な月別合計値を、CSVを渡してAIに計算させ、その数値を社外向けIR資料にそのまま掲載する',ai:false},
-      ];
-      const negs = tasks.filter(t=>!t.ai);
-      const positives = tasks.filter(t=>t.ai);
-      const neg = pick(negs); // 1つの「不適切」を正解とする
-      const pos = pickN(positives, 3);
-      const opts = shuffle([neg, ...pos]);
-      return {
-        prompt: '次の業務のうち、現時点のAIに「最終アウトプット」を任せる(人の確認なしでそのまま使う)ことが最も不適切なものはどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o===neg),
-      };
-    }
-  },
-  // A5: プロンプト欠陥の識別
-  {
-    id:'A5', section:'A', skill:'プロンプト品質の評価', points:2,
-    build: ()=> {
-      const scenarios = [
-        {
-          p: '「あなたは戦略コンサル出身のシニアアドバイザーです。来期のKPIを考えてください。マークダウン表で5案出してください。」',
-          missing: '依頼者の事業状況(業種・現状KPI・組織規模・経営課題)と制約条件(予算・人員・期間)が一切渡されていないため、出力が業種を問わない一般論にしかならない',
-          dist: [
-            '「戦略コンサル出身」という役割設定が抽象的すぎるため、「マッキンゼーの○○氏として」のように具体名にすべき',
-            '「5案出してください」と数を指定しているため、出力の幅が制限されている。「考えうる限り」にすべき',
-            'マークダウン表という形式指定が硬直的で、対話的な出力を阻害している',
-          ]
-        },
-        {
-          p: '「SaaS企業の法人営業マネージャーです。チームの商談化率が直近3ヶ月で20%下がっています。原因として考えられる仮説を挙げてください。」',
-          missing: '出力形式(箇条書き / 分類フレーム / 優先度評価など)と、回答を絞り込む観点(自社プロダクト・ターゲット顧客・営業体制)が指定されていないため、列挙が浅く構造化されない',
-          dist: [
-            '「商談化率」という用語の正確な定義が冒頭に置かれていないため、AIが別の指標と混同するリスクがある',
-            '「直近3ヶ月で20%下がっている」というネガティブな前提を強く与えているため、ポジティブな仮説が出てこなくなる',
-            '「マネージャーです」という一人称が依頼の主語と一致しておらず、AIの立場が曖昧になる',
-          ]
-        },
-        {
-          p: '「来期のマーケ施策を3つ提案して。」',
-          missing: '役割・背景・制約・出力形式 のうち、複数要素が同時に欠落している(自社状況・予算規模・狙う指標・形式指定がない)ため、AIは一般的な施策リストを返すしかない',
-          dist: [
-            'プロンプトが日本語として丁寧でないため、敬語で書き直す必要がある',
-            '「3つ」という数が少なすぎる。最低でも10個提示させてから絞るべきである',
-            'AIに業界名を伝えていない点が唯一の欠陥で、それを補えば十分機能する',
-          ]
-        },
-      ];
-      const s = pick(scenarios);
-      const opts = shuffle([{t:s.missing,c:true},...s.dist.map(t=>({t,c:false}))]);
-      return {
-        prompt: '次のプロンプトを評価し、最も致命的な欠陥を選びなさい。\n\n— プロンプト —\n' + s.p,
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // A6: NotebookLM の特性理解
-  {
-    id:'A6', section:'A', skill:'NotebookLM の特性理解', points:2,
-    build: ()=> {
-      const correct = 'ユーザーが指定したソース(PDF・Docs・URL・音声等)に回答範囲を限定し、出力には該当箇所への参照(出典)が併記される。ソース外の知識は使わない設計のため、ハルシネーションがGeminiの自由対話に比べて起きにくい';
-      const distractors = [
-        '言語モデルとしての推論能力が Gemini より大幅に強化されており、複雑な数値計算や論理推論を Gemini 単体より高精度に解ける専用モデルである',
-        'インターネット上の最新情報を自動的に取得・統合し、知識カットオフの制約を受けない形でリアルタイムの事実に基づいて回答する仕組みになっている',
-        '同じGoogle Workspace 契約下の全社員のDrive上のファイルを横断的に検索し、組織全体のナレッジから回答を組み立てる、社内検索エンジンとしての役割を担う',
-        '対話履歴の長さ(コンテキスト)が Gemini より大幅に大きいことが特徴で、長文の対話を続けることに特化したUIを持つ',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'NotebookLM の特徴として最も正確な説明はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
+  // A1: LLM の動作原理
+  { skill:'LLMの動作原理', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'入力に続く単語を、学習データから得られた確率分布に基づき1つずつサンプリングして文章を生成している' },
+      { c:true,  t:'同じ入力でも出力に揺れが生じる(温度パラメータ等で揺れ幅を制御できるが、原理的に確率モデル)' },
+      { c:true,  t:'入力された文脈(コンテキスト)に強く影響されるため、与えた前提・例示で出力傾向を誘導できる' },
+      { c:true,  t:'学習データのカットオフ以降の情報や、学習データに少ない領域では、推測で「もっともらしい」回答を返すことがある' },
+      { c:true,  t:'学習時に多く出現したパターンに沿った回答を返しやすく、マイナーな知識ほど精度が下がる傾向がある' },
+      { c:false, t:'内部にQ&Aデータベースが保存されており、質問に最も近い登録済みの回答を検索して返している' },
+      { c:false, t:'インターネット上をリアルタイムに検索し、最新の事実情報を必ず取得した上で回答を組み立てている' },
+      { c:false, t:'巨大なニューラルネットワーク内で形式論理エンジンが動作し、前提から結論を演繹的に推論して答えている' },
+      { c:false, t:'学習データの内容は内部に逐語的に記憶されているため、検索すれば原文の正確な引用が得られる' },
+      { c:false, t:'モデル内部に「正しい/正しくない」の判定機能があり、不確かな情報は自動的にフィルタされて出力されない' },
+    ], 'LLM(大規模言語モデル)の動作原理として正しい説明を<b>すべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'同じ質問に対する回答が、セッションを変える/言い回しを変えるだけで揺らぐことがある' },
+      { c:true,  t:'コンテキストウィンドウに収まらない長文を渡すと、古い部分の情報が無視・忘却される' },
+      { c:true,  t:'数値計算や厳密な論理推論は内部の確率モデルとは別に処理しているわけではないため、桁数や条件が増えると誤る' },
+      { c:true,  t:'プロンプトで「ステップごとに考えて」と明示すると、中間推論を含めて出力するため精度が上がるケースがある' },
+      { c:true,  t:'同じ問いを聞き方を変えて複数回投げ、安定して出る部分と揺らぐ部分を切り分けることが品質確保に有効である' },
+      { c:false, t:'LLMは内部で「事実かどうか」を毎回ファクトチェックしてから出力するため、断定的に書かれた回答は信頼してよい' },
+      { c:false, t:'コンテキスト内で「自信がない場合は答えないでください」と書けば、必ず無回答になり、ハルシネーションは生じない' },
+      { c:false, t:'モデルパラメータは利用者ごとにパーソナライズされ、自分の入力で逐次再学習されるのが標準的な仕組みである' },
+      { c:false, t:'最新世代のLLMは、学習データに含まれていない事象についても、Web上を必ず参照して回答する設計に統一されている' },
+      { c:false, t:'温度パラメータを0にすれば、出力は数学的に常に同一であり、いかなる場合も揺れることはない' },
+    ], 'LLMの挙動・特性に関する説明として <b>正しいものをすべて選びなさい</b>。') },
+  ]},
+
+  // A2: ハルシネーション対策の実践
+  { skill:'ハルシネーション対策の実践', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'回答に含まれる固有名詞・数値を、一次情報源(公式IR・公式サイト・原典)で裏取りしてから引用する' },
+      { c:true,  t:'同じ問いをプロンプト表現を変えて複数回投げ、安定して出てくる結論と揺れる結論を切り分ける' },
+      { c:true,  t:'「この出力に対する最も鋭い反論を3つ」と続けて出させ、反論で崩れない部分のみを採用候補とする' },
+      { c:true,  t:'AI出力で「事実」と「解釈・推測」を分けて記述させ([F]/[I]タグ等)、それぞれを別に検証する' },
+      { c:true,  t:'AIに渡すコンテキスト(原文・データ)を増やし、AIが推測で補完する余地を減らす' },
+      { c:false, t:'AIに「この回答の確信度を0〜100%で出して」と聞き、80%以上の項目だけを採用する' },
+      { c:false, t:'AIに「出典URLを併記して」と頼み、URLが返ってきたものを信頼できる出力とみなす' },
+      { c:false, t:'別のLLMサービスにも同じ質問を投げ、両者の回答が一致したら相互検証ができたものとして採用する' },
+      { c:false, t:'回答に詳細な数値・日付・固有名詞が多く含まれていれば、AIが内部で検証した結果と判断してよい' },
+      { c:false, t:'プロンプトに「絶対に正しい情報だけ答えて」と書けば、ハルシネーションは抑制される' },
+    ], 'AIのハルシネーション(事実と異なる「もっともらしい出力」)への対策として、<b>有効な行動をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'NotebookLM のように出典付きで回答するツールに切り替え、出典の該当箇所を自分で再確認する' },
+      { c:true,  t:'AI回答の中で固有名詞・年号・統計値が含まれている箇所を一次資料で必ず再確認する' },
+      { c:true,  t:'プロンプトで「分からない場合は『分からない』と答えてください」と明示し、推測での補完を抑制する' },
+      { c:true,  t:'前提情報(議事録・調査資料 等)を AI に渡したうえで「この資料に書いてあることだけから答えて」と限定する' },
+      { c:true,  t:'AI に「この主張の根拠となる事実だけを箇条書きで」と問い、その事実1件ずつを自分で検証する' },
+      { c:false, t:'AI が「過去の事例として A 社の事例があります」と返したら、固有名詞が含まれている以上は実在事例と判断してよい' },
+      { c:false, t:'最新の高性能モデルを選べば、ハルシネーションは事実上ゼロになるので裏取りは不要である' },
+      { c:false, t:'AI 自身に「あなたの回答にハルシネーションは含まれていますか?」と聞き、含まれないと答えれば信頼してよい' },
+      { c:false, t:'同じLLMに同じ質問を5回繰り返し、出力が毎回同じだったら正しいと判断してよい' },
+      { c:false, t:'AI の出力をそのままコピーして、出典・根拠の有無を確認せずに資料化して提出する' },
+    ], 'AI の事実誤り(ハルシネーション)を業務利用で防ぐ行動として、<b>適切なものをすべて選びなさい</b>。') },
+  ]},
+
+  // A3: 情報セキュリティの境界(ラクス AI ガイドライン準拠)
+  { skill:'情報セキュリティの境界', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'すでに公開済みのプレスリリース原稿(社外公表後の推敲を依頼)' },
+      { c:true,  t:'仮名加工(個人特定不能)済みの部下評価素案(評価対象は「メンバーA・主任・営業3年目」表記、KPIと観察行動のみ)' },
+      { c:true,  t:'社内週次定例の Meet 文字起こし(社内固有名詞は含むが、社外秘・他社秘密・人事評価情報は含まない)' },
+      { c:true,  t:'自分宛ての社内メール(取引先固有情報・人事情報を含まない)の要約依頼' },
+      { c:true,  t:'公開済みの社外向け会社案内・自社製品 Web コンテンツ' },
+      { c:true,  t:'自社内部のみで使う未公開営業資料(自社の機密情報・指定機密区分内で、顧客名や個人情報は含まない)' },
+      { c:false, t:'NDA を締結した取引先から共有された、相手企業の未発表ロードマップを含む資料(第三者の秘密情報)' },
+      { c:false, t:'当社サービスにおいて取扱いを委託された顧客の個人データ(顧客個人情報の分析)' },
+      { c:false, t:'採用候補者の履歴書PDF(氏名・大学名・前職企業名を含む。本人同意のない個人情報)' },
+      { c:false, t:'本番データベースの接続文字列・API キー・管理者パスワード(認証情報)' },
+      { c:false, t:'部下10名の実名・等級・人事評価点・健康面の不調有無を表形式でまとめた人事データ(個人特定可能な個人情報)' },
+    ], 'ラクスの『AIサービス利活用ガイドライン』では、AIサービス利用可否一覧で許可された <b>法人 Gemini</b>(同一覧で指定された機密区分までの入力を許可・学習に利用されない設定済み)を業務利用してよいとされている。この前提で、Gemini に <b>入力してよい情報</b> をすべて選びなさい。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'業務分野が同じ部下5名分の活動量データを、メンバー名を「メンバーA〜E」に置換した上でトレンド分析の入力とする' },
+      { c:true,  t:'自社の社外公開済みプロダクト仕様書を貼り付け、想定質問とその模範回答を作成させる' },
+      { c:true,  t:'自分が起案中の社内通達文(社内向け・人事情報や個人特定情報を含まない)の表現整え依頼' },
+      { c:true,  t:'自社内の機密区分内に該当する未公開営業資料(顧客名や個人情報は含まない自社情報)を、要約・章立て見直しに利用する' },
+      { c:true,  t:'匿名化済みの社内アンケート集計結果(回答者が特定されないよう加工済み)を入力し、頻出テーマを抽出させる' },
+      { c:false, t:'NDA下で取引先から開示された相手企業の未公表機能ロードマップを、社内向け検討資料の整形に使う' },
+      { c:false, t:'顧客から運用委託を受けているエンドユーザーの登録情報CSV(氏名・連絡先含む)をサービス改善のために投入する' },
+      { c:false, t:'社内本番システムの管理者用パスワード・API キー・接続文字列を、トラブル対応ログ整形のためにプロンプトに貼り付ける' },
+      { c:false, t:'当社サービスを利用している取引先のサービス利用ログ(個人情報・取引内容を含む)を、傾向分析として投入する' },
+      { c:false, t:'求人応募者の履歴書(氏名・大学名・前職等含む)を、選考所感のたたき台作成のために貼り付ける' },
+      { c:false, t:'採用面接時に候補者本人から得た健康・家庭事情のメモを、配属検討の参考案を出させるために入力する' },
+    ], 'ラクスのガイドライン上、<b>法人 Gemini</b>(機密区分内まで入力可・学習不使用設定)に <b>入力してよい情報</b> をすべて選びなさい。') },
+  ]},
+
+  // A4: AIに最終アウトプットを任せて良いタスク
+  { skill:'AIに任せて良いタスク', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'60分の Meet 文字起こしから、決定事項・ToDo・未解決論点を抽出し、議事録ドラフトとして使う(後で人が見直す前提)' },
+      { c:true,  t:'提案資料の構成案(セクション・各スライドに含めるべき要素・想定質疑)を生成する。固有数値はプレースホルダで返させる' },
+      { c:true,  t:'自分のメール文面のたたき台を「事実中心 / 配慮厚め / 踏み込み」の3トーンで作らせる' },
+      { c:true,  t:'長文テキストの要約・言い換え・トーン統一を行う(人が最終確認する前提)' },
+      { c:true,  t:'長文の海外パートナー契約書の各条項について、論点リストと過去契約との差分を整理させ、法務レビューの素材として使う' },
+      { c:false, t:'メンバー10名の今期業績評価ランクをAIに最終決定させ、人事システムへ自動登録する' },
+      { c:false, t:'未公開の競合A社(非上場)の今期ARRと従業員数を、AI単体に推定させ、その数値を経営会議の参考データとして提示する' },
+      { c:false, t:'法令の正確な条文・契約文言の最終文面を、AI単体に確定させて社外向けに使用する' },
+      { c:false, t:'採用合否の最終判定とオファーレターを、人の確認なしにAIに発行させる' },
+      { c:false, t:'顧客への正式回答(数値含む)を、人の確認を経ずに自動で送信させる' },
+    ], '現時点の AI に最終アウトプットを任せる(人の確認を経て業務に使う)ことが <b>妥当なタスクをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'数千行のログから「ERROR」を含む行を抽出し、頻出パターン上位10件を出させる(その後、人が個別事象を確認する前提)' },
+      { c:true,  t:'過去3か月の社内 FAQ ドラフトを集約し、重複・矛盾の指摘リストを作らせる(最終判断は管理者)' },
+      { c:true,  t:'多言語の取引先からのメールを翻訳・要約させ、自分の返信下書きの参考にする' },
+      { c:true,  t:'長い社内マニュアルから、想定読者別(新人・中堅・マネージャー)の要点だけを抽出させる' },
+      { c:true,  t:'四半期の数値レビュー資料の構成案を生成させ、自分は数値と固有エピソードを後から埋める' },
+      { c:false, t:'人事評価ランクの最終判定文を AI に作成させ、上長は「人が見直した」体で軽く目を通してそのまま提出する(評価の根拠を上長が説明できない状態)' },
+      { c:false, t:'退職交渉や昇給見送りなど機微な面談のスクリプトを AI に最終形まで作らせ、当日はそれを読み上げる前提で本人に提示する' },
+      { c:false, t:'採用候補者の合否最終判定を AI に行わせ、面接官は「AI のスコアと理由を再確認しただけ」で合否通知を本人に送る' },
+      { c:false, t:'法的解釈が分かれる契約条項の最終解釈を AI に任せ、法務担当者は AI の解釈をそのまま顧客への正式回答として提示する' },
+      { c:false, t:'重要顧客への解約引き留めメールを AI に最終形まで起案させ、担当者は文面に違和感がなければそのまま送信する(顧客との信頼を左右する最終1通)' },
+    ], 'AI に最終アウトプットを「人が見直す前提で」任せてよいタスクを<b>すべて選びなさい</b>(<b>「人が見直す」は全選択肢に共通の前提</b>であり、タスクの性質的に AI を最終アウトプット起案者にしてよいか/よくないか を判定すること)。') },
+  ]},
+
+  // A5: プロンプト5要素の網羅
+  { skill:'プロンプト5要素の網羅', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'AIに与える「役割」の指定(例:法人営業マネージャーとして / 戦略コンサル出身として)' },
+      { c:true,  t:'依頼の「背景・前提情報」(自社の状況・関係者・過去の経緯・データ手持ち状況)' },
+      { c:true,  t:'具体的な「依頼内容」(何を、いくつ、どの粒度で出してほしいか)' },
+      { c:true,  t:'「制約条件」(禁止事項・観点・分量・トーンの指定)' },
+      { c:true,  t:'「出力形式」の指定(マークダウン表 / 箇条書き / 見出し構成 等)' },
+      { c:true,  t:'「禁止事項」の明示(根拠なき断定の禁止・避けるべき表現パターン)' },
+      { c:false, t:'AIへの褒め言葉(「あなたは優秀な」「業界トップの」「世界最高峰の」等の修飾を冒頭に並べる)' },
+      { c:false, t:'AIに自信を持たせるための「不確実なことも断定的に書いて」という指示' },
+      { c:false, t:'AIに気を遣わせる「お時間あるときに無理なくお願いします」のような丁寧な前置き' },
+      { c:false, t:'「あなたが好きなように自由に出力してください」と自由度を最大化する指示' },
+      { c:false, t:'自分の感情を書き連ねる(「困っている」「焦っている」「失敗できない」など)' },
+    ], '業務向けの良いプロンプトに <b>含めるべき要素をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'「あなたは…の役割で対応してほしい」とAIに与える立ち位置を明示する' },
+      { c:true,  t:'前提となる業務状況(関係者・過去の経緯・データ・社内事情)をプロンプト内に盛り込む' },
+      { c:true,  t:'欲しい出力の形式(マークダウン表/箇条書き/スライド枚数 等)を具体的に指定する' },
+      { c:true,  t:'守ってほしい制約(分量・観点・禁止事項・伏字ルール)を箇条書きで添える' },
+      { c:true,  t:'依頼の核(タスク)を、相手が即実行可能な粒度に具体化する(「整理して」ではなく「決定事項・ToDo・未解決論点の3軸で表形式で」)' },
+      { c:false, t:'「世界最高峰のコンサル」「天才」「年収1億の」等の修飾語を重ねて、AIの自尊心を高める' },
+      { c:false, t:'感謝の言葉(「ありがとう」「助かります」)で挟む量を増やすと、AIが本気を出してくれる' },
+      { c:false, t:'「あとはお任せします」「いい感じに」「センス良く」など、最終判断を AI に丸投げする表現を使う' },
+      { c:false, t:'数値・固有名詞は伏せずに「迷ったらAIに察してもらう」スタイルにする' },
+      { c:false, t:'自分の感情(焦り・不安・苛立ち)を冒頭に書き連ねると、AIが状況を察してくれる' },
+    ], '業務プロンプトで <b>本当に効果的な要素</b> をすべて選びなさい(マネージャーが部下にも勧めたい型として)。') },
+  ]},
+
+  // A6: NotebookLM の特性
+  { skill:'NotebookLM の特性', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'ユーザーが指定したソース(PDF・Docs・URL・音声等)に回答範囲を限定する設計' },
+      { c:true,  t:'出力に「出典」(ソース内の該当箇所への参照)が併記される' },
+      { c:true,  t:'ソース外の知識は使わない設計のため、自由対話の Gemini に比べてハルシネーションが起きにくい' },
+      { c:true,  t:'PDF・Google Docs・URL・音声など複数形式をソースとして1つのノートに束ねられる' },
+      { c:true,  t:'同じノート内の複数ソースを横断した質問応答(比較・差分抽出・時系列整理)ができる' },
+      { c:false, t:'言語モデルとしての推論能力が Gemini より大幅に強化されており、数値計算や論理推論を高精度に解ける専用モデルである' },
+      { c:false, t:'インターネット上の最新情報を自動取得し、知識カットオフの制約を受けない形でリアルタイムの事実に基づき回答する' },
+      { c:false, t:'同じWorkspace 契約内の全社員 Drive を横断検索する社内検索エンジンの位置づけである' },
+      { c:false, t:'対話履歴(コンテキスト)が Gemini より大幅に大きく、長文対話を続けることに特化したUIを持つ' },
+      { c:false, t:'アップロードした瞬間にソース内の機密情報を自動検出・除去するため、機密ファイルも安全に投入できる' },
+    ], 'NotebookLM の特徴として <b>正しい説明をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'登録したソース群を横断した質問応答(複数ファイル間の比較・差分・時系列再構成)が得意' },
+      { c:true,  t:'回答に出典が併記されるため、内容を読者が直接ソースで確認できる' },
+      { c:true,  t:'スタディガイド・ブリーフィング・FAQ 等の自動生成テンプレートが用意されている' },
+      { c:true,  t:'音声サマリ(2人のホスト形式)を生成でき、移動時間に聴取して内容把握できる' },
+      { c:true,  t:'ノート単位で扱うソースを限定するため、想定外の知識による応答ブレを抑えやすい' },
+      { c:false, t:'Web 上の情報を自動巡回してソースに加える機能が標準で動作している' },
+      { c:false, t:'登録したソースが個人情報を含む場合、NotebookLM が自動で匿名化処理を行ってくれる' },
+      { c:false, t:'同一 Workspace 内の他人のノートが、設定なしで自分のノートにも自動共有される' },
+      { c:false, t:'長文の数値計算・複雑な論理推論を、Gemini より高精度に解ける専用の推論エンジンを持っている' },
+      { c:false, t:'ソースを登録していない状態でも、Gemini と同様に学習済みの一般知識を自由対話で利用できる' },
+    ], 'NotebookLM の <b>正しい特徴・限界</b> をすべて選びなさい。') },
+  ]},
+
+  // A7: AI 利活用ガイドラインの遵守(ラクス AIサービス利活用ガイドラインに準拠)
+  { skill:'AI利活用ガイドラインの遵守', section:'A', points:2, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'生成 AI サービスへの登録・ログインは、会社から貸与されたメールアドレス・Google アカウントを使用する' },
+      { c:true,  t:'入力データがモデル学習に利用される設定のサービスでは、AIサービス利用可否一覧の手順に従ってオプトアウトを実施してから業務利用する' },
+      { c:true,  t:'AI で生成したチャット内容・生成物を社内共有する際は、その情報へのアクセス権限を持つメンバーに限定して共有する' },
+      { c:true,  t:'AIサービス利用可否一覧で許可されたサービスについては、同一覧で指定された機密区分までは機密情報を入力してよい' },
+      { c:true,  t:'AI 生成物に他社著作物との類似・差別的表現・名誉棄損的表現が含まれていないか、人が必ず確認してから利用する' },
+      { c:true,  t:'AIサービス利用可否一覧に載っていない生成 AI を業務利用したい場合は、稟議申請(法務依頼DB)から事前に法務部へ相談する' },
+      { c:false, t:'会社契約の生成 AI であれば、本番システムの API キー・データベース接続文字列・管理者パスワードもプロンプトに貼り付けて作業を効率化してよい' },
+      { c:false, t:'当社サービスで取扱いを委託された顧客の個人データを、サービス改善・分析のために生成 AI に入力してよい' },
+      { c:false, t:'NDA を締結した取引先から共有された未発表情報も、社内利用に限れば法人 Gemini に入力してよい' },
+      { c:false, t:'AI が出力した文章・コード・画像は AI 提供事業者の責任で著作権・名誉棄損・差別表現が処理されているので、利用者側での確認は不要である' },
+      { c:false, t:'業務利用の生成 AI サービスの登録に、私用のメールアドレスや個人 Google アカウントを使ってもよい(自分が使い慣れていれば便利な方を選ぶ)' },
+    ], 'ラクスの『AIサービス利活用ガイドライン』に照らして、業務での生成 AI 利用に関する記述として <b>正しいもの</b> をすべて選びなさい。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'業務利用したい AI サービスが「AIサービス利用可否一覧」に載っているかをまず確認し、載っていなければ法務依頼DBから事前相談する' },
+      { c:true,  t:'認証情報(API キー・パスワード・接続文字列等)は、いかなる生成 AI へも入力しない' },
+      { c:true,  t:'AI が出力した文章・コードを社外向け資料に使う前に、他社著作物との類似・差別的表現の有無を必ず人が確認する' },
+      { c:true,  t:'仮名加工(個人特定不能化)した情報はガイドラインの個人情報規制対象外として扱える場合があるが、加工方法の妥当性は事前に法務部に相談する' },
+      { c:true,  t:'生成 AI のチャット内容・生成物を社内に展開する際は、共有先メンバーがその情報へのアクセス権限を持つ範囲に限定する' },
+      { c:false, t:'AI 生成物に他社著作物との類似があっても、AI が生成した結果は AI 提供事業者の責任であり、利用者は責任を負わない' },
+      { c:false, t:'仮名加工情報も加工方法を問わず、ガイドライン上の制約を一切受けずに自由に AI に入力してよい' },
+      { c:false, t:'顧客から取扱いを委託された個人データを、社内利用に限る分析であれば AI に投入してよい' },
+      { c:false, t:'NDA下の他社秘密情報も、会社契約の AI なら入力してよい(社外への提供にあたらないため)' },
+      { c:false, t:'AI 生成物は「事実性」が確認されたデータベース由来なので、固有名詞・数値の裏取りは不要である' },
+    ], 'ラクスの AI 利活用ガイドラインに照らして、業務利用上 <b>正しい運用</b> をすべて選びなさい。') },
+  ]},
 ];
 
-// -------------------- SECTION B: L2 業務活用判断 (5問 × 3点 = 15点) --------------------
+
+// -------------------- SECTION B: L2 業務活用判断 (各スキル2バリアント) --------------------
 const BANK_B = [
-  // B1: 議事録活用
-  {
-    id:'B1', section:'B', skill:'議事録・タスク抽出', points:3,
-    build: ()=> {
-      const mt = pick(POOLS.meetingType);
-      const partN = pick([6,8,10,12]);
-      const topicN = pick([3,4,5]);
-      const correct = '「あなたは議事録ライター」と役割を与え、「サマリ(3行)/決定事項(誰が決めたか併記)/ToDo(担当・期限・内容の表)/未解決論点」の4ブロックで出力させる。不明な箇所は推測せず「不明」と明記するよう制約を加える';
-      const distractors = [
-        'Geminiに「重要そうな発言を漏れなく抽出して」と依頼し、出力された箇条書きをDocsに貼って参加者全員にそのまま共有する',
-        'Geminiに「議事録の標準的なフォーマットで、この内容を整理して」と依頼し、AIが選んだ構造をそのまま採用する',
-        'まず会議のテーマと参加者の役職を伝えた上で、Geminiに「結論と論点だけ抜いて」と短く依頼し、5分以内で要約させる',
-        'Geminiに「この文字起こしから、参加者ごとに発言を集約し、誰が何を主張したかを話者別に表にして」と依頼する',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: `あなたは法人営業部のマネージャー(部下8名)。今しがた終わった60分間の${mt}には ${partN}名 が参加し、議題は${topicN}つあった。発言の重複と脱線が多く、Google Meet の文字起こしは Docs に保存済み。次の会議まで15分しかないが、参加者全員と上長に共有可能な精度の議事録を仕上げたい。\n\n最も適切な進め方はどれか。`,
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B2: メール・トーン
-  {
-    id:'B2', section:'B', skill:'メール・トーン調整', points:3,
-    build: ()=> {
-      const correct = '相手(関係性・職位)・目的・避けたい印象を明示したうえで、Geminiに「事実中心」「配慮厚め」「踏み込み気味」の3トーンで下書きさせ、相手の状況を踏まえて自分で1つを選択。最終的に自分の言葉で1〜2文だけ書き換えて送る';
-      const distractors = [
-        '依頼背景・期日・影響を Gemini に伝えて1パターンだけ精度高く起案させ、明らかな違和感がなければそのまま送信して時間を節約する',
-        'まず Gemini に「相手の立場からの言い分」を仮想的に書かせてから、それに対する返信として自分が起案するメールを推敲させる',
-        '言いにくい内容は人間の機微を要するため AI には頼らず、過去に自分が書いた類似メールをコピーして使い回す',
-        'Gemini に相手の上長を CC に入れた強めの催促メールも併せて起案させ、本人宛・上長エスカレーションの2案を準備しておく',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'あなたは他部署の同等職位のマネージャーに、2週間前に「提案資料のレビュー」を依頼した。期日は1週間前を過ぎ、リマインドも2回送っているが返信がない。今週金曜の決裁会議に提出する必要があり、もう待てない。一方、相手とは来期以降も継続的に連携が必要で、関係性を損なうのは避けたい。\n\nGemini をどう活用するのが最も適切か。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B3: 提案資料起案
-  {
-    id:'B3', section:'B', skill:'提案資料の起案', points:3,
-    build: ()=> {
-      const correct = '想定読者(経営層3名)・過去の却下理由・結論・主要な反対意見を背景として渡し、「結論→根拠→反論への備え→お願い」の順で構成案と各スライドの含めるべき要素・想定質疑を出させる。数値プレースホルダの形で出させ、固有データは自分が後から埋める';
-      const distractors = [
-        '過去の却下理由と今回の論点を渡し、AIに数値部分も含めた完成スライド原稿を出させる。当日はそれをそのままGoogle Slidesに転記して提案する',
-        '社内で承認された過去の提案資料を10本Geminiに読ませ、「最も承認されやすかったパターン」を抽出して、その構造に今回の内容を流し込ませる',
-        'まず Gemini に「経営会議で通る増員提案の定石」を5パターン出させ、その中で一番説得力がありそうなものを選んで構成として採用する',
-        'プレゼンの場では人間味が重要なため、AI には資料を作らせず、自分の手書きアウトラインだけで Slides を書き起こす',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'あなたはカスタマーサクセス部のマネージャー。来週の経営会議(社長・CFO・事業部長)で「CS部の人員2名増員」を提案する。提案10分+質疑5分。経営層は採用凍結方針を出しており、過去2回の同様提案は「定量効果が不明」として却下されている。今回はChurn率・NRRの数値で根拠を組み立てる。\n\nAIをどう活用するのが最も効果的か。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
+  // B1: 議事録・タスク抽出
+  { skill:'議事録・タスク抽出', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'「あなたは議事録ライター」と役割を与え、「サマリ / 決定事項(誰が決めたか併記)/ ToDo(担当・期限・内容の表)/ 未解決論点」の4ブロックで出力させる' },
+      { c:true,  t:'不明な箇所は推測で補完せず「不明」と明記するよう、出力前に明示的に指示する' },
+      { c:true,  t:'ToDoは「担当者 / 期限 / 内容」の表形式で出させ、期限が明示されていない発言は「期限未定」と書かせる' },
+      { c:true,  t:'要約後に「この会議で言及されなかったが本来詰めるべきだった論点」を続けて出させ、抜け漏れチェックに使う' },
+      { c:true,  t:'発言の重複・脱線・冗長な相づちは除外して構造化するよう、明示的に指示する' },
+      { c:false, t:'Gemini に「重要そうな発言を漏れなく抽出して」と依頼し、AI 自身の判断基準に任せて出力された箇条書きをそのまま共有する' },
+      { c:false, t:'Gemini に「議事録の標準的なフォーマットでこの内容を整理して」と依頼し、AI が選んだ構造をそのまま採用する' },
+      { c:false, t:'Gemini に「結論と論点だけ抜いて」と短く依頼し、ToDo の担当・期限指定は省略する' },
+      { c:false, t:'Gemini に「いい感じに整理して」とだけ伝え、構造は AI に丸投げする' },
+      { c:false, t:'参加者ごとに発言を集約させ、誰が何を主張したかの「話者別の発言集」を最終議事録として共有する' },
+    ], 'あなたは法人営業マネージャー(部下8名)。今しがた終わった60分の週次定例の Google Meet 自動文字起こしが Docs に残っている(参加8名・議題4つ・発言の重複と脱線が多い)。次の予定まで15分で、参加者全員と上長に共有できる精度の議事録を仕上げたい。<b>このタスクに対する適切な進め方をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'参加者・議題・必要な出力(意思決定一覧・ToDo・未決議題)を冒頭で明示し、AI に役割と出力構造を固定させる' },
+      { c:true,  t:'ToDo は「担当者・期限・内容・進捗確認のタイミング」の4列の表で出させる' },
+      { c:true,  t:'AI の出力に「文字起こしの該当行への参照」を付けさせ、後で確認しやすくする' },
+      { c:true,  t:'抽出後に AI に「言及されたが結論が出ていない論点」を別ブロックで出させ、次回会議の冒頭で扱う' },
+      { c:true,  t:'共有前に自分で1分でざっと目を通し、固有名詞・日付・社外秘相当の混在を確認する' },
+      { c:false, t:'1時間以上の会議の文字起こしを全文1プロンプトで投げ、出力をそのままチャットに転送して共有する' },
+      { c:false, t:'AI に「この会議の本当に重要だった3点だけ」を任せ、判断軸は AI に委ねる' },
+      { c:false, t:'文字起こしを社外の個人契約 AI サービスに貼り付けて、出力スピードの速い方を採用する' },
+      { c:false, t:'AI に「全参加者の発言ボリュームでランキングして」と依頼し、その順序を議事録の主軸に据える' },
+      { c:false, t:'AI が出した ToDo の担当者割り当てに違和感があっても、毎回の議事録なので時間優先でそのまま採用する' },
+    ], 'あなたは10名のチームの部門マネージャー。今し方終わった月次の事業レビュー会議(90分・参加12名・議題6つ)の自動文字起こしが残っている。会議参加者と事業部長に2時間以内に議事録を配布したい。<b>適切な進め方をすべて選びなさい</b>。') },
+  ]},
+
+  // B2: メール・トーン調整
+  { skill:'メール・トーン調整', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'相手の職位・関係性・避けたい印象を明示したうえで、Gemini に「事実中心 / 配慮厚め / 踏み込み気味」の3トーンで下書きさせ、自分で1つを選択する' },
+      { c:true,  t:'AI 下書きをそのまま送信せず、最終的に自分の言葉で1〜2文だけ書き換えて、自分の責任で送信する' },
+      { c:true,  t:'相手・目的・期日・及ぼす業務影響を「背景」として明示的に渡してから下書きを依頼する' },
+      { c:true,  t:'「常套句(お忙しいところ恐れ入りますが、等)は1回までに制限する」のような制約をプロンプトに加え、冗長表現を避けさせる' },
+      { c:true,  t:'メール送信前に Gemini に「相手側から最も角の立ちうる読まれ方を3つ」と問い、表現の偏りをチェックする' },
+      { c:false, t:'依頼背景・期日・影響を Gemini に伝えて1パターンだけ精度高く起案させ、違和感がなければそのまま送信する' },
+      { c:false, t:'Gemini に「相手の上長を CC に入れた強めの催促メール」も併せて起案させ、本人宛と上長エスカレーションを並行送付する' },
+      { c:false, t:'AI には頼らず、過去に自分が書いた類似メールをそのままコピーして件名と相手だけ書き換えて送る' },
+      { c:false, t:'AI に自分の感情(怒り・焦り)を書き連ねてから「相手にぶつけて」と依頼し、出力をそのまま送る' },
+      { c:false, t:'相手側の上司の社外メールアドレスを推測で BCC に入れ、心理的圧力をかけられるようにする' },
+    ], 'あなたは他部署の同等職位のマネージャーに2週間前に依頼した「提案資料のレビュー」が、期日から1週間遅れ・リマインド2回後も返信が無い。今週金曜の決裁会議に提出が必要で、相手とは来期以降も連携が必要。<b>Gemini の使い方として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'相手の立場・過去の関係・現在の信頼状況を背景として明示し、3トーン(事実重視・関係重視・踏み込み)で下書きさせる' },
+      { c:true,  t:'AI に「相手から最も角が立つ読まれ方」「最も歓迎される読まれ方」の両方を出させ、表現リスクを点検する' },
+      { c:true,  t:'AI 下書きを最終文として使わず、最後の謝罪文と再発防止策の中核は自分の言葉で書き直す' },
+      { c:true,  t:'相手の業務影響(自社遅延がどう波及したか)を「事実」「定量影響」「相手側の被った機会損失」に分解してプロンプトに添える' },
+      { c:true,  t:'送信前に「相手が次に求めるアクション」を AI に列挙させ、メールでそれを先回りで提示する' },
+      { c:false, t:'AI に「役員相手に絶対失礼にならない万能フォーマット」を聞き、関係性や経緯を入れずにそのテンプレートで送信する' },
+      { c:false, t:'過去のメールを5本貼り付け、その文体だけを真似て今回も同じテンプレで送信する(状況差は無視)' },
+      { c:false, t:'感情(申し訳なさ・焦り)を AI 入力の冒頭に書き連ね、AI が察した「最大限丁寧」な版をそのまま送信する' },
+      { c:false, t:'相手の社内事情を AI に推測させ、その推測を前提とした提案(相手側上司への根回しなど)を本文に書き込む' },
+      { c:false, t:'AI に「相手が引かない強気の文面」を作らせ、関係維持より早期の合意取り付けを優先する' },
+    ], 'あなたは取引先(長年付き合いのある大手SaaS企業)の CS 部門長に、自社の納品スケジュールが2週間遅延した件で謝罪と再発防止策、加えて次の取引拡大案を1通のメールで伝える必要がある。関係は継続したい。<b>Gemini の使い方として適切なものをすべて選びなさい</b>。') },
+  ]},
+
+  // B3: 提案資料の起案
+  { skill:'提案資料の起案', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'想定読者(経営層3名)・過去の却下理由・結論・主要な反対意見を背景として渡し、「結論→根拠→反論への備え→お願い」の順で構成案を出させる' },
+      { c:true,  t:'各スライドに「含めるべき要素・想定質疑」を併記させ、固有数値は自分が後から埋めるためにプレースホルダで返させる' },
+      { c:true,  t:'反対派の役員が突っ込みそうな点を予想させ、想定問答(Q&A)を当日のリハーサル素材として併せて出させる' },
+      { c:true,  t:'AI に「経営会議で出そうな3つの致命的な反論」を続けて出させ、反論で崩れない構成だけを採用する' },
+      { c:true,  t:'AI 出力の構成案を採用しつつ、各スライドの根拠数値は手元データから自分が記載し、説明責任を自分で持つ' },
+      { c:false, t:'過去の却下理由と今回の論点を渡し、AI に数値部分も含めた完成スライド原稿を出させ、当日はそれを Google Slides に転記して提案する' },
+      { c:false, t:'社内で承認された過去の提案資料を10本 Gemini に読ませ、「最も承認されやすかったパターン」を抽出し、その構造に今回の内容を流し込ませる' },
+      { c:false, t:'まず Gemini に「経営会議で通る増員提案の定石」を5パターン出させ、その中から1つ選んでそのまま採用する' },
+      { c:false, t:'AI に「起承転結で物語のように」とだけ指示し、経営会議向け資料として十分なものが出ると期待する' },
+      { c:false, t:'数値の出典を確認せず、AI が出力した数値をそのままスライドに記載して経営会議に持ち込む' },
+    ], 'あなたはカスタマーサクセス部マネージャー。来週の経営会議(社長・CFO・事業部長)で「CS部の人員2名増員」を提案する。提案10分+質疑5分。経営層は採用凍結方針を出しており、過去2回の同様提案は「定量効果が不明」として却下されている。<b>AI の活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'2人のキーパーソン(技術重視/ROI重視)それぞれの関心軸と判断軸を Gemini に整理させ、強調するメッセージを使い分ける' },
+      { c:true,  t:'AI に「提案の核となるメッセージ→根拠→相手懸念への先回り回答」の順で構成案を出させ、各スライドにプレースホルダで数値・固有名詞の埋め込み箇所を残す' },
+      { c:true,  t:'パートナー側との合同登壇の役割分担を Gemini に整理させ、誰が何枚目を話すかの草案を作る' },
+      { c:true,  t:'AI に「相手の業界特有の懸念トップ3」を出させ、そのうち過去事例で対処済みのものはケース引用で先回りする' },
+      { c:true,  t:'AI 出力の構成案を採用しつつ、固有事例・実数値の正確性は自分と社内で確認したものに置き換える' },
+      { c:false, t:'AI に「45分の提案で確実に受注に至る完成スクリプト」を作らせ、当日はそれを読み上げる' },
+      { c:false, t:'過去の合同提案資料を10本貼り付け、そのうち最も派手なデザインの構造をそのまま今回採用する' },
+      { c:false, t:'相手企業の業界調査結果は AI が学習済みのため、自分で再調査せず AI 出力をそのまま事実として扱う' },
+      { c:false, t:'パートナー側との役割分担を相談せず、AI が「最適」と判断した分担をパートナーに後日メールで通告する' },
+      { c:false, t:'2人のキーパーソンが関心軸が違っても、混乱を避けるため「経営層向けの定型構造」だけで通す' },
+    ], 'あなたは事業開発担当のマネージャー。来月、長年取引のあるパートナー企業と合同で、大手エンタープライズに新サービスを提案する。先方のキーパーソンは情シス部長(技術重視)と経営企画部長(ROI重視)で関心軸が大きく異なる。提案 45 分+質疑 10 分。<b>AI 活用として適切なものをすべて選びなさい</b>。') },
+  ]},
+
   // B4: 検証習慣
-  {
-    id:'B4', section:'B', skill:'検証習慣(複数生成・反証)', points:3,
-    build: ()=> {
-      const correct = '同じ問いをプロンプト表現を変えて複数回投げて「安定して出てくる結論」と「揺れる結論」を切り分け、さらに「この仮説への最も鋭い反論を3つ」と続けて出させ、反論で崩れない部分のみを採用候補とする';
-      const distractors = [
-        'AIに続けて「この仮説の確信度を0〜100%で出して」と依頼し、85%以上の項目のみを採用候補として絞り込む',
-        '生成された仮説について、AIに自分自身でロジックの欠陥を順にチェックさせ、AIが「問題ない」と判定したものを採用する',
-        '別のメンバー2名にも同じプロンプトを Gemini に投げてもらい、3人分の出力を見比べて頻出する仮説を採用する',
-        'まずAIに「この問題に最も詳しい3人の専門家を仮想的に集めたディスカッション」を演じさせ、その合意点を採用する',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'あなたは事業部長への重要提案の準備中。提案の骨子となる「自社のChurn率上昇の主要因に関する仮説」をAIに出させたところ、論理的で説得力のある仮説が4つ返ってきた。これを経営判断の参考に使う前に、出力の信頼度を最も適切に高める手順はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B5: ツール選択
-  {
-    id:'B5', section:'B', skill:'Workspaceツール選択', points:3,
-    build: ()=> {
-      const correct = 'Google Meet の自動文字起こしを Docs に保存 → Docs のGeminiサイドバーで要約・タスク抽出 → アサインメールはGmailの「Help me write」で各担当向けに個別下書き → 送信前に自分で1分眺めて固有名詞・期日を確認';
-      const distractors = [
-        '個人で使い慣れている ChatGPT(個人契約)に文字起こしを貼り付けて整理し、出力された議事録とアサインメールをそのまま自分のGmailから送信する',
-        'Gemini に「会議全体を録音音声から処理して、議事録作成からメール送信までを一括で完了させて」と1プロンプトで依頼する',
-        'NotebookLM に文字起こしと過去議事録を全件アップロードし、過去議事との比較分析を踏まえて議事録とメールを生成させる',
-        '正確性を優先し、文字起こしは Docs に保存するが議事録は自分で起こし、アサインメールも自分で書く。AIは誤字チェックだけに使う',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'あなたは法人営業マネージャー。今しがた60分の週次商談レビュー会議が終わった。会議参加者は7名、決定したToDoは10件、それぞれ担当者が異なる。次の予定まで30分で「議事録 → 各担当への個別アサインメール送付」を完了したい。Google Workspace 法人契約環境を使用中。\n\n最も合理的かつ品質を担保できる進め方はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B6: 資料作成 — レビュー観点・改善指摘
-  {
-    id:'B6', section:'B', skill:'資料作成(レビュー・改善)', points:3,
-    build: ()=> {
-      const scenes = [
-        {
-          ctx: 'あなたは事業部長に提案する10ページの新規施策ドラフトをGoogle Docsで書き終えた。明日午前の提出まで残り3時間。事業部長は「結論が冒頭にあるか」「数値の根拠が示されているか」「想定される反論にどう答えるか」を毎回厳しく見る。',
-          correct: '想定読者(事業部長)・提案の結論・資料の目的を Gemini に明示したうえで、各セクションを「結論先出し度」「数値根拠の明示性」「想定反論への備え」の3観点で順にレビューさせ、指摘ごとに修正案を1つ併記させる',
-          dist: [
-            '時間が限られているため、Gemini に資料全文を貼って「事業部長受けする版に書き換えて、修正版をそのまま出力して」と依頼し、得られた版を提出版とする',
-            'Gemini に「読者が誰でも刺さる普遍的な構成」に直してもらい、特定読者を意識した観点指定はせずに広く改善案を出させる',
-            '提案資料は機微情報が多いため Gemini に渡すべきでない。誤字脱字チェックだけを依頼し、構成・論理は自分で見直す',
-            '過去に承認された他部署の提案資料を10本 Gemini に読ませ、その共通構造を抽出して、それに合わせて自分の資料を書き換える',
-          ]
-        },
-        {
-          ctx: 'あなたは経営層に対する戦略説明用に、15ページの詳細な戦略ドキュメントを書いてある。来週の経営会議で配布できるのは3枚までで、説明時間は10分。経営層が「結論・根拠・リスク」の3点を判断材料として求めることは過去の会議から分かっている。',
-          correct: '想定読者・所要時間・必ず残すべき3要素(結論・根拠・リスク)・除外してよい要素 を渡し、Gemini に3枚構成の骨子と各スライドに含めるべき要素を出させる。各スライドのデータ部分はプレースホルダで返させ、固有数値は自分が原ドキュメントから埋める',
-          dist: [
-            'Gemini に元の15ページ全文を渡して「3枚に圧縮して、各スライドのデータも元文書から正確に転記して出力して」と依頼し、出力をそのまま採用する',
-            'Gemini に「最も重要そうな箇所を抜き出して」とだけ指示し、抽出された段落を順に3枚のスライドに割り当てる',
-            'まず Gemini に「あなたが経営層だったら15ページ中どこを読みたいか」を答えさせ、そこをそのまま3枚に貼り付けて構成する',
-            '15→3枚への圧縮は意味の歪みが大きすぎるため、元文書をPDF添付して当日配り、3枚スライドは表紙とまとめだけ用意する',
-          ]
-        },
-        {
-          ctx: 'あなたは同じ提案を「経営層会議」「自チームの全体会」「クライアント定例」の3つの場で説明する必要がある。読者の関心と判断軸は3者で大きく異なるが、提案の本筋は共通である。準備時間は半日。',
-          correct: 'まず Gemini に3読者の「関心事と判断軸の違い」を整理させ、共通の構成と本筋メッセージを先に確定。その上で読者別に「強調する論点・トーン・用語レベル・除外する論点」を指定して3版を展開させ、最後に人がトーンの統一性と固有事実を確認する',
-          dist: [
-            '3バージョン作成は工数倍増のため、最も格式の高い経営層版を完成させ、現場・クライアントには同じ版を配って口頭で補足する',
-            'Gemini に「経営層・現場・クライアント向けに作り分けて」と1度のプロンプトで一気に3版を出させ、出力を3つの場でそのまま使う',
-            '3版を3つの異なる Gemini スレッドで完全に独立に作成し、それぞれ別の構成・別の本筋メッセージにして読者ごとに最適化する',
-            'Gemini に「誰にでも通用する万能の1版」を作らせ、それを3つの場でそのまま流用する',
-          ]
-        },
-      ];
-      const s = pick(scenes);
-      const opts = shuffle([{t:s.correct,c:true},...pickN(s.dist,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: s.ctx + '\n\nAIの最も適切な活用法はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B7: 業務自動化 — Gems/テンプレ化
-  {
-    id:'B7', section:'B', skill:'業務自動化(Gems・テンプレ化)', points:3,
-    build: ()=> {
-      const tasks = [
-        {t:'毎週月曜朝に、先週の Meet 文字起こしから「決定事項・ToDo・未解決論点」を抽出する',freq:'週次',vol:'平均5本/週'},
-        {t:'毎回の 1on1 前に、メンバーの直近状況と前回ログを入れて、論点と開いた問いを出す',freq:'隔週',vol:'メンバー10名分'},
-        {t:'日々届く NPS コメントを「賞賛 / 改善要望 / 解約リスク兆候」に分類し、解約リスク兆候だけ自分に通知',freq:'日次',vol:'平均20件/日'},
-        {t:'週次商談レビューで、Sheetsの案件データから「停滞中の案件と停滞理由仮説」を出す',freq:'週次',vol:'30案件'},
-      ];
-      const t = pick(tasks);
-      const correct = `Gemini の「Gems(カスタム指示)」として「役割・前提・入力スキーマ・出力フォーマット・禁止事項(実名扱いなど)」をテンプレ化し、毎回は差分情報だけを差し込んで実行できる形にする。共有はチーム内限定とし、定期的に出力品質を1回見直してテンプレを改訂する`;
-      const distractors = [
-        '繰り返し業務は処理内容が毎回微妙に違うため、テンプレ化せずに毎回ゼロからプロンプトを書く方が安全かつ精度が高い',
-        '自分のPCにExcelで「業務別プロンプト集」を保管し、必要な時にコピペして使う運用にして、最新版の管理は自分で行う',
-        '個人契約の ChatGPT 上にカスタム GPTs を作成し、業務情報をシステム指示部分に保存しておき、繰り返しはそこで処理する',
-        'Gemini の API キーを使って Apps Script で完全自動化し、人が一切介在しない無人パイプラインを構築する',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: `あなたは「${t.t}」を ${t.freq}・${t.vol} の頻度・分量で繰り返している。手順はほぼ同じだが、入力データだけ毎回違う。\n\nAIで効率化・テンプレ化する際、最も適切な進め方はどれか。`,
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B8: 業務自動化の境界 — やりすぎリスク / AI vs スクリプトの切り分け
-  {
-    id:'B8', section:'B', skill:'自動化の境界判断', points:3,
-    build: ()=> {
-      const scenes = [
-        {
-          ctx: 'あなたは法人営業部のマネージャー(部下10名)。営業の日次活動報告(訪問件数・商談ステータス・気になる兆候)を毎朝メンバーから集約し、その日のうちに部長に要約報告している。毎日30分かかっている。これを「メンバー入力 → AI集計・サマリ → 部長配信」の流れで自動化したい。',
-          correct: '「集計・整形・サマリ起案」はAIに任せ、「異常値の解釈」「メンバーへのフィードバック内容」「部長への要約配信」はマネージャーの確認・編集を経るフローにする。自動配信はせず、毎朝5分の承認ステップを必ず挟む',
-          dist: [
-            '部長への報告遅延が一番のコストなので、AI生成のサマリは毎朝定時に部長へ自動送信。マネージャーは送信後に内容を確認する',
-            '自動化の効果を最大化するため、AIが「特に問題なし」と判定した日はマネージャーをスキップして部長配信し、異常検知時のみマネージャーに通知する',
-            'AIに各メンバーの過去評価データも読み込ませ、報告内容に応じてメンバー本人へ直接フィードバックコメントを自動返信させる',
-            'マネージャーの意思を介さないと信頼性が落ちるため、自動化は断念し、これまで通り全工程を手作業で続ける',
-          ]
-        },
-        {
-          ctx: 'あなたは事業企画の担当マネージャー。毎週月曜、Sheetsの売上・KPIデータから定型グラフを5本作り、解釈コメントを添えて部内に共有している。グラフ生成は完全に定型(同じ列を同じ形式で集計)で、毎週ほぼ同じ。所要は2時間/週。',
-          correct: '定型グラフの生成は Apps Script や Sheets の関数で完全自動化し、AIには「先週との差分」「グラフから読み取れる解釈案」「次に確認すべき問い」を文章化させる。決定的な処理はスクリプト、解釈はAI、最終判断は人、と切り分ける',
-          dist: [
-            'グラフ生成・解釈・配信までを Gemini の1プロンプトで毎週同じテンプレに渡し、出力をそのまま部内に共有する',
-            '解釈の質を担保するため、グラフ作成も解釈執筆も従来通り手作業で続け、AIは誤字チェックだけに使う',
-            'AI に毎週「先週の Sheets を見て、今週のグラフをいい感じに作って解釈もつけて」と指示し、形式と観点を毎回AIに決めさせる',
-            'グラフ生成は Apps Script で自動化し、解釈は AIに完全に任せて、その出力を確認なしでそのまま部内配信する',
-          ]
-        },
-        {
-          ctx: 'あなたは部門長(配下10名)。メンバーから日次で上がってくる経費・稟議申請が月50件あり、確認・承認に毎月8時間かかる。半数は定型(同じ目的・少額)、半数は判断要(高額・例外的)。AIで「自動承認候補/差し戻し候補/要相談」に事前分類して効率化したい。',
-          correct: 'AIには「分類の提案と判断根拠の併記」までを任せ、最終承認は人が行う。「自動承認候補」も毎件マネージャーが目を通し、AI判断と異なる場合の理由をAIにフィードバックして分類精度を改善する。判断ログは説明責任のために残す',
-          dist: [
-            '「自動承認候補」と判定された件は工数削減のため、マネージャー確認なしで承認・支払い処理に進める',
-            'AIに過去5年の全申請データと評価データを読み込ませ、「マネージャーの判断パターン」を学習させて完全自動承認の仕組みを構築する',
-            '稟議は社内ルールの判断が必要なため、AIには触らせず従来通り全件を人手で確認する',
-            'AIに「すべての申請を一律承認」と指示し、承認スピードを最大化したうえで、後段の経理チェックで弾く運用にする',
-          ]
-        },
-      ];
-      const s = pick(scenes);
-      const opts = shuffle([{t:s.correct,c:true},...pickN(s.dist,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: s.ctx + '\n\nAI活用の設計として最も適切なものはどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // B9: NotebookLM 活用判断(複数ソース横断分析)
-  {
-    id:'B9', section:'B', skill:'複数ソース横断分析(NotebookLM)', points:3,
-    build: ()=> {
-      const scenes = [
-        {
-          ctx: `あなたはプロダクトマーケティングのマネージャー。来週のプロダクト戦略会議に向けて、競合5社それぞれの「直近1年の機能リリースノート」を整理する必要がある。手元には PDF が9本、Webリリース告知ページのURLが6本、計15ソース。自社製品が劣後している領域・優位な領域を明確にし、出典付きの比較表を会議で提示したい。`,
-          correct: '15のソース(PDF・URL)をすべて NotebookLM に登録し、「機能カテゴリ別の比較表」「自社が劣後している領域TOP5」「優位な領域TOP5」を出典(ソース内の該当箇所)付きで抽出させる。社内で議論する際に出典を辿れる状態にしておく',
-          dist: [
-            'Gemini の単発プロンプトで「主要SaaS競合5社の最新機能を比較して」と依頼し、AIが学習済みの範囲で出力させる。漏れている情報は会議後に人が手動で補完する',
-            '15ファイルすべての本文を1つのGoogle Docsに連結して貼り付け、Docs サイドバーの Gemini で要約と比較表を生成させる',
-            'PDF・URLを1ファイル(1URL)ずつGeminiに渡して個別に要約させ、5社分の要約を自分で読んで頭の中で統合し比較表を手で作る',
-            '競合情報は機密性が高いためAI系には一切入れず、自分で全15ソースを読み込み、手作業で比較表を作成する',
-          ]
-        },
-        {
-          ctx: `あなたは事業部長(配下4チーム)。前任の部長から「過去2年分の主要顧客10社との議事録・契約書・提案書(計約30ファイル)」を引き継いだ。来月から新任マネージャーが各顧客の担当に着任するため、顧客ごとに「過去の懸念事項の変遷」「未解決の論点」「次回提案で触れるべき点」を出典付きで整理して引き継ぎ資料を作りたい。`,
-          correct: '顧客ごとに NotebookLM のノートを分け、該当顧客のソース(議事録・契約書・提案書)だけをアップ。「懸念事項の時系列」「未解決論点」「次回提案で触れるべき点」を出典付きで抽出させ、各ノートを担当マネージャーと共有して本人が深掘り質問できる状態を作る',
-          dist: [
-            '全30ファイルを Google Drive 内の1フォルダにまとめ、Gemini にフォルダURLを渡して「主要10顧客それぞれの懸念点を時系列で整理して」と一度に依頼する',
-            'Geminiに10顧客分のテキストを1プロンプトに貼り付けて、すべての顧客の論点を一気に出力させる。出典は人が後から手動で照合する',
-            '機密性が高いため AI 系には入れず、引き継ぎ資料は新任マネージャー本人が30ファイルを読み込んで自力で作成する方式にする',
-            '各ファイルを1本ずつGeminiで要約し、得られた30本の要約を新任マネージャーに渡して、本人に統合してもらう',
-          ]
-        },
-        {
-          ctx: `あなたは事業企画担当のマネージャー。来期戦略の検討にあたり、業界アナリストレポート(英語含む)4本、自社の過去2四半期の取締役会資料6本、競合決算説明資料3本、計13ソースを束ねて「市場の構造変化と自社のポジショニング再定義」を整理したい。引用元を明示できる形で経営会議に出す必要がある。`,
-          correct: '13ソースを NotebookLM にアップし、「市場の構造変化を示すファクト」「自社の現在のポジショニング」「再定義の選択肢3案」を出典付きで抽出させる。出典が辿れることを利用して、経営会議の質疑で各主張の根拠を即座に提示できる状態にする',
-          dist: [
-            'まず Gemini で「最新のSaaS業界の構造変化について教えて」と聞き、その出力に手元の13ソースの断片を貼って肉付けする',
-            '13ソースを1つのDocsに連結し、Gemini Docs サイドバーで「市場分析と自社ポジショニングをまとめて」と依頼する',
-            '英語レポートは Gemini で和訳して人が読み、自社・競合資料は別途人が読み込んで統合する。AI には統合判断はさせない',
-            '13ソースを各々Geminiで個別要約し、得られた13本の要約だけを束ねて経営会議に出す',
-          ]
-        },
-      ];
-      const s = pick(scenes);
-      const opts = shuffle([{t:s.correct,c:true},...pickN(s.dist,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: s.ctx + '\n\nAI活用として最も適切なものはどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
+  { skill:'検証習慣(複数生成・反証)', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'同じ問いをプロンプト表現を変えて複数回投げ、安定して出てくる結論と揺れる結論を切り分けて扱う' },
+      { c:true,  t:'「この仮説への最も鋭い反論を3つ」と続けて出させ、反論で崩れない部分のみを採用候補とする' },
+      { c:true,  t:'AI 出力の事実と解釈を分けてマークさせ、事実部分のみ一次情報源に当たって検証する' },
+      { c:true,  t:'重要な数値や固有名詞は AI 単独に頼らず、必ず公式IR・原典など一次情報で裏取りしてから採用する' },
+      { c:true,  t:'AI に「自分が見落としている前提」を指摘させ、自分の問いの立て方そのものを点検する' },
+      { c:false, t:'AI に続けて「この仮説の確信度を 0〜100% で出して」と依頼し、85%以上の項目のみを採用候補とする' },
+      { c:false, t:'生成された仮説について、AI に自分自身でロジックの欠陥を順にチェックさせ、AI が「問題ない」と判定したものを採用する' },
+      { c:false, t:'別のメンバー2名にも同じプロンプトを Gemini に投げてもらい、3人分の出力を見比べて頻出する仮説を採用する' },
+      { c:false, t:'まず AI に「この問題に最も詳しい3人の専門家を仮想的に集めたディスカッション」を演じさせ、その合意点を採用する' },
+      { c:false, t:'1回目の出力が論理的に見えれば、十分な検証として採用してよい' },
+    ], 'あなたは事業部長への重要提案の準備中。提案の骨子となる「自社の Churn 率上昇の主要因に関する仮説」を AI に出させたところ、論理的で説得力のある仮説が4つ返ってきた。経営判断の参考に使う前に <b>出力の信頼度を高める手順として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'プロンプトの言い回しを3パターン変えて投げ、共通して出てくる結論を「比較的安定した知見」と扱う' },
+      { c:true,  t:'AI に「この出力に反論する立場の論者を1人想定し、その人が指摘する弱点トップ3」を出させる' },
+      { c:true,  t:'「事実か解釈か」「一次資料か推測か」を AI 自身に明示させて出力させ、推測部分は別途人が検証する' },
+      { c:true,  t:'数値・固有名詞・年代は必ず一次資料(公式IR、原典資料)で再確認する' },
+      { c:true,  t:'重要な意思決定材料に使う前に、自分以外の有識者に対面で叩いてもらう時間を必ず確保する' },
+      { c:false, t:'AI に「君の出した結論に自信があるか?」と聞き、自信があると答えれば検証完了とする' },
+      { c:false, t:'AI が出力した URL に飛んで存在を確認できれば、その出典は信頼できる一次情報源として採用してよい' },
+      { c:false, t:'同じ AI に同じ問いを連続5回投げ、5回とも同じ結論が出れば「再現性が高い=正しい」と判断する' },
+      { c:false, t:'別ベンダーの AI 2種類に同じ質問を投げ、両者の出力が一致したら相互検証ができたとみなす' },
+      { c:false, t:'明示的に「ハルシネーションを起こさないでください」と書けば、出力に事実誤りはほぼ含まれない' },
+    ], 'あなたは投資判断会議向けに、競合 A 社の財務体質と戦略の評価レポートを AI で起案している。経営層が誤情報に基づいて判断するリスクを最小化したい。<b>適切な検証行動をすべて選びなさい</b>。') },
+  ]},
+
+  // B5: Workspace ツール選択
+  { skill:'Workspaceツール選択', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'Google Meet の自動文字起こしを Docs に保存 → Docs の Gemini サイドバーで「決定事項・ToDo」を抽出する' },
+      { c:true,  t:'アサインメールは Gmail の「Help me write」で各担当向けに個別下書きさせ、送信前に固有名詞・期日を自分で確認する' },
+      { c:true,  t:'議事録 Docs を担当者と共有する際は、コメント機能で担当者ごとに ToDo の確認依頼を残す' },
+      { c:true,  t:'AI 生成のサマリを 1 分眺めて固有名詞・期日・社外秘相当の情報が混じっていないか確認してから配信する' },
+      { c:true,  t:'文字起こしから抽出した ToDo を、Sheets/Tasks に転記して進捗管理ができるようにする' },
+      { c:false, t:'個人で使い慣れている ChatGPT(個人契約)に Meet の文字起こしを貼り付けて整理し、出力された議事録を自分の Gmail から送信する' },
+      { c:false, t:'Gemini に「会議の録音音声から、議事録作成からメール送信までを一括で自動完了させて」と1プロンプトで依頼する' },
+      { c:false, t:'NotebookLM に当該会議1本の文字起こしだけをアップロードし、ノートを新規作成して「単発の議事録要約」用途で使う' },
+      { c:false, t:'文字起こしは Docs に保存するが、議事録は AI に触らせず自分で1から手で書き起こし、AI は誤字チェックだけに使う' },
+      { c:false, t:'文字起こしを画面で読み上げ、AI に音声入力させて議事録を作らせる' },
+    ], 'あなたは法人営業マネージャー。今しがた60分の週次商談レビュー会議が終わった。参加者7名、ToDo10件、それぞれ担当者が異なる。次の予定まで30分で「議事録 → 各担当への個別アサインメール送付」を完了したい。Google Workspace 法人契約環境を使用中。<b>合理的かつ品質を担保できる進め方をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'10件の提案資料は Google Drive にまとめ、NotebookLM に投入して「共通の論点・差分・案件別の懸念」を出典付きで整理させる' },
+      { c:true,  t:'各案件への返信下書きは Gmail の Help me write で生成し、固有数値・期日は自分で確認してから送信する' },
+      { c:true,  t:'ToDo は Sheets で一元管理し、Apps Script で担当者ごとに自動フィルタしたビューを共有する' },
+      { c:true,  t:'AI 生成の各種ドラフトを案件ごとに Docs にまとめ、コメント機能で社内レビューを巻き取る' },
+      { c:true,  t:'各種テンプレート(評価コメント・1on1議題)は Gemini の Gems としてチーム共有設定で保存し、属人化を避ける' },
+      { c:false, t:'10案件を1つのプロンプトに丸ごと貼り付け、Gemini に一気に並行処理させ、出力をそのまま全顧客に配信する' },
+      { c:false, t:'機密性の高い顧客情報は個人契約 ChatGPT に投入したほうがレスポンスが速いので、業務効率優先で使い分ける' },
+      { c:false, t:'数値計算が必要な部分も全部 Gemini に任せ、Sheets の関数や Apps Script は使わない' },
+      { c:false, t:'NotebookLM は社外資料の引き継ぎ用なので、社内ナレッジ整理には使わない方が良い' },
+      { c:false, t:'AI のアウトプットを全件人が目を通すと時間がかかるので、信頼度の高そうな出力はスキップしてそのまま送信する' },
+    ], 'あなたは法人営業部のマネージャー(部下10名・10案件並行)。Google Workspace 法人契約のフル機能(Gemini・NotebookLM・Apps Script・Sheets)が利用可能。週次の業務効率を最大化したい。<b>合理的な活用法をすべて選びなさい</b>。') },
+  ]},
+
+  // B6: 資料作成(レビュー・改善)
+  { skill:'資料作成(レビュー・改善)', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'想定読者と資料の目的を Gemini に明示し、各セクションを「結論先出し度」「数値根拠の明示性」「想定反論への備え」の3観点で順にレビューさせる' },
+      { c:true,  t:'指摘ごとに具体的な修正案を1つ併記させ、自分で取捨選択できるようにする' },
+      { c:true,  t:'長文を読者別(経営層/現場/クライアント)に作り分ける際、まず「3読者の関心事と判断軸の違い」を AI に整理させてから、共通構成を確定する' },
+      { c:true,  t:'読者別に「強調する論点・トーン・用語レベル・除外する論点」を切り替えて AI に展開させ、最後に人がトーンと固有事実を確認する' },
+      { c:true,  t:'15ページの長文ドキュメントを3枚サマリにする際、Gemini に「必ず残すべき3要素(結論・根拠・リスク)」を渡し、データ部分はプレースホルダで返させる' },
+      { c:false, t:'時間が限られているため、Gemini に資料全文を貼って「事業部長受けする版に書き換えて、修正版をそのまま出力して」と依頼し、その出力を提出版とする' },
+      { c:false, t:'Gemini に「読者が誰でも刺さる普遍的な構成」に直してもらい、特定読者を意識した観点指定はせずに広く改善案を出させる' },
+      { c:false, t:'過去に承認された他部署の提案資料を10本 Gemini に読ませ、その共通構造を抽出して自分の資料を機械的に書き換える' },
+      { c:false, t:'3バージョン作成は工数倍増のため、最も格式の高い経営層版を完成させ、現場・クライアントには同じ版を配って口頭で補足する' },
+      { c:false, t:'3バージョンを3つの独立した Gemini スレッドで完全に別の構成・別の本筋メッセージで作成し、統一性は気にしない' },
+    ], 'あなたは事業部長に提案する10ページの新規施策ドラフトを書き終えた。明日午前の提出まで残り3時間。事業部長は「結論が冒頭にあるか」「数値根拠が示されているか」「想定反論に答えているか」を毎回厳しく見る。<b>資料作成 / レビューにおける適切な AI 活用法をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'読者別に「絶対に残す論点・トーン・用語の難易度」を Gemini にレビュー観点として明示し、各版を差分で出させる' },
+      { c:true,  t:'各レビュー観点(冒頭結論度・反論への備え・数値根拠の明示性)ごとに、3〜5点満点でスコア+具体的修正案を併記させる' },
+      { c:true,  t:'長文を AI に渡す際、目的・読者・想定の場面(議論場 or 一方通行)を冒頭で明示する' },
+      { c:true,  t:'AI に「資料の弱点トップ3」「相手から最も鋭い指摘トップ3」を続けて出させ、修正の優先度を決める' },
+      { c:true,  t:'AI 出力の修正案を採用するかは、最終的に自分の業務理解で判断し、文責は自分が持つ' },
+      { c:false, t:'AI に「全部いい感じに書き直して」と任せ、出力された版をそのまま社外提出する' },
+      { c:false, t:'読者ごとに別ストーリーで書き分けてしまうと、後で齟齬が起きるので、1版だけ作成して全読者にそのまま展開する' },
+      { c:false, t:'AI のレビューで指摘されなかった箇所は自分でも見直さなくてよい(AI が完璧にレビューしている前提)' },
+      { c:false, t:'AI に「最も革新的でインパクトのある書き換え」を依頼し、現状の構成を全部捨てて差し替える' },
+      { c:false, t:'AI 出力を翻訳ツール代わりに使い、文体だけ変える・内容は変えないという制約を最初から外す' },
+    ], 'あなたは事業部長(社内向け)、現場マネージャー(現場向け)、顧客向け(セールス資料)の3パターンに同じ施策資料を出す必要がある。締切まで3時間。<b>適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
+
+  // B7: 業務自動化(Gems・テンプレ化)
+  { skill:'業務自動化(Gems・テンプレ化)', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'Gemini の Gems(カスタム指示)として「役割・前提・入力スキーマ・出力フォーマット・禁止事項」をテンプレ化し、毎回は差分情報だけ差し込んで実行する' },
+      { c:true,  t:'機密項目の伏字化ルール(実名禁止・健康情報禁止 等)を Gems のシステム指示部分に書き込み、運用全体で安全策をかける' },
+      { c:true,  t:'共有設定はチーム内に限定し、外部や個人契約環境にナレッジを漏らさない' },
+      { c:true,  t:'四半期に1度、Gems の出力品質を確認し、テンプレ自体を改訂する運用見直しサイクルを組み込む' },
+      { c:true,  t:'Gems の挙動を確認するため、典型ケース3〜5件で出力例を保存し、回帰確認できる状態にしておく' },
+      { c:false, t:'繰り返し業務は処理内容が毎回微妙に違うため、テンプレ化せずに毎回ゼロからプロンプトを書く方が安全で精度も高い' },
+      { c:false, t:'自分の PC に Excel で「業務別プロンプト集」を保管し、最新版の管理は自分で属人的に行う' },
+      { c:false, t:'個人契約の ChatGPT 上にカスタム GPTs を作成し、業務情報や顧客情報をシステム指示部分に保存しておく' },
+      { c:false, t:'Gemini の API キーを Apps Script で完全自動化し、人が一切介在しない無人パイプラインを構築する' },
+      { c:false, t:'Gems の運用ルールを明文化せず、各メンバーが個別に独自版を派生させて使うことを推奨する' },
+    ], '毎週ほぼ同じ手順で繰り返している業務(週次の Meet 議事録抽出 / 1on1 準備 / NPS コメント分類 / 商談停滞リスク抽出 など)を AI で効率化・テンプレ化したい。<b>進め方として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'Gems を「役割・入力フォーマット・必須出力項目・禁止事項・例(few-shot)」の5ブロックで設計する' },
+      { c:true,  t:'伏字化・実名禁止・社外秘NGなどのガードを Gems システム指示に固定し、ユーザー差し込み欄を限定する' },
+      { c:true,  t:'承認フロー(マネージャーが必ず確認するステップ)を組み込み、無人配信は採用しない' },
+      { c:true,  t:'運用ログを残し、四半期に1回品質レビューと改訂を行う' },
+      { c:true,  t:'共有範囲は業務遂行に必要な人だけに絞り、組織外には共有しない' },
+      { c:false, t:'業務情報を含む Gems を組織外の個人契約環境にも保存し、出張先 PC でも気軽に使えるようにする' },
+      { c:false, t:'運用ガイドラインを書かずに、各人が自由に Gems を改修できる方が運用負荷が下がる' },
+      { c:false, t:'Gems から出力した内容は社内で広く共有して、誰でも参照できるようにする(アクセス権限は気にしない)' },
+      { c:false, t:'Apps Script から Gemini API を叩いて完全無人運用にし、人による確認ステップは一切設けない' },
+      { c:false, t:'同じ業務でも、テンプレ化すると硬直化するため、毎回ゼロからプロンプトを書き直したほうが品質が高い' },
+    ], 'マネージャーとして、自部署の繰り返し業務(各種報告書・FAQ整備・週次分析)を Gemini Gems でテンプレ化したい。<b>適切な進め方をすべて選びなさい</b>。') },
+  ]},
+
+  // B8: 自動化の境界判断
+  { skill:'自動化の境界判断(AI / スクリプト / 人)', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'「集計・整形・サマリ起案」など決定論的でない加工は AI、「定型グラフ生成・列の合計・条件分岐」など決定論的な処理は Apps Script や関数で行う' },
+      { c:true,  t:'「異常値の解釈」「メンバーへのフィードバック」「対外配信判断」など説明責任が伴う判断は必ず人が確認・編集する' },
+      { c:true,  t:'承認ステップ(マネージャー確認後に配信)を必ず挟み、完全無人配信は採用しない' },
+      { c:true,  t:'AI 出力には判断根拠を併記させ、後日内部監査・人事処分の文脈でも説明できる形でログを残す' },
+      { c:true,  t:'例外検知(AI 判定の確信度が低い / 過去判例と矛盾するパターン)を仕組みとして組み込み、自動的に人へエスカレーションする' },
+      { c:false, t:'部長への報告遅延が最大のコストなので、AI 生成のサマリは毎朝定時に部長へ自動送信し、マネージャーは送信後に内容を確認する' },
+      { c:false, t:'AI が「特に問題なし」と判定した日はマネージャー確認をスキップして部長配信し、異常検知時のみマネージャーに通知する' },
+      { c:false, t:'AI が「自動承認候補」と判定した稟議は、マネージャー確認なしで承認・支払い処理まで進める' },
+      { c:false, t:'AI に各メンバーの過去評価データを読み込ませ、報告内容に応じてメンバー本人へ直接フィードバックコメントを自動返信させる' },
+      { c:false, t:'AI に「常に承認」「常に最大金額」と指示し、差し戻しゼロ・例外検知ゼロの組織にする' },
+    ], '繰り返し業務(営業日次活動報告のサマリ配信 / 売上データからの定型グラフ作成と解釈 / 経費・稟議の事前分類 等)を AI で効率化したい。<b>自動化の設計として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'分類・抽出など「ぶれてよい」処理は AI、計算・集計など「ぶれてはいけない」処理は関数/スクリプトに割り当てる' },
+      { c:true,  t:'AI が低確信度を返したケースは自動的に人のキューに送る仕組みを組む' },
+      { c:true,  t:'AI 判定の判断理由・参照ソースをログに残し、後日監査に耐えられる状態にする' },
+      { c:true,  t:'外部に出ていく成果物(顧客向け回答・社内人事処分)は必ず人の承認ステップを噛ませる' },
+      { c:true,  t:'AI と人の合意形成プロセス(AIが先に試案→人が修正→運用)を業務フローに組み込む' },
+      { c:false, t:'判断理由のログは取らない方が AI への信頼を高められる(疑念を社員に与えないため)' },
+      { c:false, t:'AI が「確信度が高い」と返した場合は、人の承認をスキップして対外送信できる' },
+      { c:false, t:'AI が初学習データに含まれない例外を出した場合も、AIが最も妥当と思った判断に従う' },
+      { c:false, t:'外部送信や人事判断も含めて、すべてを Apps Script + Gemini API の無人パイプライン化する' },
+      { c:false, t:'業務の性質に関わらず、「判断は AI、計算は AI」にすべて寄せた方が運用は単純で良い' },
+    ], '顧客サポートの一次返信、社内経費の事前分類、メンバー稼働ログからの異常検知 — 複数の業務を AI で省力化したい。<b>適切な切り分け方針をすべて選びなさい</b>。') },
+  ]},
+
+  // B9: 複数ソース横断分析(NotebookLM)
+  { skill:'複数ソース横断分析(NotebookLM)', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'15のソース(PDF・URL)をすべて NotebookLM に登録し、「機能カテゴリ別の比較表」「劣後 / 優位領域」を出典(ソース内の該当箇所)付きで抽出させる' },
+      { c:true,  t:'出典が辿れることを利用して、会議の質疑で各主張の根拠を即座に提示できる状態にしておく' },
+      { c:true,  t:'NotebookLM ノートを「目的別 / 顧客別 / 期間別」に分け、無関係なソースを混ぜずに分析の精度を保つ' },
+      { c:true,  t:'重要トピックの抽出後に、ソースに含まれない自社の戦略仮説を並べて、Gemini 側でディスカッションする(NotebookLM はソース閉じ・Gemini は自由対話、と役割分担)' },
+      { c:true,  t:'分析結果のうち重要数値は、出典ソースの該当箇所を自分で再読して確認してから引用する' },
+      { c:false, t:'Gemini の単発プロンプトで「主要競合5社の最新機能を比較して」と依頼し、AI が学習済みの範囲で出力させる' },
+      { c:false, t:'15ファイルすべての本文を1つの Google Docs に連結して貼り付け、Docs サイドバーの Gemini で要約と比較表を生成させる' },
+      { c:false, t:'各 PDF・URL を1ファイル(1URL)ずつ Gemini に渡して個別に要約させ、5社分の要約を頭の中で統合する' },
+      { c:false, t:'競合情報は機密性が高いため AI 系には一切入れず、自分で全15ソースを読み込み手作業で比較表を作成する' },
+      { c:false, t:'NotebookLM に投入したソースは自動的に最新版に追従するため、リリースノート公開後の追加アップロードは不要である' },
+    ], 'あなたはプロダクトマーケのマネージャー。来週のプロダクト戦略会議に向け、競合5社それぞれの「直近1年の機能リリースノート」を整理する(PDF 9本+URL 6本=15ソース)。自社製品の劣後 / 優位を明確にし、出典付きの比較表を会議で提示したい。<b>AI 活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'過去12か月の顧客との議事録(PDFと Docs 計25本)を1つの NotebookLM ノートにまとめ、顧客別・テーマ別に出典付きで論点を整理する' },
+      { c:true,  t:'NotebookLM の出典機能を活かし、引用するときはソースの該当ページを必ず本文と照合する' },
+      { c:true,  t:'分析を顧客別ノートに分けることで、議事録のスコープ外推論を防ぐ' },
+      { c:true,  t:'解約予兆の整理結果を Gemini 側に渡し、対策案を自由対話で議論する(役割分担)' },
+      { c:true,  t:'引用する顧客名・契約金額・関係者名は、必ず一次資料で確認してから経営会議資料に転記する' },
+      { c:false, t:'25本を1つの Docs に連結して Gemini に貼り付け、Docs サイドバーで一気に比較分析させる' },
+      { c:false, t:'各議事録を1本ずつ別々の Gemini スレッドに貼って要約させ、頭の中で統合する' },
+      { c:false, t:'NotebookLM 投入後は、AI に「出典は省略していい」と指示してシンプルに出させる' },
+      { c:false, t:'AI が出した解約予兆の評価を、根拠ソースを確認せずに経営報告に転記する' },
+      { c:false, t:'NotebookLM は社内検索エンジンなので、新しいファイルが Drive に置かれれば自動でノートに追加される' },
+    ], 'あなたは CS 部のマネージャー。過去12か月の主要顧客との議事録(25本)を解析し、解約予兆と継続契約のキー要因を出典付きで整理して経営会議で報告する必要がある。<b>適切な進め方をすべて選びなさい</b>。') },
+  ]},
+
   // B10: Gemini と NotebookLM の使い分け
-  {
-    id:'B10', section:'B', skill:'Gemini と NotebookLM の使い分け', points:3,
-    build: ()=> {
-      // NotebookLMが最適な業務 = 複数の指定ソースを横断し、出典付きで整理が必要
-      const nlmTasks = [
-        '過去2年分の月次経営会議資料(15本のスライド・Docs)を新任の事業部長に引き継ぐため、「経営課題の変遷」「過去の意思決定とその根拠」「未解決の重要論点」を出典付きで整理する',
-        '主要顧客5社のRFP(提案依頼書)PDFと、その回答資料・契約書(計18ファイル)を束ねて、顧客ごとの要求の傾向と過去回答の整合性を出典付きで抽出する',
-        '自社の社内向けナレッジドキュメント(Docs 30本)を新人向けFAQに整理し、各回答に「どのドキュメントの何ページか」を出典として併記する',
-      ];
-      // Gemini単発が最適な業務 = 単発・自由創作・対話・トーン調整・短時間
-      const geminiTasks = [
-        '来週の経営会議で「今期のKPI達成見込み」を経営層に説明するための、3枚のスライド原稿を一から書く',
-        '取引先の役員に送る、お詫びと再提案を兼ねた重要なメールを、複数のトーンで3パターン下書きする',
-        '部下の評価コメントを「事実→評価→期待」の3層構造で整形してもらい、表現の偏りをチェックする',
-        '1on1で深掘りする質問を、メンバー像を伝えて5つ生成させる',
-        '部下が書いた提案書ドラフトを、自分のチームのトーンに合わせて言い回しを統一する',
-        '思考の整理として「自分の戦略仮説への最も鋭い反論3つ」を AI に出させる',
-      ];
-      const nlm = pick(nlmTasks);
-      const gem = pickN(geminiTasks, 3);
-      const opts = shuffle([nlm, ...gem]);
-      return {
-        prompt: '次の業務のうち、Gemini の単発対話よりも NotebookLM の方が明らかに適しているものはどれか。',
-        options: opts,
-        correctIndex: opts.indexOf(nlm),
-      };
-    }
-  },
+  { skill:'Gemini と NotebookLM の使い分け', section:'B', points:3, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'過去2年分の主要顧客との議事録30本から「懸念事項の変遷」「未解決論点」を出典付きで時系列整理する' },
+      { c:true,  t:'業界アナリストレポート8本と自社の過去取締役会資料5本を束ね、市場の構造変化と自社ポジショニングを出典付きで整理する' },
+      { c:true,  t:'前任部長が残した経営会議資料15本を、新任部長への引き継ぎのため「過去の意思決定とその根拠」として出典付きで整理する' },
+      { c:true,  t:'自社の社内ナレッジドキュメント30本を新人向け FAQ に整理し、各回答に「どのドキュメントの何ページか」を出典として併記する' },
+      { c:true,  t:'主要顧客5社の RFP と回答資料・契約書(計18ファイル)を束ね、要求の傾向と過去回答の整合性を出典付きで抽出する' },
+      { c:false, t:'来週の経営会議で説明する3枚の提案スライドを、自分の頭にあるストーリーから一から起案する' },
+      { c:false, t:'取引先役員に送るお詫びと再提案を兼ねた1通のメールを、3パターンのトーンで下書きする' },
+      { c:false, t:'部下の評価コメントを「事実→評価→期待」の3層構造に整形し、表現の偏りをチェックする' },
+      { c:false, t:'1on1 で深掘りする開いた問いを、メンバー像と直近の状況を伝えて5つ生成させる' },
+      { c:false, t:'思考の整理として「自分の戦略仮説に対する最も鋭い反論3つ」を AI に出させる' },
+    ], '次の業務のうち、Gemini の単発対話よりも <b>NotebookLM の方が明らかに適しているものをすべて選びなさい</b>(複数ソース横断+出典必要が判断軸)。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'Gemini: 単発の議事録1本から ToDo と決定事項を抽出する' },
+      { c:true,  t:'Gemini: メンバー1on1向けの開いた問いを5つ生成させる' },
+      { c:true,  t:'Gemini: メール文面の3トーン下書きを作る' },
+      { c:true,  t:'NotebookLM: 過去3年の経営会議資料20本から、過去の意思決定パターンを出典付きで抽出する' },
+      { c:true,  t:'NotebookLM: 主要顧客5社の契約・議事録・要望ドキュメントを束ねた継続契約の鍵分析' },
+      { c:false, t:'Gemini: 30本の議事録から「過去2年の懸念事項の変遷」をソース横断・出典付きで整理する' },
+      { c:false, t:'NotebookLM: 単発の経営会議1本のサマリだけを目的に、専用ノートを新規作成してソースに登録する' },
+      { c:false, t:'NotebookLM: 自分の戦略仮説への「最も鋭い反論」を、ソース無しで自由に出させる' },
+      { c:false, t:'NotebookLM: 取引先向けメールの謝罪文を3トーンで下書きする' },
+      { c:false, t:'Gemini: 業界アナリストレポート12本と自社資料15本を束ね、出典付きの市場分析を依頼する' },
+    ], '次の業務シーンと AI ツールの組み合わせのうち、<b>適した(妥当な)組み合わせをすべて選びなさい</b>。') },
+  ]},
 ];
 
-// -------------------- SECTION C: L3 マネジメント応用 (3問 × 5点 = 15点) --------------------
+// -------------------- SECTION C: L3 マネジメント応用 (各スキル2バリアント) --------------------
+
+
 const BANK_C = [
-  // C1: 1on1
-  {
-    id:'C1', section:'C', skill:'1on1へのAI活用', points:5,
-    build: ()=> {
-      const m = pick(POOLS.member);
-      const sign = pick([
-        '今四半期に入って会議での発言が明らかに減っている',
-        '同僚との雑談量が減り、ランチも一人で取ることが増えた',
-        '提出物の品質は維持しているが、提出時刻が以前より遅くなっている',
-        '前回1on1で「最近、自分のキャリアに迷いがある」と一度だけ漏らした',
-      ]);
-      const correct = `${m.alias}の属性(${m.tenure}・${m.rank}・強み:${m.strength}・課題:${m.weak})と気になる兆候を仮名・抽象化のまま Gemini に伝え、「①扱うべき論点を5つ提案させて自分が1つ選ぶ → ②選んだ論点を本人が自分で考え始める『開いた問い』を3〜5個出させる → ③自分が今回必ず伝えるべきメッセージを1つだけ提案させる」という対話を順に進め、当日メモを作る`;
-      const distractors = [
-        `本人の状況をより正確に伝えるため、${m.alias}の実名・直近の人事評価点・前回1on1の発言録を含めて Gemini に投入し、対話シミュレーションを5往復させた上で、当日はそのスクリプトに沿って進める`,
-        '事前準備で先入観が入ると対話の質が落ちるため、AIには頼らず、当日の本人の表情と発言を見ながらその場で進める',
-        'Gemini に「本人の弱みを突いて感情を引き出す質問」を10個生成させ、その中から鋭いものを当日使い、本音を引き出す',
-        '時間を最大限効率化するため、Gemini に「想定される会話の全文(マネージャー側・本人側それぞれ)」を会話台本として出させて、当日は台本通りに読み上げる',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: `来週、${m.alias}(${m.tenure}・${m.rank}・強み:${m.strength}・課題:${m.weak})と隔週1on1の予定がある。気になる兆候として「${sign}」を観察している。あなたは部下10名のマネージャーで、本人の状況を踏まえた深い対話にしたい。前回の1on1からは2週間が経過している。\n\nGemini をどう活用するのが最も適切か。`,
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
-  // C2: 評価コメント
-  {
-    id:'C2', section:'C', skill:'評価コメントへのAI活用', points:5,
-    build: ()=> {
-      const correct = '事実部分(目標・実績・固有エピソード)は自分で記述したうえで、Geminiには「事実→評価→期待」の3層構造への整形と表現の偏りチェックのみを依頼する。AI出力は「型」と「気づき」として扱い、本人との関係性を踏まえた「期待」層は最終的に自分の言葉で書き直す。出力前に「上長から質問されたら自分で答えられるか」を自問する';
-      const distractors = [
-        '個別性を担保するため、メンバー10名それぞれの実名・人事評価点・健康面の懸念を仮名化せずに Gemini に入力し、AIに10名分を一気に書き分けさせる。出力差分は上長レビューで補正する',
-        '工数削減効果を最大化するため、Gemini に「過去3年の評価コメント全件を学習させて、今期も同じトーンで10名分を一気に書いて」と依頼し、出力をそのままコピーして上長提出する',
-        '評価コメントは機微情報の塊であり、誰の言葉として書かれたかが本人との信頼に関わるため、AIには一切関与させず、過去の自分の評価コメントだけを参考に1人ずつ手書きで起案する',
-        '本人と上長の双方向の納得感を高めるため、Gemini に評価コメントの完成版を作らせたうえで、本人面談前に本人にも同じプロンプトを共有して「自己評価との差分」を本人にAIで確認させる',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: 'あなたは部下10名のマネージャー。期末評価コメントの提出期限まで5営業日。1人あたり300〜500字、事実・評価・期待の3層構造が求められる。質を保ちつつ、合計工数を従来の半分(目安5時間)に抑えたい。会社契約のGeminiが利用可能。\n\nAIの最も適切な活用法はどれか。',
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
+  // C1: 1on1 への AI 活用
+  { skill:'1on1への適切なAI活用', section:'C', points:5, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'メンバーを仮名化(例:メンバーA・入社3年目・主任)し、強み・課題・直近の兆候を伝えて、扱うべき論点を5つ程度出させて自分が選ぶ' },
+      { c:true,  t:'メンバーが「自分で考え始める」開いた問いを3〜5個出させる(Yes/No で終わる質問・誘導尋問は禁止と明示する)' },
+      { c:true,  t:'AI 出力を踏まえつつ、当日メンバーに伝えるメッセージは1つに絞って自分で決める' },
+      { c:true,  t:'前回1on1のメモを仮名化のうえ Gemini に渡し、今回扱うべきフォローアップ論点を整理させる' },
+      { c:true,  t:'対話中は AI を見ず、本人の表情・間・声色を最優先に観察する。AI 出力は事前準備としてのみ使う' },
+      { c:false, t:'メンバーの実名・人事評価点・健康面の懸念・過去の問題行動を Gemini に渡し、対応スクリプトを生成させる' },
+      { c:false, t:'AI が生成した「想定される対話の全文(マネージャー側・本人側双方の発言)」を当日台本としてそのまま読み上げる' },
+      { c:false, t:'Gemini に「本人を泣かせる質問」「本音を強引に引き出す尋問形式の問い」を生成させ、当日鋭く詰める' },
+      { c:false, t:'AI が「最も適切」と判定したフィードバック文をそのまま暗記し、本人の様子を見ずに伝える' },
+      { c:false, t:'対話中もスマホで Gemini に逐次質問しながら、AI の指示通りに進行する' },
+    ], 'あなたは部下10名のマネージャー。来週、ある主任(入社3年目)と隔週1on1の予定がある。直近、会議での発言量が明らかに減っており、本人の状況を踏まえた深い対話にしたい。<b>Gemini の活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'メンバー像(役割・在籍年数・強み・直近の状況)を仮名化して入力し、扱うべき論点を5つ出させて自分が選ぶ' },
+      { c:true,  t:'AI に「本人が自分で考え始める」問い(開いた問い・誘導尋問でない)を3〜5個出させる' },
+      { c:true,  t:'前回1on1で扱った論点と未解決のフォローアップを Gemini に渡し、今回扱う論点の優先順位を整理させる' },
+      { c:true,  t:'AI 出力を「型」として参考にし、当日メンバーに伝えるメッセージは1つに絞って自分で決める' },
+      { c:true,  t:'当日対話中は AI を参照せず、本人の表情・間・声色を最優先に観察し、計画と異なる方向にも柔軟に対応する' },
+      { c:false, t:'本人の実名・人事評価点・健康面・家庭事情を入力し、AI に対応シナリオを完成形まで作らせる' },
+      { c:false, t:'AI に「対話台本(両者の発言を含む)」を作らせ、当日はそれを読み上げる' },
+      { c:false, t:'AI に「相手の本音を確実に引き出すための圧の強い問い」を3つ出させ、当日はそれで詰める' },
+      { c:false, t:'対話中も Gemini に質問を続け、AI の指示通りに進める' },
+      { c:false, t:'AI が「最も適切」と判断したフィードバックを暗記して、本人の様子を見ずに伝える' },
+    ], 'あなたは部下8名のマネージャー。来週、入社1年目のメンバーとの初回1on1がある。本人は人事面談で「自分のキャリア観が定まらず不安」と話したと聞いている。<b>Gemini の活用として適切なものをすべて選びなさい</b>。') },
+  ]},
+
+  // C2: 評価コメントへの AI 活用
+  { skill:'評価コメントへのAI活用', section:'C', points:5, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'事実部分(目標・実績・固有エピソード)は自分で記述し、Gemini には「事実→評価→期待」の3層構造への整形と表現の偏りチェックだけを依頼する' },
+      { c:true,  t:'AI 出力は「型」と「気づき」として扱い、本人との関係性を踏まえた「期待」層は最終的に自分の言葉で書き直す' },
+      { c:true,  t:'メンバー情報は仮名化(例:メンバーA・主任・営業3年目)して入力し、実名・健康情報・家庭事情は渡さない' },
+      { c:true,  t:'出力前に「上長から事実を質問されたら自分で答えられるか」を自問し、答えられない箇所は自分で書き直す' },
+      { c:true,  t:'10名分の評価コメントを一気に書かせるのではなく、1名ずつ「事実層 → 整形依頼」のサイクルを回し、本人ごとに固有性を担保する' },
+      { c:false, t:'個別性を担保するため、メンバー10名それぞれの実名・人事評価点・健康面の懸念を仮名化せずに Gemini に入力する' },
+      { c:false, t:'Gemini に「過去3年の評価コメント全件を学習させて、今期も同じトーンで10名分を一気に書いて」と依頼し、出力をそのまま上長提出する' },
+      { c:false, t:'本人と上長の双方向の納得感を高めるため、評価コメント完成版を本人にもプロンプトで共有し「自己評価との差分」を本人に AI で確認させる' },
+      { c:false, t:'評価コメントは機微情報の塊のため、AI には一切触れさせず、過去の自分の評価コメントだけを参考に 1 人ずつ手書きでゼロから起案する' },
+      { c:false, t:'AI 出力の評価コメントをそのまま提出し、上長や本人から問われたら「AIが生成した」と説明する' },
+    ], 'あなたは部下10名のマネージャー。来週から期末評価コメント執筆期間(提出まで5営業日)。1人あたり300〜500字、事実→評価→期待の3層構造が必要。質を保ちつつ工数を従来の半分に抑えたい。会社契約の Gemini が利用可能。<b>適切な AI 活用法をすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'事実部分(目標・実績・固有エピソード)は自分で書き、AI は表現の整形・トーンの偏りチェックだけに使う' },
+      { c:true,  t:'メンバー情報を仮名化(役割・等級・年次のみ)で入力し、実名・健康・家庭事情は AI に渡さない' },
+      { c:true,  t:'AI に「事実→評価→期待」の3層が崩れていないか、各層が因果でつながっているかをチェックさせる' },
+      { c:true,  t:'1名ずつ「事実 → 整形 → 自分の言葉での書き直し」のサイクルで進め、本人固有性を担保する' },
+      { c:true,  t:'AI が出した「期待」層は、本人との関係性・キャリア観を踏まえて最後に自分の言葉で書き直す' },
+      { c:false, t:'10名分の評価コメントを「過去全件を学習させて同じトーンで」と依頼し、出力を全件そのまま上長提出する' },
+      { c:false, t:'本人へのフィードバックの納得感を高めるため、本人にも Gemini を使わせて「AIによる自己評価との差分」を確認させる' },
+      { c:false, t:'実名・人事評価点を仮名化せずに入力すれば、AI のアウトプットがより本人に合った文章になる' },
+      { c:false, t:'評価コメントの提出後に「AIで書いた」と本人に伝え、本人もAIで自分の評価を再評価できるようにする' },
+      { c:false, t:'機微情報を扱うため AI への関与は一切持ち込まず、全員分を手書きで起案する' },
+    ], 'あなたは部下6名のマネージャー。年2回の評価コメント執筆フェーズ(締切まで3営業日)。1人あたり400字前後、事実→評価→期待の3層が必須。<b>Gemini を活用する妥当な進め方をすべて選びなさい</b>。') },
+  ]},
+
   // C3: 組織課題の構造化
-  {
-    id:'C3', section:'C', skill:'組織課題の構造化', points:5,
-    build: ()=> {
-      const role = pick(POOLS.role);
-      const kpi = pick(POOLS.kpi);
-      const delta = pick(POOLS.delta);
-      const period = pick(POOLS.period);
-      const tried = pick([
-        'ターゲット顧客の再定義と、提案テンプレの刷新は既に試した',
-        '個別メンバーの同行・ロープレを2回実施したが目立った改善はない',
-        '隣接チームから1名を期間限定でアサインしたが、構造的な変化までは至らない',
-      ]);
-      const correct = '①Gemini にチーム状況を伝え MECE なロジックツリーで原因を2階層分解させる、②自分が筋の良い枝を1つ選び、検証手段(必要なデータ・問い・観察対象)を提案させる、③簡易検証の結果を踏まえ、打ち手を「効果×着手容易さ」マトリクスで並べさせる、④最終的にどの打ち手を取るかは自分の責任で判断する。自分の前提を疑う仮説も必ず混ぜさせる';
-      const distractors = [
-        'まず Gemini に「同じような状況の他社事例から、最も効果的だった打ち手を3つだけ」を出させ、社内の合意を取らずに即座に全チームへ展開する',
-        '過去5年分のチーム活動データ・案件データ・メンバー評価データを Gemini に投入し、相関分析と原因特定をAI単体に任せ、結論を経営層への報告とする',
-        'チーム固有の文脈はAIには理解できないため、Gemini は使わず、自分とメンバー数名のブレストだけで仮説と打ち手を決める',
-        'メンバーのモチベーションが原因と決め打ちし、Gemini には「モチベーションを上げる施策10個」だけを出させ、その中から3つを選んで実行する',
-      ];
-      const opts = shuffle([{t:correct,c:true},...pickN(distractors,3).map(t=>({t,c:false}))]);
-      return {
-        prompt: `あなたは${role}のマネージャー(部下10名)。${period}で${kpi}が${delta}悪化しており、原因の特定と打ち手の立案が急務。${tried}。経営からは来月の事業部会議までに「原因分析と打ち手案」の提示を求められている。\n\nGemini をどう活用してチーム課題を構造化するのが最も適切か。`,
-        options: opts.map(o=>o.t),
-        correctIndex: opts.findIndex(o=>o.c),
-      };
-    }
-  },
+  { skill:'組織課題の構造化', section:'C', points:5, multiSelect:true, variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'Gemini にチーム状況を伝え、MECE なロジックツリーで原因を2階層分解させ、抜け漏れチェックに使う' },
+      { c:true,  t:'自分が筋の良いと感じる枝を1つ選び、検証手段(必要なデータ・問い・観察対象)を提案させる' },
+      { c:true,  t:'簡易検証の結果を踏まえ、打ち手を「効果の大きさ × 着手の容易さ」マトリクスで並べさせ、優先順位の議論材料とする' },
+      { c:true,  t:'自分の前提を疑う仮説(「そもそも目標設定が高すぎる可能性」など)を必ず混ぜさせる' },
+      { c:true,  t:'最終的にどの打ち手を取るかは、AI 出力を踏まえつつ自分の責任で判断する。AI 出力をそのまま全社展開しない' },
+      { c:false, t:'まず Gemini に「同じような状況の他社事例から、最も効果的だった打ち手を3つだけ」を出させ、社内の合意を取らずに即座に全チームへ展開する' },
+      { c:false, t:'過去5年分のチーム活動データ・案件データ・メンバー評価データを Gemini に投入し、相関分析と原因特定を AI 単体に任せ、結論を経営層への報告とする' },
+      { c:false, t:'チーム固有の文脈は AI には理解できないため、Gemini は使わず、自分とメンバー数名のブレストだけで仮説と打ち手を決める' },
+      { c:false, t:'メンバーのモチベーションが原因と決め打ちし、Gemini には「モチベーションを上げる施策10個」だけを出させ、その中から3つを選んで即実行する' },
+      { c:false, t:'AI が提案した打ち手の中から最も革新的に見えるものを選び、検証段階を飛ばして全社展開する' },
+    ], 'あなたは部門マネージャー(部下10名)。直近で重要 KPI が悪化しており、原因の特定と打ち手の立案が急務。経営からは来月の事業部会議までに「原因分析と打ち手案」の提示を求められている。<b>Gemini の活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'AI に MECE のロジックツリーで原因を2階層分解させ、自分の思考の抜け漏れチェックに使う' },
+      { c:true,  t:'AI に「自分が立てた仮説を最も鋭く反証する立場」を取らせ、自分の前提を点検する' },
+      { c:true,  t:'仮説検証に必要なデータ・観察対象・現場ヒアリング項目を AI に出させ、検証プランの精度を上げる' },
+      { c:true,  t:'打ち手案を「効果 × 着手難度」のマトリクスで並べさせ、優先順位の議論材料にする' },
+      { c:true,  t:'最終判断は自分の責任で行い、AI 出力を経営層への報告に「丸写し」しない' },
+      { c:false, t:'過去のメンバー評価・案件・稼働ログを実名のまま入力し、相関分析を AI 単独に任せて経営報告する' },
+      { c:false, t:'AI が「最も革新的に見える」打ち手を、検証ステップを飛ばして全社展開する' },
+      { c:false, t:'チームの状況は仮名化せず、メンバー実名・人事情報・健康情報まで含めて入力した方が AI 精度が上がる' },
+      { c:false, t:'チーム固有の事情は AI には扱えないと割り切り、Gemini を使わず自分の経験のみで結論を出す' },
+      { c:false, t:'AI に「結論まで一気に出して」と任せ、自分の思考プロセスは入れない' },
+    ], 'あなたは部門長(配下40名・4チーム)。今四半期、メンバー稼働率が想定より15%低下している。経営からは来週までに原因分析と是正案を求められている。<b>適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
+
+  // C4 (管理職オンボーディングモード限定): 数値マネジメントへの AI 活用
+  { skill:'数値マネジメントへのAI活用', section:'C', points:5, multiSelect:true, modes:[MODE_ONBOARDING], variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'KPIダッシュボードの数値推移を Gemini に渡し、想定外の変化点(急増・急減・トレンドの折れ)を箇条書きで指摘させ、自分の解釈の抜けを補う' },
+      { c:true,  t:'前年同期比・前月比・前週比のうち、どの比較軸が今の意思決定に有効かを Gemini と対話しながら自分が決める' },
+      { c:true,  t:'数値の異常値が出た際、AI に「考えられる原因仮説」を MECE で3つ出させ、各仮説の検証手順を自分で設計する' },
+      { c:true,  t:'予実差異の原因をメンバーに説明する前に、AI で「説明資料の構成」と「経営層から想定される質問」を先に出させる' },
+      { c:true,  t:'数値の解釈は AI に任せず、最終的に「なぜそうなったか」「次に何をすべきか」は自分の業務理解で判断する' },
+      { c:false, t:'KPI ダッシュボードの数値を AI に貼り付け、AI が出した「次月の予測値」を経営層への報告にそのまま転記する' },
+      { c:false, t:'数値変動の原因は AI が一番よく分かるので、AI が出した因果説をそのまま全社展開する' },
+      { c:false, t:'AI が「特に問題なし」と判定した日は数値レビューをスキップし、AI が異常と判定した日のみ手元で確認する' },
+      { c:false, t:'AI に過去5年の全データを学習させて、来期のKPI目標値を AI 単独に最終決定させる' },
+      { c:false, t:'メンバーの個別実績の良し悪しを AI に判定させ、その結果に基づいて評価点を自動算出する' },
+    ], 'あなたは管理職昇格後3か月のマネージャー(部下8名)。今期からチームKPIの責任を持ち、毎月の事業部レビュー会で予実差異を説明する立場になった。<b>数値マネジメントにおける AI 活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'AIに過去12か月のKPI推移を渡し、季節要因・トレンド・外的要因の3軸で読み解きの視点を整理させ、自分のレビュー観点に追加する' },
+      { c:true,  t:'予実差異が大きい月について、AI に「考えられる構造的原因」と「一時的原因」を分けて出させ、自分の説明案に反映する' },
+      { c:true,  t:'数値の前提条件(計測ロジック・除外条件)が変わっていないか、AI 出力をきっかけに自分で再確認する' },
+      { c:true,  t:'AI に「上位役員から最も鋭く突かれる数値の論点トップ3」を出させ、想定問答の準備に使う' },
+      { c:true,  t:'最終的な「来月の打ち手」は AI 出力を踏まえつつ自分の責任で決定し、説明責任を自分で持つ' },
+      { c:false, t:'数値の解釈・打ち手判断・経営報告までを AI に丸投げし、自分は文面の体裁だけ整える' },
+      { c:false, t:'KPI の良し悪しの判定基準を AI に毎月決め直させ、自分は AI の判定に従って評価コメントを書く' },
+      { c:false, t:'数値が想定より良い月も悪い月も、AI に「経営層が安心する説明文」を作らせて報告する' },
+      { c:false, t:'AI が出した予測値を「事実」として扱い、未来の予算策定にそのまま反映する' },
+      { c:false, t:'KPI の細目データを AI に与え、AI に評価ランクを自動算出させてメンバーに通知する' },
+    ], 'あなたは管理職昇格後3か月。毎週、自チームのKPI推移を読み解いて、上位役員にレビューする責任を持つ。<b>適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
+
+  // C5 (管理職オンボーディングモード限定): ピープルマネジメントへの AI 活用
+  { skill:'ピープルマネジメントへのAI活用', section:'C', points:5, multiSelect:true, modes:[MODE_ONBOARDING], variants:[
+    { build: ()=> buildMS([
+      { c:true,  t:'メンバー像を仮名化(役割・在籍年数・直近の状況のみ)で AI に渡し、強み・伸びしろの整理や1on1の論点案を出させ、自分が選ぶ' },
+      { c:true,  t:'AI に「メンバーが自分で考え始める問い」を3〜5個出させ、当日の1on1で会話の出発点として使う' },
+      { c:true,  t:'チーム編成や役割アサイン案を考える際、AI に「メンバーの強みと案件特性のマッチング案」を複数パターン出させ、自分が最終決定する' },
+      { c:true,  t:'評価コメントの整形(事実→評価→期待の3層構造への整え)は AI に任せ、事実部分は自分が書き、関係性を踏まえた期待層は自分の言葉で書き直す' },
+      { c:true,  t:'メンバー間の対人摩擦が生じた際、AI には「双方の言い分から想定される構造的な噛み合わなさの仮説」を整理させ、当事者への対応は自分が直接行う' },
+      { c:false, t:'メンバーの実名・人事評価点・健康面・家庭事情を AI に渡し、対応スクリプト・面談台本を完成形まで作らせる' },
+      { c:false, t:'AI に「メンバーを退職に追い込まないための完璧な対応手順」を一覧で作らせ、それを暗記して当日読み上げる' },
+      { c:false, t:'AI が「最も適切」と判定した昇格・降格判断をそのまま人事に提出する' },
+      { c:false, t:'AI に対立中の双方の発言ログを渡し、AI に「どちらが悪いか」を判定させてその通りメンバーに伝える' },
+      { c:false, t:'メンバー全員の評価情報を AI に与え、AI 単独に給与改定額を最終決定させて人事に通知する' },
+    ], 'あなたは管理職昇格後3か月のマネージャー(部下8名)。1on1・評価・配置検討・対人摩擦の調整など、ピープルマネジメントの責任を新たに負っている。<b>AI 活用として適切なものをすべて選びなさい</b>。') },
+    { build: ()=> buildMS([
+      { c:true,  t:'1on1の事前準備として、仮名化したメンバー像と直近の出来事を AI に渡し、扱うべき論点を 5 つ程度出させて自分で 2〜3 個に絞る' },
+      { c:true,  t:'メンバーのキャリア観の整理を支援する開いた問いを AI に作らせ、当日メンバーが自分で考え始める起点に使う' },
+      { c:true,  t:'チーム内のスキルマップ整理は、メンバー名を伏せた状態で AI に表形式で整理させ、抜け漏れチェックに使う' },
+      { c:true,  t:'評価面談の準備で、事実(KPI・行動観察)は自分でまとめ、「事実→評価→期待」の構造化と表現の偏りチェックを AI に任せる' },
+      { c:true,  t:'対人摩擦への対応は、AI で「自分が見落としている前提仮説」を点検したうえで、最終的な介入は自分が直接対面で行う' },
+      { c:false, t:'メンバーの実名・健康面・家庭事情を入力すれば、AI 精度が上がるため積極的に渡す' },
+      { c:false, t:'1on1の進行は AI が生成した両者発言入りスクリプトを当日読み上げる方が抜け漏れがない' },
+      { c:false, t:'昇格・降格の最終判断は AI に任せ、人事への提出も AI 出力をそのまま添付する' },
+      { c:false, t:'メンバー全員の評価コメントを「過去全件を学習させて」と依頼し、出力を一気に上長提出する' },
+      { c:false, t:'対人摩擦の当事者対応も、AI 生成のスクリプトを暗記して読み上げれば本人の反応に関わらず正解の介入になる' },
+    ], 'あなたは管理職昇格後3か月で、初めての評価期を迎える。メンバー8名の1on1・評価・キャリア面談を実施する責任を持つ。<b>ピープルマネジメントでの適切な AI 活用をすべて選びなさい</b>。') },
+  ]},
 ];
 
-// -------------------- SECTION D: プロンプト記述 (4問 × 15点 = 60点) — AI評価 --------------------
+// -------------------- SECTION D: プロンプト記述 (各モードで使う問題プール) — AI評価 --------------------
 const BANK_D = [
   // D1: 業務効率化プロンプト記述(豊富な前提情報を与える)
   {
@@ -1039,168 +1219,206 @@ const BANK_D = [
       };
     }
   },
-];
 
-// -------------------- SECTION E: 複数選択(該当をすべて選べ) (5問 × 4点 = 20点) --------------------
-// 採点: 過不足ゼロのときのみ満点。1つでも誤りがあれば0点(strict)。
-const BANK_E = [
-  // E1: 情報セキュリティ — Gemini に入力してよいものを全て選ぶ
+  // D6: 顧客ヒアリングを踏まえ、導入障壁を先回り解消する Google Slides 提案
   {
-    id:'E1', section:'E', skill:'情報セキュリティの境界(複数選択)', points:4, multiSelect:true,
+    id:'D6', section:'D', skill:'顧客ヒアリングからの障壁先回り Slides 提案', points:15,
     build: ()=> {
-      const pool = [
-        { t:'すでに公開済みのプレスリリースのドラフト(修正要望のため再推敲したい)', c:true },
-        { t:'部下の評価コメント素案(メンバー名は「メンバーA・主任・営業3年目」に仮名化済み、KPIと観察行動のみ含む)', c:true },
-        { t:'今しがた終わった社内週次定例の Meet 文字起こし(参加者の発言・社内固有名詞を含むが、社外秘情報・人事評価情報は含まない)', c:true },
-        { t:'未締結のNDAに基づき取引先から共有された、相手企業の未発表ロードマップを含む資料', c:false },
-        { t:'部下10名の実名・等級・人事評価点・健康面の不調有無を表形式でまとめた人事データ', c:false },
-        { t:'採用候補者の履歴書PDF(氏名・大学名・前職企業名を含む)', c:false },
-        { t:'来週発表予定で社内法務レビュー前の、M&A対象企業名を含むプレスリリース原文', c:false },
-        { t:'自分宛ての社内メール(取引先固有情報や人事情報は含まない)の要約依頼', c:true },
+      const scenarios = [
+        {
+          title:'製造業X社向け プロジェクト管理SaaSの本提案',
+          ctx:`あなたは法人向けプロジェクト管理SaaSの営業マネージャー。昨日、見込み顧客X社(従業員300名・製造業)のキーパーソン3名(IT部長・現場部長・経営企画部長)に対する1.5時間のヒアリングを実施した。
+
+【ポジティブシグナル】
+- 現場の業務効率向上ニーズは強い(現状は Excel + Slack で属人化)
+- 来期に向けた業務改革のテーマとして経営層も認識
+- 競合製品との比較検討は始まったところ
+
+【顧客側の導入障壁(ヒアリングで明示)】
+1. IT部長:既存基幹システム(Salesforce + 社内開発の生産管理)との連携が不明で、新たな"サイロ"を増やすことを懸念
+2. 現場部長:40-50代メンバーは過去のツール導入で挫折経験があり、「また使われない高い箱物」になる懸念を強く表明
+3. 経営企画部長:1年以内の ROI 根拠が経営会議で説明できないと予算承認が下りない。3年契約は本音では避けたい
+4. 全員:競合B社を引き合いに「同業他社で先行している」と発言、当社プロダクトの差別化が伝わっていない
+
+【手元の素材】
+- ヒアリングの文字起こし(Google Meet録画 → Docs)
+- 自社の標準提案デック(20スライド・汎用版)
+- 競合B社の公開資料
+- 自社の他社事例3件(同業の製造業事例は1件)
+
+【提案の場】
+- 1週間後にX社オフィスで 45分プレゼン + 15分質疑
+- 出席者:上記3名 + CFO(初顔合わせ・最終決裁者)
+- 目的:PoC(2ヶ月・5名規模)への合意を得ること`
+        },
+        {
+          title:'地方銀行Y社向け セキュリティSaaSの本提案',
+          ctx:`あなたは情報セキュリティSaaS(脅威検知プラットフォーム)の営業マネージャー。先週、地方銀行Y社(従業員500名)の CISO・情シス課長・経営企画担当役員 の3名と2時間の本格ヒアリングを実施した。
+
+【ポジティブシグナル】
+- 直近の業界規制強化により、年内のセキュリティ強化が経営課題
+- 既存の境界型防御は限界と CISO 自身が認識
+- 競合検討は始まったばかり
+
+【顧客側の導入障壁(明示された懸念)】
+1. CISO:金融業特有のコンプライアンス監査(FISC等)対応の証跡管理に不安
+2. 情シス課長:既存の SIEM・EDR・ファイアウォール との連携で運用が複雑化し、アラート過多で現場が疲弊する未来を強く嫌う
+3. 経営企画担当役員:他行で導入失敗事例の報道があり「あの製品ではない」と確認を求められた。経営層は機能性能より「事故が起きたときの責任の所在」を重視
+4. 全員:従業員500名規模に対し「過剰スペックでないか」「我々の規模に本当に合うのか」の不安を表明
+
+【手元の素材】
+- ヒアリング録画文字起こし
+- 自社の標準提案資料(エンタープライズ向け25スライド)
+- 同規模(従業員300-700名)金融業の導入事例2件
+- 監査対応の技術ホワイトペーパー
+
+【提案の場】
+- 2週間後に銀行本店で 60分プレゼン + 30分質疑
+- 出席者:上記3名 + 頭取(初顔合わせ・最終決裁者)
+- 目的:正式RFP(提案依頼書)発行への合意を得ること`
+        },
+        {
+          title:'小売チェーンZ社向け 人事SaaSの本提案',
+          ctx:`あなたは人事・労務管理SaaSの営業マネージャー。1週間前、全国展開する小売チェーンZ社(従業員2,000名・50店舗)の人事部長・店舗運営部長・CFOの3名と1.5時間のヒアリングを実施した。
+
+【ポジティブシグナル】
+- 紙ベース・属人化した現行人事業務を変革する経営方針あり
+- 店舗の現場マネージャーから「シフト管理がつらい」声が上がっている
+- 競合導入検討中だが意思決定はこれから
+
+【顧客側の導入障壁】
+1. 人事部長:過去に勤怠管理SaaS導入で本社が「便利」と言い、店舗側が「使えない」として3年で撤退した苦い経験。本社主導の導入に対する組織不信が残っている
+2. 店舗運営部長:50店舗の店長(平均年齢48歳・ITリテラシー低い)への教育コストが見えない。「導入したのに使われない」展開を強く避けたい
+3. CFO:類似SaaSとの相見積もりで「他社より高い」と認識。価格根拠を経営会議で説明する材料が不十分
+4. 全員:就業規則・労働協定が店舗業態ごとに3パターン存在し、SaaS が対応しきれるかへの懸念
+
+【手元の素材】
+- ヒアリング文字起こし
+- 自社の標準提案デック(15スライド)
+- 同業小売(店舗数100以上)の導入事例2件
+- 段階展開(ロールアウト)の運用設計テンプレート
+
+【提案の場】
+- 1週間後にZ社本社で 50分プレゼン + 10分質疑
+- 出席者:上記3名 + 社長(初顔合わせ・最終決裁者)
+- 目的:3店舗パイロット(3ヶ月)への合意を得ること`
+        }
       ];
-      const sel = pickN(pool, 6);
-      const opts = shuffle(sel);
+      const s = pick(scenarios);
       return {
-        prompt: '会社契約の Google Workspace(Gemini Pro 含む。社内利用の入力は学習に使われない設定)の業務利用において、Gemini に入力してよいものを次の中から<b>すべて選びなさい</b>。',
-        options: opts.map(o=>o.t),
-        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
-      };
-    }
-  },
-  // E2: ハルシネーション対策として有効な行動
-  {
-    id:'E2', section:'E', skill:'ハルシネーション対策の実践(複数選択)', points:4, multiSelect:true,
-    build: ()=> {
-      const pool = [
-        { t:'回答に含まれる固有名詞・数値を、一次情報源(公式IR・公式サイト・原典)で裏取りしてから引用する', c:true },
-        { t:'同じ問いをプロンプト表現を変えて複数回投げ、安定して出てくる結論と揺れる結論を切り分ける', c:true },
-        { t:'「この出力に対する最も鋭い反論を3つ」と続けて出させ、反論で崩れない部分のみを採用候補とする', c:true },
-        { t:'AI出力で「事実」と「解釈・推測」を分けて記述させ(例:[F]/[I]タグ)、人がそれぞれを別に検証する', c:true },
-        { t:'AIに「この回答の確信度をパーセンテージで出して」と聞き、80%以上の項目だけを採用する', c:false },
-        { t:'AIに「出典URLを併記して」と頼み、URLが返ってきたものを信頼できる出力とみなす', c:false },
-        { t:'別のLLMサービスにも同じ質問を投げ、両者の回答が一致したら相互検証ができたものとして採用する', c:false },
-        { t:'回答に詳細な数値・日付・固有名詞が多く含まれていれば、AIが内部で検証した結果と判断してよい', c:false },
-      ];
-      const sel = pickN(pool, 6);
-      const opts = shuffle(sel);
-      return {
-        prompt: 'AIのハルシネーション(事実と異なる「もっともらしい出力」)への対策として<b>有効な行動をすべて選びなさい</b>。',
-        options: opts.map(o=>o.t),
-        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
-      };
-    }
-  },
-  // E3: 良いプロンプトに含めるべき要素
-  {
-    id:'E3', section:'E', skill:'プロンプト5要素の網羅(複数選択)', points:4, multiSelect:true,
-    build: ()=> {
-      const pool = [
-        { t:'AIに与える「役割」の指定(例:法人営業マネージャーとして / 戦略コンサル出身として)', c:true },
-        { t:'依頼の「背景・前提情報」(自社の状況・関係者・過去の経緯)', c:true },
-        { t:'具体的な「依頼内容」(何を、いくつ、どの粒度で出してほしいか)', c:true },
-        { t:'「制約条件」(禁止事項・観点・分量・トーンの指定)', c:true },
-        { t:'「出力形式」の指定(マークダウン表/箇条書き/見出し構成 等)', c:true },
-        { t:'AIへの褒め言葉(「あなたは優秀な」「業界トップの」等の修飾)', c:false },
-        { t:'AIに自信を持たせるための「不確実なことも断定的に書いて」という指示', c:false },
-        { t:'AIに気を遣わせる「お時間あるときに無理なくお願いします」のような丁寧な前置き', c:false },
-      ];
-      const sel = pickN(pool, 6);
-      const opts = shuffle(sel);
-      return {
-        prompt: '業務向けの良いプロンプトに<b>必ず含めるべき要素をすべて選びなさい</b>。',
-        options: opts.map(o=>o.t),
-        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
-      };
-    }
-  },
-  // E4: NotebookLM が向く業務
-  {
-    id:'E4', section:'E', skill:'NotebookLM 適合業務の判断(複数選択)', points:4, multiSelect:true,
-    build: ()=> {
-      const pool = [
-        { t:'競合5社の機能リリースノートPDF・URL計15ソースを束ねて、自社の劣後/優位領域を出典付きで整理する', c:true },
-        { t:'過去2年分の主要顧客との議事録30本から、懸念事項の変遷と未解決論点を出典付きで時系列整理する', c:true },
-        { t:'前任部長が残した経営会議資料15本を、新任部長への引き継ぎのため「過去の意思決定とその根拠」として出典付きで整理する', c:true },
-        { t:'業界アナリストレポート8本と自社の過去取締役会資料5本を束ね、市場の構造変化と自社ポジショニングを出典付きで整理する', c:true },
-        { t:'来週の経営会議で説明する3枚の提案スライドを、自分の頭にあるストーリーから一から起案する', c:false },
-        { t:'取引先役員に送るお詫びと再提案を兼ねた1通のメールを、3パターンのトーンで下書きする', c:false },
-        { t:'部下の評価コメントを「事実→評価→期待」の3層構造に整形し、表現の偏りをチェックする', c:false },
-        { t:'1on1で深掘りするための開いた問いを、メンバー像と直近の状況を伝えて5つ生成させる', c:false },
-      ];
-      const sel = pickN(pool, 6);
-      const opts = shuffle(sel);
-      return {
-        prompt: 'Gemini の単発対話よりも <b>NotebookLM の方が明らかに適している業務</b>をすべて選びなさい。',
-        options: opts.map(o=>o.t),
-        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
-      };
-    }
-  },
-  // E5: 1on1へのAI活用 — 適切な姿勢
-  {
-    id:'E5', section:'E', skill:'1on1への適切なAI活用(複数選択)', points:4, multiSelect:true,
-    build: ()=> {
-      const pool = [
-        { t:'メンバーを仮名化(例:メンバーA・入社3年目・主任)し、強み・課題・直近の兆候を伝えて、論点5つを出させる', c:true },
-        { t:'メンバーが「自分で考え始める」開いた問いを3〜5個出させる(Yes/Noで終わる質問・誘導尋問は禁止と指示する)', c:true },
-        { t:'AI出力を踏まえつつ、当日メンバーに伝えるメッセージは1つに絞って自分で決める', c:true },
-        { t:'前回1on1のメモを仮名化したうえで Gemini に渡し、今回扱うべきフォローアップ論点を整理させる', c:true },
-        { t:'メンバーの実名・人事評価点・健康面の懸念・過去の問題行動を Gemini に渡し、対応スクリプトを生成させる', c:false },
-        { t:'AIが生成した「想定される対話の全文(マネージャー側・本人側双方の発言)」を当日台本としてそのまま読み上げる', c:false },
-        { t:'Gemini に「本人を泣かせる質問」「本音を強引に引き出す尋問形式の問い」を生成させ、当日鋭く詰める', c:false },
-        { t:'AIが「最も適切」と判定したフィードバック文をそのまま暗記し、本人の様子を見ずに伝える', c:false },
-      ];
-      const sel = pickN(pool, 6);
-      const opts = shuffle(sel);
-      return {
-        prompt: '1on1への AI 活用として <b>適切な姿勢をすべて選びなさい</b>。',
-        options: opts.map(o=>o.t),
-        correctIndices: opts.map((o,i)=>o.c?i:-1).filter(i=>i>=0),
+        prompt: `【業務状況】\n${s.ctx}\n\n【設問】\n手元の素材(ヒアリング文字起こし・自社標準提案デック・競合資料・自社事例)を Gemini に渡し、上記の <b>顧客の導入障壁を先回りで解消する提案資料の構成案</b> を引き出すための初期プロンプトを記述しなさい。\n\n提案資料は <b>Google Slides で展開できる粒度</b>(1スライド=1メッセージ程度)とし、「スライド構成 / 各スライドに含めるべき要素 / 話者ノート案 / 想定質疑への先回り回答」を出力させる設計にすること。\n\nプロンプト本文には以下を必ず盛り込むこと:\n- 役割設定(B2B SaaS の顧客提案の設計に長けた立ち位置)\n- 顧客のキーパーソン構成と、初顔合わせとなる最終決裁者の特性\n- <b>4つの導入障壁を明示的にリストアップし、それぞれを解消するスライドを構成に組み込ませる</b>依頼\n- 提案ゴール(PoC / RFP / パイロット)への着地設計\n- 競合との差別化方針、および自社事例(特に同業事例)の活用指示\n- 数値プレースホルダの扱い方(自分で後から埋める)\n- 禁止事項(根拠なき断定 / 顧客の懸念を矮小化する表現 / 過度な技術用語の羅列 等)`,
+        free: true,
+        rubric: [
+          '役割設定とシナリオ前提(顧客像・キーパーソン構成・初参加の最終決裁者・提案ゴール)がプロンプトに反映されているか',
+          '顧客側の4つの導入障壁それぞれに対応する具体的なスライド配置(障壁→対応策スライド)が依頼されているか',
+          '競合との差別化方針と、自社事例(特に同業事例)の活用が明確に指示されているか',
+          'Google Slides 展開を見据えた構造化(スライド単位・タイトル・含めるべき要素・話者ノート・想定質疑数)が指定されているか',
+          '数値プレースホルダの扱い・根拠なき断定の禁止・顧客の懸念を矮小化しない表現 等の制約が適切に書かれているか',
+        ],
+        task: s.title,
       };
     }
   },
 ];
-
 // ========================================================================
 // STATE
 // ========================================================================
 let TEST = [];          // array of generated questions
 let answers = {};       // { qIdx: answerIndex or text }
 let curIdx = 0;
-let timerSec = 70*60;
+const TIMER_TOTAL_SEC = 60 * 60;   // 試験時間
+let timerSec = TIMER_TOTAL_SEC;    // 残り秒数(UI 表示用、updateTimer で再計算される)
 let timerHandle = null;
+let testStartMs = 0;               // 試験開始時刻(壁時計、Date.now())
+let timerExpired = false;
 let startedAt = null;
-let examinee = {name:'',role:'',evaluatorEmail:'',email:''};
-let RESULT = null;      // cached result snapshot for export/email
+let examinee = {name:'',role:'',jobCategory:'',jobTitle:'',mode:MODE_PROMOTION};
+let RESULT = null;      // cached result snapshot for export
 
 // ========================================================================
 // FLOW
 // ========================================================================
+
+// スキルエントリから1問インスタンス化する。
+// A/B/C は variants:[{build}, ...] パターン。D は単一の build()(内部でシナリオ抽選)。
+// 両方の構造をサポートする。
+function instantiateSkill(skillEntry){
+  let built;
+  if(Array.isArray(skillEntry.variants) && skillEntry.variants.length){
+    const v = skillEntry.variants[Math.floor(Math.random() * skillEntry.variants.length)];
+    built = v.build();
+  } else if(typeof skillEntry.build === 'function'){
+    built = skillEntry.build();
+  } else {
+    built = {};
+  }
+  return {
+    id: skillEntry.id || (skillEntry.section + '_' + skillEntry.skill),
+    section: skillEntry.section,
+    skill: skillEntry.skill,
+    points: skillEntry.points,
+    multiSelect: skillEntry.multiSelect !== false,
+    ...built
+  };
+}
+
+// Fisher-Yates シャッフル
+function shuffle_(arr){
+  const a = arr.slice();
+  for(let i=a.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// スキルの modes 属性に基づき、現在モードで出題対象かを判定
+function matchesMode_(skillEntry, mode){
+  if(!skillEntry.modes || skillEntry.modes.length === 0) return true; // モード未指定なら両モードで出題
+  return skillEntry.modes.indexOf(mode) >= 0;
+}
+
+function generateTest(mode){
+  const test = [];
+  // A・B・C は対象モードのスキルを全件出題(バリアントは毎回抽選)
+  BANK_A.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  BANK_B.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  BANK_C.filter(s => matchesMode_(s, mode)).forEach(s => test.push(instantiateSkill(s)));
+  // D は対象モードのスキルから 3 つランダム抽選(各スキル内でもシナリオ抽選)
+  const dPool = BANK_D.filter(s => matchesMode_(s, mode));
+  const dPicked = shuffle_(dPool).slice(0, 3);
+  dPicked.forEach(s => test.push(instantiateSkill(s)));
+  // 最後に Section E: AI 活用ヒアリング(フリーテキスト・採点対象外)を追加
+  test.push({
+    id:'E1', section:'E', skill:'AI活用の現状ヒアリング', points:0,
+    free:true,
+    prompt:'<b>日々の業務の中で、どのようなシーンで AI(Gemini など)を活用していますか?</b>\n具体的な業務シーン・使い方・頻度・うまくいっている点・困っている点などを、自由に記載してください(目安: 200〜400字)。\n\n<b>※ この回答は採点対象外ですが、提出後の AI による現状の使い方の評価とアドバイス生成に活用されます。</b>'
+  });
+  return test;
+}
+
 function startTest(){
   const name = document.getElementById('examineeName').value.trim();
   const role = document.getElementById('examineeRole').value.trim();
-  const evalEmail = document.getElementById('evaluatorEmail').value.trim();
-  const myEmail = document.getElementById('examineeEmail').value.trim();
-  const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  const jobCategory = document.getElementById('jobCategory').value;
+  const jobTitle    = document.getElementById('jobTitle').value;
+  const mode = (document.getElementById('modeOnboarding').checked) ? MODE_ONBOARDING : MODE_PROMOTION;
   if(!name){ alert('氏名(または受験番号)を入力してください'); return; }
   if(!role){ alert('所属・現職を入力してください'); return; }
-  if(!myEmail || !emailRe.test(myEmail)){ alert('受験者メールアドレスを正しい形式で入力してください'); return; }
-  if(evalEmail && !emailRe.test(evalEmail)){ alert('評価者メールアドレスの形式が正しくありません(空欄でも構いません)'); return; }
+  if(!jobCategory){ alert('職種大分類を選択してください'); return; }
+  if(!jobTitle){ alert('職種(詳細)を選択または入力してください'); return; }
   examinee.name = name;
   examinee.role = role;
-  examinee.evaluatorEmail = evalEmail;
-  examinee.email = myEmail;
-  // generate test (instantiate each bank item's build())
-  TEST = [];
-  BANK_A.forEach(it=> TEST.push({...it, ...it.build()}));
-  BANK_B.forEach(it=> TEST.push({...it, ...it.build()}));
-  BANK_C.forEach(it=> TEST.push({...it, ...it.build()}));
-  BANK_E.forEach(it=> TEST.push({...it, ...it.build()}));
-  BANK_D.forEach(it=> TEST.push({...it, ...it.build()}));
+  examinee.jobCategory = jobCategory;
+  examinee.jobTitle = jobTitle;
+  examinee.mode = mode;
+  TEST = generateTest(mode);
   answers = {};
   curIdx = 0;
   startedAt = new Date();
-  timerSec = 70*60;
+  testStartMs = Date.now();
+  timerSec = TIMER_TOTAL_SEC;
+  timerExpired = false;
   document.getElementById('qTotal').textContent = TEST.length;
   document.getElementById('screen-start').classList.add('hide');
   document.getElementById('screen-test').classList.remove('hide');
@@ -1208,27 +1426,68 @@ function startTest(){
   renderQ();
 }
 
+// タブが非アクティブだと setInterval が間引かれる(throttling)ため、
+// 残り時間は毎回「テスト開始時刻からの経過」を Date.now() で再計算する。
+// これによりタブを開き直したとき即座に正しい残り時間に追従する。
 function startTimer(){
   if(timerHandle) clearInterval(timerHandle);
   updateTimer();
-  timerHandle = setInterval(()=>{
-    timerSec--;
-    updateTimer();
-    if(timerSec<=0){
-      clearInterval(timerHandle);
-      alert('時間切れです。自動提出します。');
-      submitTest();
-    }
-  },1000);
+  timerHandle = setInterval(updateTimer, 1000);
 }
 function updateTimer(){
-  const m=Math.floor(timerSec/60), s=timerSec%60;
+  if(timerExpired) return;
+  const elapsed = Math.floor((Date.now() - testStartMs) / 1000);
+  const remaining = Math.max(0, TIMER_TOTAL_SEC - elapsed);
+  timerSec = remaining;
+  const m = Math.floor(remaining/60), s = remaining%60;
   const el = document.getElementById('timer');
-  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  el.classList.remove('warn','danger');
-  if(timerSec<=60) el.classList.add('danger');
-  else if(timerSec<=300) el.classList.add('warn');
+  if(el){
+    el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    el.classList.remove('warn','danger');
+    if(remaining<=60) el.classList.add('danger');
+    else if(remaining<=300) el.classList.add('warn');
+  }
+  if(remaining <= 0){
+    timerExpired = true;
+    if(timerHandle){ clearInterval(timerHandle); timerHandle = null; }
+    alert('時間切れです。自動提出します。');
+    submitTest();
+  }
 }
+
+// タブが再アクティブ化されたら即座に表示を再計算(タイマー進行はずれていないことを担保)
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && timerHandle){ updateTimer(); }
+});
+
+// スタート画面ロード時の初期化(職種大分類プルダウンとモード選択ラベルのハイライト)
+function initStartScreen(){
+  const catSelect = document.getElementById('jobCategory');
+  if(catSelect && catSelect.options.length <= 1){
+    JOB_CATEGORIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      catSelect.appendChild(opt);
+    });
+  }
+  // モード選択ラベルのアクティブ枠表示
+  const updateModeHighlight = () => {
+    const pl = document.getElementById('modePromotionLabel');
+    const ol = document.getElementById('modeOnboardingLabel');
+    const pSel = document.getElementById('modePromotion').checked;
+    if(pl) pl.style.borderColor = pSel ? 'var(--c-primary)' : '#dadce0';
+    if(pl) pl.style.background  = pSel ? '#e8f0fe' : '#fff';
+    if(ol) ol.style.borderColor = !pSel ? 'var(--c-primary)' : '#dadce0';
+    if(ol) ol.style.background  = !pSel ? '#e8f0fe' : '#fff';
+  };
+  ['modePromotion','modeOnboarding'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', updateModeHighlight);
+  });
+  updateModeHighlight();
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initStartScreen);
+else initStartScreen();
 
 function renderQ(){
   const q = TEST[curIdx];
@@ -1252,12 +1511,22 @@ function renderQ(){
   qText.innerHTML = escapeHtml(q.prompt).replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>').replace(/\n/g,'<br>');
   card.appendChild(qText);
 
-  if(q.multiSelect){
+  // 複数選択ヒントは「選択式の問題」だけに表示する。
+  // Section D の記述問題(q.free===true)は Gemini ルーブリック採点で部分点があるため、
+  // 「部分点なし」と表示するのは事実誤認になる。
+  if(q.multiSelect && !q.free){
     const hint = document.createElement('div');
     hint.className = 'callout';
     hint.style.borderColor = '#5e35b1';
     hint.style.background = '#ede7f6';
     hint.innerHTML = `<b>複数選択 — 該当する選択肢を<u>すべて</u>選んでください。</b> 過不足があると0点になります(部分点なし)。`;
+    card.appendChild(hint);
+  }
+  // Section D の記述問題は、Gemini が観点ごとにスコアを付ける(部分点あり)
+  if(q.free){
+    const hint = document.createElement('div');
+    hint.className = 'callout info';
+    hint.innerHTML = `<b>記述問題 — Gemini が観点ごとにスコアを付与します(部分点あり)。</b> 役割・背景・依頼・制約・出力形式 を意識して、シナリオの数値や関係者を盛り込みましょう。`;
     card.appendChild(hint);
   }
 
@@ -1400,7 +1669,7 @@ function computeAutoScoresAndPayload(elapsedSec){
 
   TEST.forEach((q,i)=>{
     sec[q.section].max += q.points;
-    if(q.section==='D') return;
+    if(q.section==='D' || q.section==='E') return;  // D は Gemini 採点、E はヒアリングのため自動採点しない
     const ans = answers[i];
     let correct = false;
     let yourAnsText = '(未回答)';
@@ -1459,16 +1728,21 @@ function computeAutoScoresAndPayload(elapsedSec){
   // クライアント側集計結果もキャッシュ(描画用)
   RESULT = { sec, perSkill, fbItems, elapsedSec };
 
+  // Section E(AI 活用ヒアリング)のフリーテキスト回答を抽出
+  const sectionEEntry = TEST.find(q => q.section === 'E');
+  const sectionEIdx = sectionEEntry ? TEST.indexOf(sectionEEntry) : -1;
+  const dailyUsage = sectionEIdx >= 0 ? String(answers[sectionEIdx] || '').trim() : '';
+
   return {
     examinee: { ...examinee },
     elapsedSec,
     autoScores: {
       A: { got: sec.A.got, max: sec.A.max },
       B: { got: sec.B.got, max: sec.B.max },
-      C: { got: sec.C.got, max: sec.C.max },
-      E: { got: sec.E.got, max: sec.E.max }
+      C: { got: sec.C.got, max: sec.C.max }
     },
     sectionD,
+    dailyUsage,
     questionsLog
   };
 }
@@ -1495,7 +1769,6 @@ function renderResult(res){
   document.getElementById('scoreA').textContent = `${sec.A.got}/${sec.A.max}`;
   document.getElementById('scoreB').textContent = `${sec.B.got}/${sec.B.max}`;
   document.getElementById('scoreC').textContent = `${sec.C.got}/${sec.C.max}`;
-  document.getElementById('scoreE').textContent = `${sec.E.got}/${sec.E.max}`;
   document.getElementById('scoreD').textContent = `${sec.D.got}/${sec.D.max}`;
   document.getElementById('scoreTotal').textContent = `${res.totalScore} / ${res.totalMax}`;
   document.getElementById('totalPct').textContent = `${res.totalPct}%`;
@@ -1556,7 +1829,7 @@ function renderResult(res){
   // feedback for wrong answers
   const fbEl = document.getElementById('feedback');
   if(r.fbItems.length===0){
-    fbEl.innerHTML = '<div class="callout good">セクションA・B・C・E はすべて正答です。素晴らしい!</div>';
+    fbEl.innerHTML = '<div class="callout good">セクションA・B・C はすべて正答です。素晴らしい!</div>';
   } else {
     fbEl.innerHTML = '<div class="muted" style="margin-bottom:10px;">不正解または未回答だった項目を整理しています。記載のスキル領域は重点復習を推奨します。</div>';
     r.fbItems.forEach(it=>{
@@ -1570,12 +1843,50 @@ function renderResult(res){
     });
   }
 
+  // AI advice block
+  renderAdvice(res.advice);
+
   // saved status
   document.getElementById('saveStatus').style.display = 'block';
   document.getElementById('savedIdLabel').textContent = `提出ID: ${res.submissionId}`;
 }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderAdvice(advice){
+  const el = document.getElementById('aiAdvice');
+  if(!el) return;
+  if(!advice || advice._error){
+    el.innerHTML = `<div class="callout" style="border-color:#fbbc04;background:#fef7e0;">
+      <b>AI 評価アドバイスの生成に失敗しました。</b><br>
+      <span class="muted" style="font-size:12px;">${advice && advice._error ? escapeHtml(String(advice._error)) : '理由不明(Gemini API 一時障害の可能性)'}</span>
+    </div>`;
+    return;
+  }
+  const cat = advice.category_assessment || {};
+  el.innerHTML = `
+    <div class="callout" style="background:#e8f0fe;border-color:#1a73e8;">
+      <div style="font-size:11px;letter-spacing:2px;color:#5f6368;">OVERALL</div>
+      <div style="margin-top:6px;line-height:1.7;">${escapeHtml(advice.overall_summary||'').replace(/\n/g,'<br>')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;">
+      ${['A','B','C','D'].map(k => `
+        <div style="border:1px solid var(--c-line);border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">
+          <span class="tag ${k}">Section ${k}</span>
+          <div style="margin-top:6px;">${escapeHtml(cat[k]||'(未生成)').replace(/\n/g,'<br>')}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="callout" style="margin-top:14px;background:#f8f9fa;border-color:#dadce0;">
+      <b>現状の使い方への評価</b><br>
+      <div style="margin-top:6px;line-height:1.7;font-size:13px;">${escapeHtml(advice.current_usage_assessment||'').replace(/\n/g,'<br>')}</div>
+    </div>
+    <div class="callout" style="margin-top:10px;background:#e6f4ea;border-color:#34a853;">
+      <b>今後推奨される使い方のアドバイス</b><br>
+      <div style="margin-top:6px;line-height:1.7;font-size:13px;">${escapeHtml(advice.advice||'').replace(/\n/g,'<br>')}</div>
+    </div>
+  `;
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 </script>
 
 </body>

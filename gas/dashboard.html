@@ -84,7 +84,12 @@ table tbody tr:hover{background:#f8fafc;}
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <h1>📊 AIアセスメント ダッシュボード</h1>
-      <div class="muted" id="sheetLink"></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div id="versionBadge" style="font-family:Menlo,monospace;font-size:11px;color:#5f6368;background:#f1f3f4;padding:4px 10px;border-radius:999px;border:1px solid #dadce0;" title="Dashboard と Server の Code.gs バージョン">
+          DASH: <span id="versionDash">…</span> / SRV: <span id="versionSrv">取得中</span>
+        </div>
+        <div class="muted" id="sheetLink"></div>
+      </div>
     </div>
 
     <div id="content" class="loading">読み込み中…</div>
@@ -100,10 +105,45 @@ table tbody tr:hover{background:#f8fafc;}
 </div>
 
 <script>
-let ALL_DATA = null;
-let FILTER = { category:'', text:'' };
+// バージョン整合性チェック用の合言葉。dashboard.html と Code.gs を更新するたびに上げる。
+// この文字列が SRV 側と一致していれば Web App デプロイは最新版を配信している。
+const CLIENT_BUILD = '2026-06-01-offline-json-upload';
 
-window.addEventListener('load', loadDashboard);
+let ALL_DATA = null;
+let FILTER = { category:'', text:'', mode:'' };
+
+window.addEventListener('load', () => {
+  // ダッシュボード側のバージョンを即時表示
+  const dashEl = document.getElementById('versionDash');
+  if(dashEl) dashEl.textContent = CLIENT_BUILD;
+  // サーバ側のバージョンを取得し、一致しなければ赤で警告
+  google.script.run
+    .withSuccessHandler(v => {
+      const srvEl = document.getElementById('versionSrv');
+      const badge = document.getElementById('versionBadge');
+      if(srvEl) srvEl.textContent = v || '(無し)';
+      if(badge){
+        if(v === CLIENT_BUILD){
+          badge.style.background = '#e6f4ea'; badge.style.borderColor = '#34a853'; badge.style.color = '#137333';
+          badge.title = '✅ Dashboard と Web App デプロイが同期しています';
+        } else {
+          badge.style.background = '#fdecea'; badge.style.borderColor = '#ea4335'; badge.style.color = '#a50e0e';
+          badge.title = '⚠ Web App デプロイ側が古いバージョンです。デプロイの管理 → ✏️ → 新バージョン → デプロイ を実施してください。';
+        }
+      }
+    })
+    .withFailureHandler(_ => {
+      const srvEl = document.getElementById('versionSrv');
+      if(srvEl) srvEl.textContent = '(getServerVersion 未デプロイ)';
+      const badge = document.getElementById('versionBadge');
+      if(badge){
+        badge.style.background = '#fdecea'; badge.style.borderColor = '#ea4335'; badge.style.color = '#a50e0e';
+        badge.title = '⚠ getServerVersion を含む最新 Code.gs がまだ Web App にデプロイされていません。新バージョン発行が必要です。';
+      }
+    })
+    .getServerVersion();
+  loadDashboard();
+});
 
 function loadDashboard(){
   google.script.run
@@ -141,15 +181,22 @@ function render(){
 
     <h2>受験者一覧 (${filtered.length} / ${data.rows.length} 件)</h2>
     <div class="toolbar">
-      <input type="text" id="filterText" value="${escapeHtml(FILTER.text)}" placeholder="氏名・所属・メールで絞り込み" style="flex:1;min-width:200px;" oninput="onFilterChange()">
+      <input type="text" id="filterText" value="${escapeHtml(FILTER.text)}" placeholder="氏名・所属で絞り込み" style="flex:1;min-width:200px;" oninput="onFilterChange()">
       <select id="filterCat" onchange="onFilterChange()">
         <option value="">すべてのカテゴリ</option>
         <option value="優良" ${FILTER.category==='優良'?'selected':''}>優良</option>
         <option value="及第点" ${FILTER.category==='及第点'?'selected':''}>及第点</option>
         <option value="要努力" ${FILTER.category==='要努力'?'selected':''}>要努力</option>
       </select>
+      <select id="filterMode" onchange="onFilterChange()">
+        <option value="">すべてのモード</option>
+        <option value="promotion"  ${FILTER.mode==='promotion'?'selected':''}>昇格試験</option>
+        <option value="onboarding" ${FILTER.mode==='onboarding'?'selected':''}>管理職オンボ</option>
+      </select>
       <button onclick="resetFilters()">リセット</button>
       <button class="primary" onclick="exportCSV()">CSV ダウンロード</button>
+      <button onclick="document.getElementById('uploadJsonInput').click()" title="採点エラー時にダウンロードされた JSON をアップロードして再採点します">📥 JSON 取り込み</button>
+      <input type="file" id="uploadJsonInput" accept="application/json,.json" style="display:none;" onchange="onUploadJson(event)">
       <button onclick="loadDashboard()">🔄 更新</button>
     </div>
 
@@ -157,26 +204,28 @@ function render(){
       <table>
         <thead>
           <tr>
-            <th>受験日時</th><th>氏名</th><th>所属</th><th>A</th><th>B</th><th>C</th><th>E</th><th>D</th>
+            <th>受験日時</th><th>氏名</th><th>所属</th><th>モード</th><th>職種</th>
+            <th>A</th><th>B</th><th>C</th><th>D</th>
             <th>総合</th><th>達成率</th><th>カテゴリ</th><th></th>
           </tr>
         </thead>
         <tbody>
-          ${filtered.length===0 ? '<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--c-ink-2);">該当する受験記録がありません</td></tr>' :
+          ${filtered.length===0 ? '<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--c-ink-2);">該当する受験記録がありません</td></tr>' :
             filtered.map(r=>`
               <tr>
                 <td class="mono">${escapeHtml(r.timestamp||'')}</td>
                 <td><b>${escapeHtml(r.name||'')}</b></td>
                 <td>${escapeHtml(r.role||'')}</td>
+                <td>${modeBadge(r.mode)}</td>
+                <td style="font-size:11px;line-height:1.4;">${escapeHtml(r.jobCategory||'')}${r.jobTitle ? '<br><span style="color:#5f6368;">'+escapeHtml(r.jobTitle)+'</span>' : ''}</td>
                 <td class="mono">${escapeHtml(r.A||'')}</td>
                 <td class="mono">${escapeHtml(r.B||'')}</td>
                 <td class="mono">${escapeHtml(r.C||'')}</td>
-                <td class="mono">${escapeHtml(r.E||'')}</td>
                 <td class="mono">${escapeHtml(r.D||'')}</td>
                 <td class="mono">${escapeHtml(r.total||'')}</td>
                 <td class="pct ${pctClass(r.percent)}">${escapeHtml(String(r.percent||''))}%</td>
                 <td><span class="tag tag-${r.category}">${escapeHtml(r.category||'')}</span></td>
-                <td><button onclick="showDetail('${escapeHtml(r.submissionId)}')" style="background:none;border:1px solid var(--c-line);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">詳細</button></td>
+                <td><button onclick='showDetail(${Number(r.rowIndex)||0}, ${JSON.stringify(String(r.submissionId||""))})' style="background:none;border:1px solid var(--c-line);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">詳細</button></td>
               </tr>
             `).join('')
           }
@@ -204,9 +253,10 @@ function renderBarChart(byCat, total){
 function filterRows(rows){
   return rows.filter(r=>{
     if(FILTER.category && r.category !== FILTER.category) return false;
+    if(FILTER.mode && r.mode !== FILTER.mode) return false;
     if(FILTER.text){
       const t = FILTER.text.toLowerCase();
-      const hay = [(r.name||''),(r.role||''),(r.email||'')].join(' ').toLowerCase();
+      const hay = [(r.name||''),(r.role||''),(r.jobCategory||''),(r.jobTitle||'')].join(' ').toLowerCase();
       if(!hay.includes(t)) return false;
     }
     return true;
@@ -216,12 +266,14 @@ function filterRows(rows){
 function onFilterChange(){
   FILTER.text = document.getElementById('filterText').value;
   FILTER.category = document.getElementById('filterCat').value;
+  const fm = document.getElementById('filterMode');
+  FILTER.mode = fm ? fm.value : '';
   render();
   document.getElementById('filterText').focus();
 }
 
 function resetFilters(){
-  FILTER = { category:'', text:'' };
+  FILTER = { category:'', text:'', mode:'' };
   render();
 }
 
@@ -232,34 +284,143 @@ function pctClass(p){
   if(n >= 60) return 'mid';
   return 'low';
 }
+function modeBadge(mode){
+  if(mode === 'onboarding') return '<span style="background:#f3e8fd;color:#5e35b1;border:1px solid #b39ddb;padding:1px 6px;border-radius:999px;font-size:10px;white-space:nowrap;">管理職オンボ</span>';
+  if(mode === 'promotion')  return '<span style="background:#e8f0fe;color:#1967d2;border:1px solid #4285f4;padding:1px 6px;border-radius:999px;font-size:10px;white-space:nowrap;">昇格試験</span>';
+  return '<span style="color:#9aa0a6;font-size:11px;">-</span>';
+}
+function modeLabelFull(mode){
+  if(mode === 'onboarding') return '管理職オンボーディングモード(昇格後3か月)';
+  if(mode === 'promotion')  return '昇格試験モード(非管理職)';
+  return '(未指定)';
+}
 
-function showDetail(submissionId){
+// 最後にサーバへ投げた検索条件(d が null で返ってきた時のエラー表示で使う)
+let LAST_DETAIL_REQUEST = null;
+
+function showDetail(rowIndex, submissionId){
   document.getElementById('detailContent').innerHTML = '<div class="loading">読み込み中…</div>';
   document.getElementById('detailModal').classList.add('show');
+  const req = { rowIndex: rowIndex||0, submissionId: submissionId||'' };
+  LAST_DETAIL_REQUEST = req;
+
+  const onFailure = err => {
+    document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">
+      <b>エラー</b>: ${escapeHtml(String(err && (err.message||err) || '(エラー詳細なし)'))}<br>
+      <small>呼び出し: ${escapeHtml(JSON.stringify(req))}</small>
+    </div>`;
+  };
+
+  // 1) まずは通常版(オブジェクト直返し)を呼ぶ
   google.script.run
-    .withSuccessHandler(renderDetail)
-    .withFailureHandler(err=>{
-      document.getElementById('detailContent').innerHTML = `<div style="color:#a50e0e;">エラー: ${escapeHtml(String(err.message||err))}</div>`;
+    .withSuccessHandler(d => {
+      if(d){ renderDetail(d); return; }
+      // 2) null が返った場合 → 経路上の serialize 問題の可能性。
+      //    サーバ側で JSON.stringify したものを文字列として返してもらい、
+      //    クライアントで JSON.parse する迂回路を試す。
+      google.script.run
+        .withSuccessHandler(s => {
+          let parsed = null;
+          try { parsed = (typeof s === 'string') ? JSON.parse(s) : null; } catch(e){}
+          if(parsed){
+            parsed._diagnostic = parsed._diagnostic || {};
+            parsed._diagnostic.deliveredVia = 'StringFallback';
+            renderDetail(parsed);
+          } else {
+            // それでも駄目だった場合は元の null パネルを出す
+            renderDetail(null);
+          }
+        })
+        .withFailureHandler(onFailure)
+        .getSubmissionDetailFlexibleString(req);
     })
-    .getSubmissionDetail(submissionId);
+    .withFailureHandler(onFailure)
+    .getSubmissionDetailFlexible(req);
 }
 
 function renderDetail(d){
-  if(!d){ document.getElementById('detailContent').innerHTML = '<div>該当する記録が見つかりませんでした。</div>'; return; }
+  if(!d){
+    // サーバから success ハンドラに null / undefined が渡ってきた場合
+    // (= サーバ関数が null を返した or デプロイバージョンが旧い)
+    const req = LAST_DETAIL_REQUEST || {};
+    document.getElementById('detailContent').innerHTML = `
+      <div style="background:#fef7e0;border:1px solid #fbbc04;border-radius:6px;padding:14px;">
+        <b>サーバから空の応答(${d===null?'null':'undefined'})が返りました。</b><br>
+        <span style="font-size:13px;line-height:1.7;">
+          原因として最も多いのは、Web アプリのデプロイバージョンが旧く、最新の Code.gs(<code>getSubmissionDetailFlexible</code>)が反映されていないケースです。<br>
+          下記の手順で切り分けてください:
+        </span>
+        <ol style="font-size:13px;line-height:1.8;margin:10px 0 0 18px;padding:0;">
+          <li>スクリプトエディタで <b>Code.gs</b> を開き、関数選択欄に <code>debugSubmissionDetailLookup</code> がある事を確認</li>
+          <li>関数選択欄から <code>debugSubmissionDetailLookup</code> を選んで実行(引数なしで OK)</li>
+          <li>「実行ログ」を開く。<b>keys: ... 氏名: ... カテゴリ:</b> 等が出力されていれば、サーバ側のロジックは健全です</li>
+          <li>その場合は、デプロイ &gt; <b>デプロイの管理</b> &gt; ✏️ &gt; バージョン: <b>新バージョン</b> &gt; デプロイ を実施</li>
+          <li>ダッシュボード URL を <b>Ctrl+Shift+R / Cmd+Shift+R</b> で強制リロードしてから再試行</li>
+        </ol>
+        <details style="margin-top:10px;font-size:12px;color:#5f6368;"><summary>呼び出しパラメータ</summary>
+          <pre style="background:#f8f9fa;padding:8px;border-radius:4px;">${escapeHtml(JSON.stringify(req,null,2))}</pre>
+        </details>
+      </div>`;
+    return;
+  }
   const ev = d.dResultParsed;
+  const adv = d.adviceParsed;
+  const diag = d._diagnostic || {};
+  const fmt = v => (v===undefined||v===null||v==='') ? '-' : v;
+  const mode = d['モード'] || '';
+  const jobCat = d['職種大分類'] || '';
+  const jobTitle = d['職種(詳細)'] || '';
+  const dailyUsage = String(d['AI活用記述']||'').trim();
   let html = `
-    <h2>受験詳細: ${escapeHtml(d['氏名']||'')}</h2>
-    <div class="muted">${escapeHtml(d.timestamp||'')}  |  ${escapeHtml(d['所属']||'')}  |  ${escapeHtml(d['受験者メール']||'')}</div>
-    <div style="margin:14px 0;text-align:center;">
-      <span class="tag tag-${d['カテゴリ']}" style="font-size:18px;padding:6px 20px;">${escapeHtml(d['カテゴリ']||'')}</span>
-      <span style="margin-left:12px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:18px;">${d['総合']}/${d['満点']} (${d['達成率(%)']}%)</span>
+    <h2>受験詳細: ${escapeHtml(d['氏名']||'-')}</h2>
+    <div class="muted" style="margin-bottom:6px;">
+      ${escapeHtml(d.timestamp||'-')}  |  ${escapeHtml(d['所属']||'-')}
+      &nbsp;&nbsp;${modeBadge(mode)}
+      ${jobCat || jobTitle ? '<span style="margin-left:8px;color:#5f6368;">職種:'+escapeHtml(jobCat)+(jobTitle?' / '+escapeHtml(jobTitle):'')+'</span>' : ''}
     </div>
-    <div class="score-line"><div class="lbl">A. 基礎理解</div><div class="val">${d['A_got']}/${d['A_max']}</div></div>
-    <div class="score-line"><div class="lbl">B. 業務活用判断</div><div class="val">${d['B_got']}/${d['B_max']}</div></div>
-    <div class="score-line"><div class="lbl">C. マネジメント</div><div class="val">${d['C_got']}/${d['C_max']}</div></div>
-    <div class="score-line"><div class="lbl">E. 複数選択</div><div class="val">${d['E_got']}/${d['E_max']}</div></div>
-    <div class="score-line"><div class="lbl">D. プロンプト記述(Gemini評価)</div><div class="val">${d['D_got']}/${d['D_max']}</div></div>
+    <div class="muted" style="font-size:11px;">利用シーン: ${escapeHtml(modeLabelFull(mode))}</div>
+    <div style="margin:14px 0;text-align:center;">
+      <span class="tag tag-${d['カテゴリ']}" style="font-size:18px;padding:6px 20px;">${escapeHtml(fmt(d['カテゴリ']))}</span>
+      <span style="margin-left:12px;font-family:JetBrains Mono,monospace;font-weight:700;font-size:18px;">${fmt(d['総合'])}/${fmt(d['満点'])} (${fmt(d['達成率(%)'])}%)</span>
+    </div>
+    <div class="score-line"><div class="lbl">A. 基礎理解</div><div class="val">${fmt(d['A_got'])}/${fmt(d['A_max'])}</div></div>
+    <div class="score-line"><div class="lbl">B. 業務活用判断</div><div class="val">${fmt(d['B_got'])}/${fmt(d['B_max'])}</div></div>
+    <div class="score-line"><div class="lbl">C. マネジメント</div><div class="val">${fmt(d['C_got'])}/${fmt(d['C_max'])}</div></div>
+    <div class="score-line"><div class="lbl">D. プロンプト記述(Gemini評価)</div><div class="val">${fmt(d['D_got'])}/${fmt(d['D_max'])}</div></div>
     <div class="score-line"><div class="lbl">所要時間</div><div class="val">${Math.floor((d['所要(秒)']||0)/60)}分${String(((d['所要(秒)']||0)%60)).padStart(2,'0')}秒</div></div>
+  `;
+
+  // AI による総合評価とアドバイス(面談補助資料の中核)
+  if(adv && !adv._error){
+    const cat = adv.category_assessment || {};
+    html += `
+      <h2>AI による総合評価とアドバイス</h2>
+      <div class="eval-block" style="background:#e8f0fe;border-color:#1a73e8;">
+        <div style="font-size:11px;letter-spacing:2px;color:#5f6368;">OVERALL</div>
+        <div style="margin-top:4px;line-height:1.7;">${escapeHtml(adv.overall_summary||'').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0;">
+        ${['A','B','C','D'].map(k => `
+          <div style="border:1px solid #dadce0;border-radius:6px;padding:8px;font-size:12px;line-height:1.5;">
+            <b>Section ${k}</b><br>${escapeHtml(cat[k]||'(未生成)').replace(/\n/g,'<br>')}
+          </div>
+        `).join('')}
+      </div>
+      <div class="eval-block" style="background:#f8f9fa;border-color:#dadce0;">
+        <b>現状の使い方への評価</b><br>${escapeHtml(adv.current_usage_assessment||'').replace(/\n/g,'<br>')}
+      </div>
+      <div class="eval-block" style="background:#e6f4ea;border-color:#34a853;">
+        <b>今後推奨される使い方のアドバイス</b><br>${escapeHtml(adv.advice||'').replace(/\n/g,'<br>')}
+      </div>
+    `;
+  } else if(adv && adv._error){
+    html += `<div class="eval-block" style="background:#fef7e0;border-color:#fbbc04;"><b>AI 評価アドバイスの生成に失敗</b><br><small>${escapeHtml(adv._error)}</small></div>`;
+  }
+
+  // 受験者本人による「日々の業務での AI 活用」自由記載
+  html += `
+    <h2>本人による「日々の業務での AI 活用」自由記載</h2>
+    <div class="eval-block" style="background:#fff;border-color:#dadce0;white-space:pre-wrap;font-size:13px;line-height:1.7;">${dailyUsage ? escapeHtml(dailyUsage) : '<span class="muted">(記載なし)</span>'}</div>
   `;
 
   if(ev && ev.evaluations){
@@ -277,19 +438,110 @@ function renderDetail(d){
     if(ev.overallSummary){
       html += `<div class="eval-block" style="background:#e8f0fe;border-color:#1a73e8;"><b>総評:</b> ${escapeHtml(ev.overallSummary)}</div>`;
     }
+  } else {
+    html += '<div class="eval-block" style="background:#fef7e0;border-color:#fbbc04;"><b>Gemini評価データを取得できませんでした。</b>';
+    if(diag.dParseError) html += `<br><small>JSON parse: ${escapeHtml(diag.dParseError)}</small>`;
+    html += '</div>';
   }
+
+  if(diag.error || diag.dParseError || diag.qParseError){
+    html += `<details style="margin-top:18px;font-size:12px;color:#5f6368;"><summary>診断情報(管理者向け)</summary><pre style="background:#f8f9fa;padding:8px;border-radius:4px;overflow:auto;">${escapeHtml(JSON.stringify(diag,null,2))}</pre></details>`;
+  }
+
   document.getElementById('detailContent').innerHTML = html;
 }
 
 function closeModal(){ document.getElementById('detailModal').classList.remove('show'); }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
+// ==========================================================================
+// オフライン JSON 取り込み(採点エラー時にダウンロードされた payload を再採点)
+// ==========================================================================
+function onUploadJson(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  // 入力をクリアして同じファイルを再アップロード可能にする
+  ev.target.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    let payload;
+    try {
+      payload = JSON.parse(e.target.result);
+    } catch(err){
+      showUploadStatus('error', 'JSON のパースに失敗しました: ' + (err.message || err));
+      return;
+    }
+    // 必須フィールドの軽い検証
+    const missing = [];
+    if(!payload || typeof payload !== 'object') missing.push('JSON がオブジェクトでない');
+    else {
+      if(!payload.examinee) missing.push('examinee');
+      if(!payload.autoScores) missing.push('autoScores');
+      if(!Array.isArray(payload.sectionD)) missing.push('sectionD(配列でない)');
+    }
+    if(missing.length){
+      showUploadStatus('error', '必須フィールドが欠けています: ' + missing.join(', ') + '<br><small>採点エラー画面の「⬇️ JSON で保存」で書き出された JSON か確認してください。</small>');
+      return;
+    }
+    // 確認ダイアログ
+    const who = (payload.examinee && payload.examinee.name) || '(氏名不明)';
+    const mode = payload.examinee && payload.examinee.mode === 'onboarding' ? '管理職オンボーディング' : '昇格試験';
+    if(!confirm('以下の受験データを再採点します:\n\n氏名: ' + who + '\nモード: ' + mode + '\n\n採点には Gemini API を使用するため、提出と同様に 20〜60 秒程度かかります。実行しますか?')){
+      return;
+    }
+    showUploadStatus('loading', '「' + escapeHtml(who) + '」の再採点中… (Gemini API 呼び出し中、20〜60 秒)');
+    google.script.run
+      .withSuccessHandler(res => {
+        if(res && res.success){
+          showUploadStatus('success', '<b>✓ 再採点完了:</b> ' + escapeHtml(who) +
+            '(' + escapeHtml(res.category) + ' / ' + res.totalScore + '/' + res.totalMax + ' = ' + res.totalPct + '%)' +
+            '<br><small>提出ID: ' + escapeHtml(res.submissionId) + '</small>');
+          // 一覧を再読み込み
+          setTimeout(loadDashboard, 800);
+        } else {
+          showUploadStatus('error', '再採点に失敗しました: ' + escapeHtml((res && res.error) || '(理由不明)'));
+        }
+      })
+      .withFailureHandler(err => {
+        showUploadStatus('error', 'サーバエラー: ' + escapeHtml(String(err && (err.message || err) || '(不明)')));
+      })
+      .submitAssessment(payload);
+  };
+  reader.onerror = () => showUploadStatus('error', 'ファイルの読み込みに失敗しました');
+  reader.readAsText(file);
+}
+
+function showUploadStatus(kind, msg){
+  let box = document.getElementById('uploadStatusBox');
+  if(!box){
+    box = document.createElement('div');
+    box.id = 'uploadStatusBox';
+    box.style.cssText = 'position:fixed;right:20px;bottom:20px;max-width:480px;padding:14px 18px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);z-index:100;font-size:13px;line-height:1.6;';
+    document.body.appendChild(box);
+  }
+  const palette = {
+    loading: { bg:'#e8f0fe', bd:'#1a73e8', fg:'#174ea6' },
+    success: { bg:'#e6f4ea', bd:'#34a853', fg:'#137333' },
+    error:   { bg:'#fdecea', bd:'#ea4335', fg:'#a50e0e' },
+  }[kind] || { bg:'#fff', bd:'#dadce0', fg:'#202124' };
+  box.style.background = palette.bg;
+  box.style.border = '2px solid ' + palette.bd;
+  box.style.color = palette.fg;
+  const close = kind === 'loading' ? '' : '<button style="float:right;margin-left:10px;background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">×</button>';
+  box.innerHTML = close + msg;
+  if(kind !== 'loading'){
+    // 自動で 12 秒後に消える(成功時)。エラーはユーザーが閉じるまで残す。
+    if(kind === 'success'){
+      setTimeout(() => { if(box.parentElement) box.remove(); }, 12000);
+    }
+  }
+}
 function exportCSV(){
   const rows = filterRows(ALL_DATA.rows);
-  const header = ['受験日時','氏名','所属','A','B','C','E','D','総合','達成率(%)','カテゴリ'];
+  const header = ['受験日時','氏名','所属','モード','職種大分類','職種(詳細)','A','B','C','D','総合','達成率(%)','カテゴリ'];
   const lines = [header.join(',')];
   rows.forEach(r=>{
-    lines.push([r.timestamp,r.name,r.role,r.A,r.B,r.C,r.E,r.D,r.total,r.percent,r.category]
+    lines.push([r.timestamp,r.name,r.role,r.mode,r.jobCategory,r.jobTitle,r.A,r.B,r.C,r.D,r.total,r.percent,r.category]
       .map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
   });
   const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
