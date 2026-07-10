@@ -403,7 +403,8 @@ function newPlayer(){
     gold:60,
     weapon:"stick", armor:"cloth",
     items:{ herb:2, ether:0, wing:0 },
-    map:"world", x:14, y:24, dir:2,   // 町の前からスタート
+    map:"world", x:28, y:48, dir:2,   // 町の前からスタート(半タイル単位)
+    v2:true,
     flags:{},                          // 宝箱・イベント
     auto:false,
   };
@@ -424,7 +425,10 @@ function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(P)); }catch(
 function load(){
   try{
     const d = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if(d && d.name) return d;
+    if(d && d.name){
+      if(!d.v2){ d.x*=2; d.y*=2; d.v2=true; }  // 旧セーブ(タイル単位)を半タイル単位へ
+      return d;
+    }
   }catch(e){}
   return null;
 }
@@ -452,122 +456,280 @@ addEventListener("resize", fitCanvas);
 
 let animT = 0; // ゆらぎアニメ用フレームカウンタ
 
-/* ---- タイル描画 ---- */
-function drawTile(ctx, ch, px, py, map, gx, gy){
-  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
-  const hash = (gx*73856093 ^ gy*19349663)>>>0;
+/* =========================================================
+ *  タイル描画 — 8px部品(キャラの1/4)によるオートタイル
+ *  隣接タイルを見て 縁・角の部品を選ぶ(Ys2/ハイドライド方式)
+ * ========================================================= */
+const SUB = 8;
+const hcell = (x,y)=> ((x*73856093) ^ (y*19349663))>>>0;
+
+function catOf(map,ch){
   switch(ch){
-    case ".": case "T": case "C": case "G": case "K": case "o": {
-      r(0,0,16,16,"#3e7d3a");
-      if(hash%3===0) r(3,4,2,2,"#4f9a48");
-      if(hash%5===1) r(10,9,2,2,"#356b32");
-      if(hash%7===2) r(6,12,2,2,"#4f9a48");
-      break;
-    }
-    case "f": {
-      r(0,0,16,16,"#2c5d2f");
-      r(3,7,10,7,"#1d4022");        // 樹冠影
-      r(2,3,12,8,"#2f7a35");        // 樹冠
-      r(4,1,8,5,"#3c9440");
-      r(7,11,2,4,"#5b3a1e");        // 幹
-      break;
-    }
-    case "^": {
-      r(0,0,16,16,"#5a5346");
-      ctx.fillStyle="#736a58";
-      ctx.beginPath();ctx.moveTo(px+1,py+15);ctx.lineTo(px+7,py+2);ctx.lineTo(px+13,py+15);ctx.fill();
-      ctx.fillStyle="#8f8571";
-      ctx.beginPath();ctx.moveTo(px+7,py+2);ctx.lineTo(px+10,py+9);ctx.lineTo(px+7,py+9);ctx.fill();
-      r(6,1,3,2,"#ded9cc");         // 冠雪
-      break;
-    }
-    case "~": {
-      r(0,0,16,16,"#1e4e8c");
-      const ph=(animT>>4)%2;
-      ctx.fillStyle="#3a76c0";
-      r(2+ph*2,4,5,1,"#3a76c0"); r(9-ph*2,10,5,1,"#3a76c0");
-      break;
-    }
-    case "=": {
-      r(0,0,16,16,"#1e4e8c");
-      r(1,0,14,16,"#8a5a2b");
-      for(let i=0;i<4;i++) r(1,i*4+1,14,1,"#6d4520");
-      r(0,0,2,16,"#5b3a1e"); r(14,0,2,16,"#5b3a1e");
-      break;
-    }
-    case "r": {
-      r(0,0,16,16,"#b09a6a");
-      if(hash%4===0) r(4,5,2,2,"#9d8a5f");
-      if(hash%4===2) r(10,10,2,2,"#c4ae7c");
-      break;
-    }
-    case "s": {
-      r(0,0,16,16,"#d4b36a");
-      if(hash%3===0) r(3,6,3,1,"#c2a057");
-      if(hash%5===1) r(9,11,3,1,"#e0c47e");
-      break;
-    }
-    case "w": {
-      r(0,0,16,16,"#7d7466");
-      for(let yy=0;yy<4;yy++)for(let xx=0;xx<2;xx++)
-        r(xx*8+(yy%2?4:0)-2,yy*4,7,3,"#948a78");
-      break;
-    }
-    case "_": case ".s": {
-      r(0,0,16,16,"#a8916a");
-      r(0,0,16,1,"#8f7a56"); r(0,8,16,1,"#8f7a56");
-      break;
-    }
-    case "D": {
-      r(0,0,16,16,"#a8916a");
-      r(2,2,12,14,"#6d4520"); r(4,4,8,12,"#8a5a2b");
-      r(10,9,2,2,"#e9c46a");
-      break;
-    }
-    case "#": {
-      r(0,0,16,16,"#2a2433");
-      r(1,1,14,6,"#3c3449"); r(1,9,6,6,"#3c3449"); r(9,9,6,6,"#3c3449");
-      break;
-    }
-    case ",": {
-      r(0,0,16,16,"#4a4054");
-      if(hash%6===0) r(5,7,2,2,"#3c3449");
-      break;
-    }
-    case "X": {
-      r(0,0,16,16,"#4a4054");
-      for(let i=0;i<4;i++) r(2+i*2,2+i*3,12-i*4,3,"#6b6076"); // 上り階段
-      break;
-    }
-    default: r(0,0,16,16,"#3e7d3a");
+    case "~": return "water";
+    case "=": return "bridge";
+    case "f": return "forest";
+    case "^": case "C": case "G": return "mtn";
+    case "s": return "sand";
+    case "r": case "T": return "road";
+    case "w": case "#": case "D": return "wall";
+    default:  return map==="cave" ? "floor" : "grass";
   }
-  // 上に載る構造物
+}
+const isWaterC = c => c==="water"||c==="bridge";
+const isRoadC  = c => c==="road" ||c==="bridge";
+const isGrassy = c => c==="grass"||c==="road"||c==="forest";
+
+/* 各角(8px)ごとに隣接3方向の同種判定を渡してコールバック */
+function eachCorner(map,gx,gy,same,cb){
+  for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){
+    const ox=cx?1:-1, oy=cy?1:-1;
+    cb(cx,cy,
+      same(gx+ox,gy),      // 横隣
+      same(gx,gy+oy),      // 縦隣
+      same(gx+ox,gy+oy));  // 斜め
+  }
+}
+function sameCat(map,pred){ return (x,y)=>pred(catOf(map,tileAt(map,x,y))); }
+
+/* ---- 地面ベース ---- */
+function drawGrassBase(ctx,px,py,gx,gy){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(0,0,16,16,"#3a7a38");
+  for(let cy=0;cy<2;cy++)for(let cx=0;cx<2;cx++){
+    const h2=hcell(gx*2+cx,gy*2+cy);
+    const sx=cx*SUB, sy=cy*SUB;
+    if(h2%3===0) r(sx+1+h2%4, sy+2+(h2>>3)%4, 2,1,"#478f42");
+    if(h2%5===1) r(sx+3+(h2>>2)%3, sy+4+(h2>>5)%3, 1,2,"#316832");
+    if(h2%31===7){ r(sx+3,sy+3,1,1,"#e9c46a"); r(sx+2,sy+2,1,1,"#f4e7c0"); } // 花
+  }
+}
+function drawSandBase(ctx,px,py,gx,gy,map){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(0,0,16,16,"#d2b169");
+  const h=hcell(gx,gy);
+  if(h%3===0) r(2+h%6,3,3,1,"#bf9c54");
+  if(h%4===1) r(8,10+(h>>3)%4,3,1,"#e2c67e");
+  // 草地への縁はディザで馴染ませる
+  const same = sameCat(map, c=>c==="sand");
+  eachCorner(map,gx,gy,same,(cx,cy,sH,sV)=>{
+    const sx=px+cx*SUB, sy=py+cy*SUB;
+    ctx.fillStyle="#3a7a38";
+    if(!sH && isGrassy(catOf(map,tileAt(map,gx+(cx?1:-1),gy)))){
+      const ex=cx?sx+SUB-1:sx;
+      for(let i=0;i<SUB;i+=2) ctx.fillRect(ex,sy+i+(cx?0:1),1,1);
+    }
+    if(!sV && isGrassy(catOf(map,tileAt(map,gx,gy+(cy?1:-1))))){
+      const ey=cy?sy+SUB-1:sy;
+      for(let i=0;i<SUB;i+=2) ctx.fillRect(sx+i+(cy?0:1),ey,1,1);
+    }
+  });
+}
+function drawCaveFloorBase(ctx,px,py,gx,gy){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(0,0,16,16,"#453d51");
+  const h=hcell(gx,gy);
+  if(h%4===0) r(2+h%8,3+(h>>4)%8,2,2,"#3b3446");
+  if(h%7===2) r(9,5+(h>>3)%6,2,1,"#524a5f");
+  if(h%23===5){ r(4,10,3,1,"#8f8a96"); r(5,9,1,1,"#8f8a96"); } // 骨
+}
+function drawWaterCell(ctx,px,py,map,gx,gy){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(0,0,16,16,"#1c4a86");
+  const ph=(animT>>4)&1;
+  const same = sameCat(map,isWaterC);
+  eachCorner(map,gx,gy,same,(cx,cy,sH,sV,sD)=>{
+    const sx=cx*SUB, sy=cy*SUB;
+    const h2=hcell(gx*2+cx,gy*2+cy);
+    if(sH&&sV&&sD){ // 沖: 波のきらめき
+      if(h2%5===0) r(sx+1+ph, sy+3+(h2>>3)%3, 3,1,"#356fb4");
+      if(h2%11===3) r(sx+4-ph, sy+5, 2,1,"#2a5c9e");
+      return;
+    }
+    // 岸辺: 浅瀬と白波
+    ctx.fillStyle="#2f6bb0";
+    if(!sH){ const ex=cx?sx+SUB-3:sx; ctx.fillRect(px+ex,py+sy,3,SUB); }
+    if(!sV){ const ey=cy?sy+SUB-3:sy; ctx.fillRect(px+sx,py+ey,SUB,3); }
+    if(sH&&sV&&!sD){ const ex=cx?sx+SUB-3:sx, ey=cy?sy+SUB-3:sy; ctx.fillRect(px+ex,py+ey,3,3); }
+    ctx.fillStyle = ((animT>>3)+h2)%8<5 ? "#dfe8f0" : "#9fc3e2";
+    if(!sH){ const ex=cx?sx+SUB-1:sx; ctx.fillRect(px+ex,py+sy+(cy?0:1),1,SUB-1); }
+    if(!sV){ const ey=cy?sy+SUB-1:sy; ctx.fillRect(px+sx+(cx?0:1),py+ey,SUB-1,1); }
+    if(sH&&sV&&!sD){ const ex=cx?sx+SUB-1:sx, ey=cy?sy+SUB-1:sy; ctx.fillRect(px+ex,py+ey,1,1); }
+  });
+}
+/* ---- 道: 角の丸い小道 ---- */
+function drawRoadCell(ctx,px,py,map,gx,gy){
+  const same = sameCat(map,isRoadC);
+  const h=hcell(gx,gy);
+  eachCorner(map,gx,gy,same,(cx,cy,sH,sV,sD)=>{
+    const sx=px+cx*SUB, sy=py+cy*SUB;
+    const inX = sH?0:2, inY = sV?0:2;       // 外側を2px残す
+    const x0 = cx? sx : sx+inX, y0 = cy? sy : sy+inY;
+    const w = SUB-inX, hh = SUB-inY;
+    ctx.fillStyle="#b09a6a";
+    ctx.fillRect(x0,y0,w,hh);
+    if(!sH&&!sV){ // 外角を丸める
+      const ex=cx?sx+SUB-3:sx+2, ey=cy?sy+SUB-3:sy+2;
+      ctx.fillStyle="#3a7a38"; ctx.fillRect(ex+(cx?1:0),ey+(cy?1:0),2,2);
+      ctx.fillStyle="#b09a6a"; ctx.fillRect(cx?ex:ex+1, cy?ey:ey+1,1,1);
+    }
+    ctx.fillStyle="#9d8a5f";
+    if(!sH){ const ex=cx?sx+SUB-3:sx+2; ctx.fillRect(ex,y0,1,hh); }
+    if(!sV){ const ey=cy?sy+SUB-3:sy+2; ctx.fillRect(x0,ey,w,1); }
+  });
+  const r=(a,b,w,h2,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h2);};
+  if(h%4===0) r(5,6,2,1,"#9d8a5f");
+  if(h%4===2) r(9,11,2,1,"#c4ae7c");
+}
+/* ---- 森: つながる樹冠 ---- */
+function drawForestCell(ctx,px,py,map,gx,gy){
+  const same = sameCat(map, c=>c==="forest");
+  eachCorner(map,gx,gy,same,(cx,cy,sH,sV,sD)=>{
+    const sx=px+cx*SUB, sy=py+cy*SUB;
+    const h2=hcell(gx*2+cx,gy*2+cy);
+    const inX = sH?0:1, inY = sV?0:1;
+    const x0 = cx? sx : sx+inX, y0 = cy? sy : sy+inY;
+    const w=SUB-inX, hh=SUB-inY;
+    ctx.fillStyle="#2e7233"; ctx.fillRect(x0,y0,w,hh);
+    if(!sH&&!sV){ // 外角: 3段の丸み
+      const gx0=cx?sx+SUB-3:sx, gy0=cy?sy+SUB-3:sy;
+      ctx.fillStyle="#3a7a38";
+      ctx.fillRect(cx?gx0+1:gx0, cy?gy0+1:gy0, 2,2);
+      ctx.fillRect(cx?gx0+2:gx0, cy?gy0:gy0+2, 1,1);
+      ctx.fillRect(cx?gx0:gx0+2, cy?gy0+2:gy0, 1,1);
+      ctx.fillStyle="#1c3f22";
+      ctx.fillRect(cx?gx0:gx0+2, cy?gy0:gy0+2, 1,1);
+    }
+    ctx.fillStyle="#1c3f22";
+    if(!sH){ const ex=cx?sx+SUB-1:sx+0; ctx.fillRect(ex,y0,1,hh); }
+    if(!sV&&cy){ ctx.fillRect(x0,sy+SUB-1,w,1); ctx.fillStyle="#245c2a"; ctx.fillRect(x0,sy+SUB-3,w,2); }
+    if(!sV&&!cy){ ctx.fillStyle="#3f8f41"; ctx.fillRect(x0,sy+1,w,1); ctx.fillStyle="#1c3f22"; ctx.fillRect(x0,sy,w,1); }
+    // 葉のテクスチャ
+    if(h2%3===0){ ctx.fillStyle="#245c2a"; ctx.fillRect(sx+2+h2%4, sy+2+(h2>>3)%4, 2,2); }
+    if(h2%7===1){ ctx.fillStyle="#3f8f41"; ctx.fillRect(sx+4-(h2>>2)%3, sy+5-(h2>>4)%3, 2,1); }
+  });
+}
+/* ---- 高台(山/城壁/洞窟壁 共通): 上面+南向きの崖面 ----
+   南が開けているセルは崖面になる。col.tall なら北もつながっている場合
+   セル全体(16px)が崖面になり、高さのある山肌・壁面に見える */
+function drawPlateauCell(ctx,px,py,map,gx,gy,pred,col){
+  const same = sameCat(map,pred);
+  const sS = same(gx,gy+1), sN = same(gx,gy-1);
+  eachCorner(map,gx,gy,same,(cx,cy,sH,sV,sD)=>{
+    const sx=px+cx*SUB, sy=py+cy*SUB;
+    const h2=hcell(gx*2+cx,gy*2+cy);
+    const isFace = !sS && (cy===1 || (col.tall && sN));
+    if(isFace){
+      const faceTop = cy===0 || !(col.tall && sN); // この部品が崖面の最上段か
+      ctx.fillStyle=col.face; ctx.fillRect(sx,sy,SUB,SUB);
+      ctx.fillStyle=col.faceDark;
+      for(let i=(gx*2+cx)%3;i<SUB;i+=3) ctx.fillRect(sx+i,sy,1,SUB);
+      if(col.brick){ ctx.fillStyle=col.faceDark;
+        ctx.fillRect(sx,sy+2,SUB,1); ctx.fillRect(sx,sy+5,SUB,1); }
+      if(faceTop){ ctx.fillStyle=col.topLo; ctx.fillRect(sx,sy,SUB,1); }
+      if(cy===1){ ctx.fillStyle=col.outline; ctx.fillRect(sx,sy+SUB-1,SUB,1); }
+      if(!sH){ ctx.fillStyle=col.outline; ctx.fillRect(cx?sx+SUB-1:sx,sy,1,SUB); }
+      return;
+    }
+    // 上面
+    ctx.fillStyle=col.top; ctx.fillRect(sx,sy,SUB,SUB);
+    // 岩肌: ひび割れ(L字)・小石・低木
+    if(h2%2===0){ ctx.fillStyle=col.topLo;
+      const ax=sx+1+h2%4, ay=sy+1+(h2>>3)%5;
+      ctx.fillRect(ax,ay,3,1); ctx.fillRect(ax+2,ay+1,1,2); }
+    if(h2%3===1){ ctx.fillStyle=col.topHi; ctx.fillRect(sx+3+(h2>>2)%4, sy+4+(h2>>4)%3, 2,1); }
+    if(h2%5===2){ ctx.fillStyle=col.topLo; ctx.fillRect(sx+2+(h2>>5)%5, sy+1+(h2>>2)%6, 1,1); }
+    if(col.shrub && h2%13===4){ ctx.fillStyle="#4c6b38"; ctx.fillRect(sx+2+(h2>>3)%3, sy+3+(h2>>5)%3, 2,2); }
+    if(!sV&&!cy){ ctx.fillStyle=col.topHi; ctx.fillRect(sx,sy+1,SUB,1); ctx.fillStyle=col.outline; ctx.fillRect(sx,sy,SUB,1); }
+    if(!sH){ ctx.fillStyle=col.outline; ctx.fillRect(cx?sx+SUB-1:sx,sy,1,SUB); }
+    if(sH&&sV&&!sD){ ctx.fillStyle=col.outline;
+      ctx.fillRect(cx?sx+SUB-1:sx, cy?sy+SUB-1:sy, 1,1); }
+    if(!sH&&!sV&&!cy){ // 上外角の丸み
+      const ex=cx?sx+SUB-2:sx, ey=sy;
+      ctx.fillStyle=(map==="cave")?"#453d51":"#3a7a38";
+      ctx.fillRect(ex+(cx?1:0),ey,1,1);
+    }
+  });
+}
+const COL_MTN  = { top:"#8a7d64", topHi:"#a0937a", topLo:"#655a45", face:"#4a4030", faceDark:"#382f22", outline:"#2a2318", tall:true, shrub:true };
+const COL_WALL = { top:"#9a9080", topHi:"#aca293", topLo:"#877d6d", face:"#7d7466", faceDark:"#6a6254", outline:"#4f483c", brick:true, tall:true };
+const COL_CAVE = { top:"#423a52", topHi:"#4e4661", topLo:"#362f44", face:"#2e2840", faceDark:"#241f33", outline:"#17131f", brick:true, tall:true };
+
+function drawMtnCell(ctx,px,py,map,gx,gy){
+  drawPlateauCell(ctx,px,py,map,gx,gy, c=>c==="mtn", COL_MTN);
+  // 奥地の峰は冠雪
+  const same = sameCat(map, c=>c==="mtn");
+  if(same(gx+1,gy)&&same(gx-1,gy)&&same(gx,gy+1)&&same(gx,gy-1)&&hcell(gx,gy)%4===0){
+    const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+    r(5,4,6,2,"#e6e1d4"); r(4,5,3,1,"#e6e1d4"); r(9,6,3,1,"#cfc9ba");
+  }
+}
+function drawBridgeCell(ctx,px,py){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(2,0,12,16,"#8a5a2b");
+  for(let i=0;i<5;i++) r(2,i*3+1,12,1,"#6d4520");
+  r(1,0,2,16,"#5b3a1e"); r(13,0,2,16,"#5b3a1e");
+  r(1,2,2,1,"#7a5028");  r(13,10,2,1,"#7a5028");
+}
+/* ---- セル1枚を描く ---- */
+function drawCell(ctx, map, gx, gy, px, py){
+  const ch = tileAt(map,gx,gy);
+  const cat = catOf(map,ch);
+  // 地面
+  if(cat==="water"||cat==="bridge") drawWaterCell(ctx,px,py,map,gx,gy);
+  else if(cat==="sand") drawSandBase(ctx,px,py,gx,gy,map);
+  else if(map==="cave") drawCaveFloorBase(ctx,px,py,gx,gy);
+  else drawGrassBase(ctx,px,py,gx,gy);
+  // 地形
+  if(cat==="road")   drawRoadCell(ctx,px,py,map,gx,gy);
+  if(cat==="forest") drawForestCell(ctx,px,py,map,gx,gy);
+  if(cat==="mtn")    drawMtnCell(ctx,px,py,map,gx,gy);
+  if(cat==="wall")   drawPlateauCell(ctx,px,py,map,gx,gy, c=>c==="wall", map==="cave"?COL_CAVE:COL_WALL);
+  if(cat==="bridge") drawBridgeCell(ctx,px,py);
+  // 構造物
   if(ch==="T") drawTown(ctx,px,py);
   if(ch==="C") drawCaveMouth(ctx,px,py);
   if(ch==="G") drawTowerGate(ctx,px,py);
   if(ch==="o") drawRock(ctx,px,py);
+  if(ch==="D") drawDoor(ctx,px,py);
+  if(ch==="X") drawStairs(ctx,px,py);
   if(ch==="K"||ch==="B"||ch==="M"){
     const opened = P && P.flags["chest_"+map+"_"+gx+"_"+gy];
     drawChest(ctx,px,py,opened);
   }
 }
+function drawDoor(ctx,px,py){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  r(3,3,10,13,"#3a2c14"); r(4,4,8,12,"#8a5a2b");
+  r(5,5,6,10,"#a3712f"); r(9,9,1,2,"#e9c46a");
+}
+function drawStairs(ctx,px,py){
+  const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
+  for(let i=0;i<4;i++){ r(2+i*2,2+i*3,12-i*4,3,"#6b6076"); r(2+i*2,4+i*3,12-i*4,1,"#524a5f"); }
+}
 function drawTown(ctx,px,py){
   const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
-  r(1,6,14,9,"#c8b48f"); r(0,2,16,5,"#a34632");
-  ctx.fillStyle="#8a3a2a";ctx.beginPath();ctx.moveTo(px,py+3);ctx.lineTo(px+8,py-1);ctx.lineTo(px+16,py+3);ctx.fill();
-  r(6,9,4,6,"#6d4520"); r(2,8,3,3,"#5aa9e6"); r(11,8,3,3,"#5aa9e6");
+  r(1,7,14,9,"#c8b48f"); r(1,7,14,1,"#e0d0ac");         // 壁と漆喰
+  r(1,15,14,1,"#8f7d5c");
+  ctx.fillStyle="#8a3a2a";ctx.beginPath();ctx.moveTo(px-1,py+7);ctx.lineTo(px+8,py);ctx.lineTo(px+17,py+7);ctx.fill();
+  ctx.fillStyle="#a34632";ctx.beginPath();ctx.moveTo(px+1,py+6);ctx.lineTo(px+8,py+1);ctx.lineTo(px+15,py+6);ctx.fill();
+  r(7,1,2,2,"#e9c46a");                                  // 屋根飾り
+  r(6,10,4,6,"#6d4520"); r(7,11,2,5,"#8a5a2b");          // 扉
+  r(2,9,3,3,"#5aa9e6"); r(3,9,1,3,"#bcdcf4");            // 窓(灯り)
+  r(11,9,3,3,"#5aa9e6"); r(11,9,1,3,"#bcdcf4");
 }
 function drawCaveMouth(ctx,px,py){
   const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
-  r(0,0,16,16,"#5a5346");
-  r(2,2,12,14,"#736a58");
-  r(4,6,8,10,"#0c0a12"); r(5,4,6,3,"#0c0a12");
+  r(4,5,8,11,"#0c0a12"); r(3,7,10,9,"#0c0a12");
+  r(5,3,6,3,"#0c0a12");
+  r(3,5,1,2,"#3a3427"); r(12,5,1,2,"#3a3427");           // 岩の縁
+  r(7,13,2,1,"#2b2f55");                                 // 奥の微光
 }
 function drawTowerGate(ctx,px,py){
   const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
-  r(2,0,12,16,"#8b93b8"); r(4,-0,8,3,"#aab2d6");
-  r(5,6,6,10,"#2a2d55");
-  r(7,9,2,3,"#e9c46a");   // 錠前
+  r(2,0,12,16,"#8b93b8"); r(2,0,2,16,"#a7aed0"); r(12,0,2,16,"#6b7398");
+  r(1,0,14,2,"#aab2d6"); r(3,2,10,1,"#6b7398");
+  r(5,6,6,10,"#232849"); r(6,7,4,9,"#2e3560");
+  r(7,9,2,3,"#e9c46a"); r(7,12,1,1,"#b8923e");           // 錠前
 }
 function drawRock(ctx,px,py){
   const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
@@ -579,36 +741,48 @@ function drawChest(ctx,px,py,opened){
   r(7,8,2,3,"#e9c46a");
   if(opened) r(3,3,10,2,"#0c0a12");
 }
-/* ---- 人物(プレイヤー/NPC)を手続き描画 ---- */
+/* ---- 人物(プレイヤー/NPC)を手続き描画 ----
+   step: 0=左足前 1=右足前 2=直立 */
 function drawPerson(ctx,px,py,dir,step,pal){
   const r=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px+a,py+b,w,h);};
-  const legs = step?1:0;
+  const o="#141420";
   // 影
-  r(3,13,10,2,"rgba(0,0,0,.3)");
-  // 足
-  r(4,11+legs,3,3-legs,pal.boot); r(9,12-legs,3,3+legs>3?3:3,pal.boot);
-  r(9,12-legs,3,3,pal.boot);
-  // 胴
-  r(3,7,10,5,pal.body);
-  r(3,7,10,1,pal.body2);
-  // 頭
-  r(4,1,8,6,pal.skin);
-  r(3,0,10,3,pal.hair);
-  if(dir!==0){ // 0=上向きは顔なし
-    const ey=4;
-    if(dir===2){ r(5,ey,1,2,"#1a1c2c"); r(9,ey,1,2,"#1a1c2c"); }
-    if(dir===1){ r(5,ey,1,2,"#1a1c2c"); }             // 左
-    if(dir===3){ r(9,ey,1,2,"#1a1c2c"); }             // 右
-  } else {
-    r(3,0,10,5,pal.hair);
+  r(4,14,8,2,"rgba(0,0,0,.28)");
+  const lY = step===0?-1:0, rY = step===1?-1:0;
+  // アウトライン(各部品を1px拡張して先に描く)
+  r(3,0,10,4,o); r(2,1,12,3,o);          // 髪
+  r(3,2,10,6,o);                          // 顔
+  r(2,6,12,6,o);                          // 胴
+  r(3,11+lY,5,4,o); r(8,11+rY,5,4,o);    // 足
+  // 髪
+  r(4,1,8,2,pal.hair); r(3,2,10,2,pal.hair);
+  r(5,1,4,1,pal.hairHi||pal.hair);
+  // 顔
+  if(dir===0){ r(4,3,8,4,pal.hair); }     // 上向きは後頭部
+  else{
+    r(4,4,8,3,pal.skin); r(4,3,8,1,pal.hair);
+    if(dir===2){ r(5,4,2,2,o); r(9,4,2,2,o); }
+    if(dir===1){ r(4,4,2,2,o); r(8,4,2,2,o); }
+    if(dir===3){ r(6,4,2,2,o); r(10,4,2,2,o); }
   }
+  // 胴と腕
+  r(3,7,10,4,pal.body);
+  r(3,7,1,4,pal.body2); r(12,7,1,4,pal.body2);
+  r(3,10,10,1,pal.belt||"#3a2c14");
+  // 足
+  r(4,12+lY,3,2,pal.boot); r(9,12+rY,3,2,pal.boot);
+  r(4,13+lY,3,1,pal.bootLo||pal.boot); r(9,13+rY,3,1,pal.bootLo||pal.boot);
   // 剣(主人公のみ)
-  if(pal.sword){ r(dir===1?1:13,5,1,7,"#c0cbdc"); r(dir===1?0:12,7,3,1,"#8a5a2b"); }
+  if(pal.sword && dir!==0){
+    const sx = dir===1?1:14;
+    r(sx,4,1,7,"#dfe8f0"); r(sx,4,1,1,"#fff");
+    r(sx-1,9,3,1,"#8a5a2b");
+  }
 }
-const PAL_HERO  = {skin:"#e8b088",hair:"#7a4a2b",body:"#3b5dc9",body2:"#2a3f9e",boot:"#4a3020",sword:true};
-const PAL_SHOP  = {skin:"#e8b088",hair:"#3a3a3a",body:"#7a4a2b",body2:"#5b3a1e",boot:"#333"};
-const PAL_INN   = {skin:"#e8b088",hair:"#a34632",body:"#3e7d3a",body2:"#2c5d2f",boot:"#333"};
-const PAL_ELDER = {skin:"#e8c8a8",hair:"#ded9cc",body:"#8b93b8",body2:"#6b7398",boot:"#333"};
+const PAL_HERO  = {skin:"#e8b088",hair:"#7a4a2b",hairHi:"#96613a",body:"#3b5dc9",body2:"#2a3f9e",boot:"#4a3020",bootLo:"#33210f",sword:true};
+const PAL_SHOP  = {skin:"#e8b088",hair:"#3a3a3a",body:"#7a4a2b",body2:"#5b3a1e",boot:"#333344"};
+const PAL_INN   = {skin:"#e8b088",hair:"#a34632",body:"#3e7d3a",body2:"#2c5d2f",boot:"#333344"};
+const PAL_ELDER = {skin:"#e8c8a8",hair:"#ded9cc",body:"#8b93b8",body2:"#6b7398",boot:"#333344"};
 const NPCS = { S:{pal:PAL_SHOP}, I:{pal:PAL_INN}, E:{pal:PAL_ELDER} };
 
 /* ---- 敵ドット絵(文字グリッド) ---- */
@@ -736,10 +910,18 @@ function drawSprite(ctx, key, px, py, scale){
 
 /* =========================================================
  *  フィールド
+ *  座標は「半タイル単位」(P.x=28 → タイル14): Ys2式の半キャラ移動
  * ========================================================= */
-let moving = null;       // {fx,fy,tx,ty,t}
-let stepAnim = 0;
+let moving = null;       // {fx,fy,tx,ty,t} 半タイル単位
 let msgQueue = [], msgDone = null;
+const pcx = ()=> Math.round(P.x/2);   // 中心のセル座標
+const pcy = ()=> Math.round(P.y/2);
+function cellsAt(hx,hy){              // 半歩位置が重なるセル(最大4)
+  const x0=hx>>1, x1=(hx+1)>>1, y0=hy>>1, y1=(hy+1)>>1;
+  const out=[];
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) out.push([x,y]);
+  return out;
+}
 
 function tileAt(map,x,y){
   const m = MAPS[map];
@@ -755,26 +937,44 @@ function passable(map,x,y){
   return true;
 }
 
+// 地形はオフスクリーンに描いてキャッシュ(毎フレームの全セル再描画を避ける)
+const mapCv = document.createElement("canvas");
+const mctx = mapCv.getContext("2d");
+let mapCacheKey = "";
+
 function drawField(){
   animT++;
   const m = MAPS[P.map];
-  // カメラ(補間込み)
-  let px = P.x, py = P.y;
-  if(moving){ px = moving.fx + (moving.tx-moving.fx)*moving.t; py = moving.fy + (moving.ty-moving.fy)*moving.t; }
+  // 位置(タイル単位)
+  let px = P.x/2, py = P.y/2;
+  if(moving){
+    px = (moving.fx + (moving.tx-moving.fx)*moving.t)/2;
+    py = (moving.fy + (moving.ty-moving.fy)*moving.t)/2;
+  }
   let camX = px - (VIEW_W-1)/2, camY = py - (VIEW_H-1)/2;
   camX = m.w<=VIEW_W ? (m.w-VIEW_W)/2 : Math.max(0, Math.min(m.w-VIEW_W, camX));
   camY = m.h<=VIEW_H ? (m.h-VIEW_H)/2 : Math.max(0, Math.min(m.h-VIEW_H, camY));
+  const ox = Math.floor(camX), oy = Math.floor(camY);
 
-  for(let vy=0;vy<=VIEW_H;vy++){
-    for(let vx=0;vx<=VIEW_W;vx++){
-      const gx = Math.floor(camX)+vx, gy = Math.floor(camY)+vy;
-      const ch = tileAt(P.map,gx,gy);
-      drawTile(fctx, ch, Math.round((gx-camX)*TILE), Math.round((gy-camY)*TILE), P.map, gx, gy);
-      if(NPCS[ch]) drawPerson(fctx, Math.round((gx-camX)*TILE), Math.round((gy-camY)*TILE), 2, (animT>>5)%2, NPCS[ch].pal);
-    }
+  const key = P.map+"|"+ox+"|"+oy+"|"+(animT>>3 & 7)+"|"+Object.keys(P.flags).length+"|"+VIEW_W+"x"+VIEW_H;
+  if(key!==mapCacheKey){
+    mapCacheKey = key;
+    const w=(VIEW_W+2)*TILE, h=(VIEW_H+2)*TILE;
+    if(mapCv.width!==w||mapCv.height!==h){ mapCv.width=w; mapCv.height=h; }
+    for(let vy=0;vy<=VIEW_H+1;vy++)
+      for(let vx=0;vx<=VIEW_W+1;vx++)
+        drawCell(mctx, P.map, ox+vx, oy+vy, vx*TILE, vy*TILE);
   }
-  // プレイヤー
-  drawPerson(fctx, Math.round((px-camX)*TILE), Math.round((py-camY)*TILE), P.dir, moving?(stepAnim>>3)%2:0, PAL_HERO);
+  fctx.drawImage(mapCv, -Math.round((camX-ox)*TILE), -Math.round((camY-oy)*TILE));
+
+  // NPC
+  for(let vy=0;vy<=VIEW_H+1;vy++)for(let vx=0;vx<=VIEW_W+1;vx++){
+    const gx=ox+vx, gy=oy+vy, ch=tileAt(P.map,gx,gy);
+    if(NPCS[ch]) drawPerson(fctx, Math.round((gx-camX)*TILE), Math.round((gy-camY)*TILE), 2, 2, NPCS[ch].pal);
+  }
+  // プレイヤー(歩行は半歩ごとに左右の足を入れ替え)
+  const step = moving ? (moving.tx+moving.ty)&1 : 2;
+  drawPerson(fctx, Math.round((px-camX)*TILE), Math.round((py-camY)*TILE), P.dir, step, PAL_HERO);
 
   // 洞窟の暗闇(たいまつの灯り)
   if(m.dark){
@@ -795,29 +995,32 @@ function tryMove(dk){
   const [dx,dy,d] = DIRS[dk];
   P.dir = d;
   const nx = P.x+dx, ny = P.y+dy;
-  const t = tileAt(P.map,nx,ny);
-  if(ENTER[t]){ enterMap(ENTER[t]); return; }
-  if(t==="D"){ leaveTown(); return; }
-  if(t==="X"){ leaveCave(); return; }
-  if(!passable(P.map,nx,ny)) return;
+  // 進入先が重なるセルに出入口があれば移動せず遷移
+  for(const [cx,cy] of cellsAt(nx,ny)){
+    const t = tileAt(P.map,cx,cy);
+    if(ENTER[t]){ enterMap(ENTER[t]); return; }
+    if(t==="D"){ leaveTown(); return; }
+    if(t==="X"){ leaveCave(); return; }
+  }
+  if(!cellsAt(nx,ny).every(([cx,cy])=>passable(P.map,cx,cy))) return;
   moving = {fx:P.x,fy:P.y,tx:nx,ty:ny,t:0};
 }
 function enterMap(name){
-  if(name==="town"){ P.map="town"; P.x=6; P.y=8; P.dir=0; areaBanner(); }
-  if(name==="cave"){ P.map="cave"; P.x=1; P.y=12; P.dir=3; areaBanner(); }
+  if(name==="town"){ P.map="town"; P.x=12; P.y=16; P.dir=0; areaBanner(); }
+  if(name==="cave"){ P.map="cave"; P.x=2;  P.y=24; P.dir=3; areaBanner(); }
   save();
 }
-function leaveTown(){ P.map="world"; P.x=14; P.y=24; P.dir=2; areaBanner(); save(); }
-function leaveCave(){ P.map="world"; P.x=24; P.y=4;  P.dir=2; areaBanner(); save(); }
+function leaveTown(){ P.map="world"; P.x=28; P.y=48; P.dir=2; areaBanner(); save(); }
+function leaveCave(){ P.map="world"; P.x=48; P.y=8;  P.dir=2; areaBanner(); save(); }
 
 function onArrive(){
   P.x=moving.tx; P.y=moving.ty; moving=null;
-  const area = AREAS[areaOf(P.map,P.x,P.y)];
+  const area = AREAS[areaOf(P.map,pcx(),pcy())];
   areaBanner();
-  // エンカウント
-  const t = tileAt(P.map,P.x,P.y);
+  // エンカウント(半歩移動なので判定は1歩あたり1/2)
+  const t = tileAt(P.map,pcx(),pcy());
   if(area.rate>0 && t!=="r" && t!=="=" ){
-    if(Math.random() < 1/area.rate){
+    if(Math.random() < 1/(area.rate*2)){
       const key = area.enemies[Math.floor(Math.random()*area.enemies.length)];
       startBattle(key);
     }
@@ -826,23 +1029,33 @@ function onArrive(){
 
 let lastArea = "";
 function areaBanner(){
-  const a = AREAS[areaOf(P.map,P.x,P.y)];
+  const a = AREAS[areaOf(P.map,pcx(),pcy())];
   const el = document.getElementById("areaName");
   if(a.name!==lastArea){ lastArea=a.name; el.textContent=a.name; el.style.opacity=1;
     clearTimeout(areaBanner.tm); areaBanner.tm=setTimeout(()=>el.style.opacity=0, 2200); }
 }
 
 /* ---- Aボタン(調べる/話す) ---- */
+function facingCells(){
+  // 向いている方向の1セル先(半歩ずれて2セルにまたがる場合は両方)
+  const dx = P.dir===1?-1 : P.dir===3?1 : 0;
+  const dy = P.dir===0?-1 : P.dir===2?1 : 0;
+  const xs = dx ? [ dx<0 ? (P.x>>1)-1 : ((P.x+1)>>1)+1 ] : [P.x>>1, (P.x+1)>>1];
+  const ys = dy ? [ dy<0 ? (P.y>>1)-1 : ((P.y+1)>>1)+1 ] : [P.y>>1, (P.y+1)>>1];
+  const out=[];
+  for(const y of ys)for(const x of xs) if(!out.some(c=>c[0]===x&&c[1]===y)) out.push([x,y]);
+  return out;
+}
 function action(){
   if(uiBusy()){ advanceMsg(); return; }
-  const [dx,dy] = P.dir===0?[0,-1]:P.dir===2?[0,1]:P.dir===1?[-1,0]:[1,0];
-  const tx=P.x+dx, ty=P.y+dy;
-  const t = tileAt(P.map,tx,ty);
-  if(t==="S"){ openShop(); return; }
-  if(t==="I"){ innTalk(); return; }
-  if(t==="E"){ elderTalk(); return; }
-  if(t==="G"){ fieldMsg(["巨大な扉は かたく とざされている…","『そらのカギ』を もつ者のみ 天空へ いたる ——"]); return; }
-  if(t==="K"||t==="B"||t==="M"){ openChest(t,tx,ty); return; }
+  for(const [tx,ty] of facingCells()){
+    const t = tileAt(P.map,tx,ty);
+    if(t==="S"){ openShop(); return; }
+    if(t==="I"){ innTalk(); return; }
+    if(t==="E"){ elderTalk(); return; }
+    if(t==="G"){ fieldMsg(["巨大な扉は かたく とざされている…","『そらのカギ』を もつ者のみ 天空へ いたる ——"]); return; }
+    if(t==="K"||t==="B"||t==="M"){ openChest(t,tx,ty); return; }
+  }
 }
 function openChest(t,x,y){
   const key = "chest_"+P.map+"_"+x+"_"+y;
@@ -920,7 +1133,7 @@ function fitBattleCv(){
 }
 
 function battleBg(){
-  const a = areaOf(P.map,P.x,P.y);
+  const a = areaOf(P.map,pcx(),pcy());
   const g = bctx.createLinearGradient(0,0,0,176);
   if(a==="cave"){ g.addColorStop(0,"#141020");g.addColorStop(1,"#2a2433"); }
   else if(a==="desert"){ g.addColorStop(0,"#7a5f9e");g.addColorStop(1,"#d4b36a"); }
@@ -1087,7 +1300,7 @@ async function loseBattle(){
   await sleep(900);
   P.gold = Math.floor(P.gold/2);
   P.hp = maxHp(); P.mp = maxMp();
-  P.map="town"; P.x=6; P.y=6; P.dir=2;
+  P.map="town"; P.x=12; P.y=12; P.dir=2;
   endBattle(false);
   fieldMsg(["「…おお、めが さめたかね」","「まもののむれに たおれていたのを はこんできたのじゃ」","(しょじきんの はんぶんを うしなった…)"]);
   refreshHud(); save();
@@ -1184,7 +1397,7 @@ function renderMenu(){
     if(k==="herb"&&P.items.herb>0){ P.items.herb--; P.hp=Math.min(maxHp(),P.hp+30); }
     if(k==="ether"&&P.items.ether>0){ P.items.ether--; P.mp=Math.min(maxMp(),P.mp+20); }
     if(k==="seed"&&P.items.seed>0){ P.items.seed--; P.seedAtk++; }
-    if(k==="wing"&&P.items.wing>0){ P.items.wing--; P.map="world"; P.x=14; P.y=24; P.dir=2; closeSheet("menu"); }
+    if(k==="wing"&&P.items.wing>0){ P.items.wing--; P.map="world"; P.x=28; P.y=48; P.dir=2; closeSheet("menu"); }
     refreshHud(); renderMenu(); save();
   };
   window._useItem = use;
@@ -1232,14 +1445,13 @@ addEventListener("keyup",e=>{
 document.getElementById("fmsg").addEventListener("click",()=>advanceMsg());
 document.getElementById("fieldWrap").addEventListener("click",()=>{ if(fmsgEl.classList.contains("show")) advanceMsg(); });
 
-const MOVE_MS = 130;
+const MOVE_MS = 85;   // 半歩あたり(Ys風の軽快さ)
 let lastT = 0;
 function loop(t){
   requestAnimationFrame(loop);
   const dt = Math.min(50, t-lastT); lastT=t;
   if(!P) return;
   if(moving){
-    stepAnim++;
     moving.t += dt/MOVE_MS;
     if(moving.t>=1){ onArrive(); }
   } else if(!uiBusy()){
@@ -1269,7 +1481,7 @@ function drawTitleScene(){
   c.fillStyle="#e9c46a"; c.fillRect(88,30,2,3);
   // 草原と勇者
   c.fillStyle="#1c3a24"; c.fillRect(0,72,176,24);
-  drawPerson(c, 40, 58, 3, 0, PAL_HERO);
+  drawPerson(c, 40, 58, 3, 2, PAL_HERO);
 }
 
 function startGame(data){
@@ -1309,7 +1521,7 @@ window.DEBUG = {
   state:()=>P,
   start:()=>startGame(null),
   battle:k=>startBattle(k||"slime"),
-  warp:(m,x,y)=>{P.map=m;P.x=x;P.y=y;},
+  warp:(m,x,y)=>{P.map=m;P.x=x*2;P.y=y*2;},   // タイル座標で指定
 };
 </script>
 </body>
