@@ -1460,7 +1460,7 @@ function drawToolbox() {
     ctx.fillStyle = '#f4d8a8'; ctx.fillRect(STAGE_W, 0, 6, STAGE_H);
     ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#cbb083';
     ctx.fillText('どうぐばこ', STAGE_W + SIDE_W / 2, 42);
-    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+    if (drag && drag.from === 'stage' && overToolbox(drag.x, drag.y)) {
       ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(STAGE_W, 0, SIDE_W, STAGE_H);
       ctx.font = 'bold 18px sans-serif'; ctx.fillStyle = '#c07820';
       ctx.fillText('もどす', STAGE_W + SIDE_W / 2, STAGE_H / 2);
@@ -1471,7 +1471,7 @@ function drawToolbox() {
     const slotsEnd = 26 + Object.keys(level.gadgets).length * 118;
     ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#cbb083';
     ctx.fillText('どうぐばこ', slotsEnd + 10, STAGE_H + 64);
-    if (drag && drag.from === 'stage' && overToolbox(drag.fx, drag.fy)) {
+    if (drag && drag.from === 'stage' && overToolbox(drag.x, drag.y)) {
       ctx.fillStyle = 'rgba(255,180,60,.25)'; ctx.fillRect(0, STAGE_H, W, TOOL_H);
       ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#c07820';
       ctx.fillText('どうぐばこに もどす', W / 2 - 60, STAGE_H + 66);
@@ -1653,7 +1653,7 @@ function drawGame(dt) {
 
   // ドラッグ中のプレビュー
   if (drag) {
-    if (!overToolbox(drag.fx, drag.fy) && drag.x < STAGE_W) {
+    if (!overToolbox(drag.x, drag.y) && drag.x < STAGE_W) {
       const tgt = findPlace(drag.type, drag.x, drag.y, drag.from === 'stage' ? drag.origIndex : -1);
       const ok = !!tgt;
       const sx = tgt ? tgt.x : snap(drag.x), sy = tgt ? tgt.y : snap(Math.min(drag.y, STAGE_H));
@@ -1907,8 +1907,8 @@ function endDrag(e) {
     else { SND.tap(); }
     return;
   }
-  // どうぐばこへドロップ(ゆびが どうぐ箱の うえ) → もどす
-  if (overToolbox(d.fx, d.fy)) {
+  // どうぐばこへドロップ(どうぐの ひょうじいちが どうぐ箱の うえ) → もどす
+  if (overToolbox(d.x, d.y)) {
     if (d.from === 'stage') { placements.splice(d.origIndex, 1); SND.back(); }
     else SND.back();
     return;
