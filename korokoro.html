@@ -1618,7 +1618,7 @@ function drawGadget(p, alpha, ghost, mini) {
     ctx.fillStyle = '#7a6a92'; rr(x - 22, y - 16, 44, 16, 5); ctx.fill();
     ctx.strokeStyle = '#544868'; ctx.lineWidth = 2.5; rr(x - 22, y - 16, 44, 16, 5); ctx.stroke();
     // つつ(ななめ上)
-    ctx.save(); ctx.translate(x, y - 14); ctx.rotate(dir * -Math.PI * 0.28);
+    ctx.save(); ctx.translate(x, y - 14); ctx.rotate(dir * Math.PI * 0.28);
     const cg = ctx.createLinearGradient(0, -20, 0, 20);
     cg.addColorStop(0, '#b0a0c8'); cg.addColorStop(1, '#6f5f8c');
     ctx.fillStyle = cg; rr(-14, -46, 28, 52, 10); ctx.fill();
