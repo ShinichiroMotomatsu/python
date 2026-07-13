@@ -284,37 +284,38 @@ const LEVELS = [
     hintText: ['あかい ボタンで あかい はしが でる', 'あなの てまえに ボタンを おこう', 'ここに おいてみよう'],
     limit: 16 },
 
-  // 18 わかれみち(さか)
-  { name: 'わかれみち',
-    branch: true,
-    ball: { x: 400, y: 192 }, goal: { x: 688, y: 394 },
-    statics: [B(336, 320, 464, 344), B(464, 416, 800, 480)],
-    area: R(336, 256, 128, 96),
-    gadgets: { ramp: 1 }, hints: [Hn('ramp', 400, 320, false)],
-    hintText: ['さかの むきで すすむ ほうこうが きまる', 'ゴールは どっちに ある？', 'タップで むきを かえられるよ'],
+  // 18 リレー入門: ドミノが だいの うえの ボールを つきおとす
+  { name: 'ドミノで つきおとせ',
+    balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }], goalBall: 1, goal: { x: 560, y: 394 },
+    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320)],
+    fixed: [Hn('ramp', 128, 320, false)],
+    area: R(160, 224, 256, 96),
+    gadgets: { domino: 3 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false)],
+    hintText: ['だいの うえの あおい ボールを うごかしたい', 'ドミノを 1マスおきに ならべて とどけよう', 'さいごの 1まいが つきおとして くれる'],
+    limit: 20 },
+
+  // 19 はねかえしで はしらせる
+  { name: 'はねかえしで ひとっとび',
+    ball: { x: 288, y: 128 }, goal: { x: 704, y: 394 },
+    statics: [F(0, 800)],
+    stars: [Star(480, 404)],
+    area: R(224, 320, 128, 128),
+    gadgets: { bumper: 1 }, hints: [Hn('bumper', 288, 416, false)],
+    hintText: ['おちる ボールを はねかえしで よこに はじく', 'いきおいよく はしって ほしを とろう', 'とおくの ゴールまで ころころ'],
     limit: 16 },
 
-  // 19 わかれみち(はねかえし)
-  { name: 'はねかえしで えらぶ',
-    branch: true,
-    ball: { x: 288, y: 128 }, goal: { x: 96, y: 394 },
-    statics: [B(0, 416, 320, 480), B(480, 416, 800, 480)],
-    area: R(224, 320, 160, 96),
-    gadgets: { bumper: 1 }, hints: [Hn('bumper', 288, 416, true)],
-    hintText: ['はねかえしの むきで とぶ ほうこうが きまる', 'ゴールは ひだりに あるよ', 'タップで むきを かえてみよう'],
-    limit: 16 },
-
-  // 20 ドミノぐみたて
-  { name: 'ドミノと ボタンを ならべて',
-    balls: [{ x: 128, y: 240 }, { x: 32, y: 208 }], goalBall: 1, goal: { x: 656, y: 394 },
-    statics: [F(0, 800), B(96, 320, 448, 344), B(320, 296, 332, 320)],
-    fixed: [Hn('ramp', 128, 320, false), Hn('ramp', 32, 416, false)],
-    triggers: [Door('blue', 576, 336, 80)],
-    area: R(192, 224, 224, 96),
-    gadgets: { domino: 3, switch_blue: 1 },
-    hints: [Hn('domino', 224, 320, false), Hn('domino', 256, 320, false), Hn('domino', 288, 320, false), Hn('switch_blue', 352, 320, false)],
-    hintText: ['ドミノの れんさの さきに ボタンを おこう', 'たおれた 1まいが ボタンに とどく ばしょは？', 'かべの むこうに ボタンを おいてみよう'],
-    limit: 24 },
+  // 20 リレーで ボタンおし
+  { name: 'リレーで ボタンおし',
+    balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }], goalBall: 1, goal: { x: 592, y: 394 },
+    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320)],
+    fixed: [Hn('ramp', 128, 320, false), { type: 'switch_blue', x: 480, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Door('blue', 544, 336, 80)],
+    area: R(160, 224, 256, 96),
+    gadgets: { domino: 3 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false)],
+    hintText: ['ドミノが あおい ボールを つきおとす', 'おちた ボールが ころがって ボタンを ふむ', 'とびらが あいて そのまま ゴールへ'],
+    limit: 22 },
 
   /* ===== 中盤B 21〜35: ふりこ・うごくゆか・たいほう・ベルト・2ボール ===== */
 
@@ -427,14 +428,18 @@ const LEVELS = [
     hints: [Hn('cannon', 288, 416, false), Hn('cannon', 544, 320, false)], hintText: ['1だんめの たいほうで うえの だんへ', '2だんめの たいほうは だんの うえに おく', 'もっと うえの ゴールへ'],
     limit: 24 },
 
-  // 34 わかれみちと ボタン
-  { name: 'わかれみちと ボタン', branch: true, ball: { x: 400, y: 192 }, goal: { x: 736, y: 394 },
-    statics: [B(336, 320, 464, 344), B(464, 416, 800, 480)],
-    triggers: [Door('blue', 656, 336, 80)],
-    area: R(336, 256, 352, 192),
-    gadgets: { ramp: 1, switch_blue: 1 },
-    hints: [Hn('ramp', 400, 320, false), Hn('switch_blue', 576, 416, false)], hintText: ['さかの むきで みちが きまる', 'ただしい みちの さきに ボタンが ある', 'ボタンを ふんで とびらを あけよう'],
-    limit: 20 },
+  // 34 ドミノの だいリレー: 棚の連鎖→つきおとし→床の連鎖→ボタン→かぜ
+  { name: 'ドミノの だいリレー',
+    balls: [{ x: 128, y: 240 }, { x: 360, y: 284 }], goalBall: 1, goal: { x: 160, y: 394 },
+    statics: [F(0, 800), B(96, 320, 384, 344), B(352, 296, 384, 320)],
+    fixed: [Hn('ramp', 128, 320, false), { type: 'switch_yellow', x: 576, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [TFan('yellow', 560, 416, -1)],
+    area: R(224, 224, 320, 224),
+    gadgets: { domino: 6 },
+    hints: [Hn('domino', 256, 320, false), Hn('domino', 288, 320, false), Hn('domino', 320, 320, false),
+            Hn('domino', 448, 416, false), Hn('domino', 480, 416, false), Hn('domino', 512, 416, false)],
+    hintText: ['たなの れんさが ボールを つきおとす', 'おちた ボールが ゆかの ドミノも たおす', 'ボタンON→かぜで おしもどされて ゴール'],
+    limit: 30 },
 
   // 35 ベルト→たいほう→ほし
   { name: 'ベルト・たいほう・ほし', ball: { x: 304, y: 384 }, goal: { x: 752, y: 394 },
@@ -466,16 +471,17 @@ const LEVELS = [
     hintText: ['あかい ボタンで はしを だそう', 'はしの さきに あおい ボタンを おこう', 'じゅんばんに ふめば とびらが あく'],
     limit: 26 },
 
-  // 38 くみたて ドミノばし (coop)
-  { name: 'ドミノで しらせて はし', balls: [{ x: 128, y: 240 }, { x: 32, y: 208 }], goalBall: 1, goal: { x: 704, y: 394 },
-    statics: [B(0, 416, 512, 480), B(608, 416, 800, 480), B(96, 320, 448, 344), B(320, 296, 332, 320)],
-    fixed: [Hn('ramp', 32, 416, false)],
-    triggers: [Bridge('red', 560, 416, 96)],
-    area: R(64, 224, 352, 96),
-    gadgets: { ramp: 1, domino: 3, switch_red: 1 },
-    hints: [Hn('ramp', 128, 320, false), Hn('domino', 224, 320, false), Hn('domino', 256, 320, false), Hn('domino', 288, 320, false), Hn('switch_red', 352, 320, false)],
-    hintText: ['あかい ボールで ドミノを たおそう', 'れんさの さきの ボタンで はしが でる', 'あおい ボールが はしを わたる'],
-    limit: 30 },
+  // 38 リレーで はしを だす: つきおとし→さかで 加速→ボタン→はし
+  { name: 'リレーで はしを だせ',
+    balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }], goalBall: 1, goal: { x: 752, y: 394 },
+    statics: [B(0, 416, 608, 480), B(704, 416, 800, 480), B(96, 320, 448, 344), B(416, 296, 448, 320)],
+    fixed: [Hn('ramp', 128, 320, false), Hn('ramp', 464, 416, false), { type: 'switch_red', x: 576, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Bridge('red', 656, 416, 96)],
+    area: R(256, 224, 192, 96),
+    gadgets: { domino: 3 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false)],
+    hintText: ['ドミノが あおい ボールを つきおとす', 'さかで はしって ボタンを ふむと はしが でる', 'そのまま はしを わたって ゴールへ'],
+    limit: 26 },
 
   // 39 うごくゆかの タイミング (timing)
   { name: 'タイミングの うごくゆか', branch: 'timing', moverPhase: Math.PI * 0.625, ball: { x: 96, y: 208 }, goal: { x: 448, y: 384 },
@@ -486,15 +492,16 @@ const LEVELS = [
     hintText: ['うごくゆかが きたときに のれるかな', 'さかと ベルトで つく じかんが かわる', 'はやすぎても おそすぎても だめ'],
     limit: 24 },
 
-  // 40 ふたいろの とびら (coop)
+  // 40 ふたいろの とびら (coop・あかボタンは 固定でドミノ専用)
   { name: 'ふたいろの とびら', balls: [{ x: 128, y: 240 }, { x: 32, y: 208 }], goalBall: 1, goal: { x: 704, y: 394 },
-    statics: [F(0, 800), B(96, 320, 448, 344), B(320, 296, 332, 320)],
-    fixed: [Hn('ramp', 32, 416, false), { type: 'switch_blue', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    statics: [F(0, 800), B(96, 320, 448, 344), B(352, 296, 364, 320)],
+    fixed: [Hn('ramp', 32, 416, false), { type: 'switch_blue', x: 192, y: 416, flip: false, fixedSwitch: true },
+            { type: 'switch_red', x: 384, y: 320, flip: false, fixedSwitch: true }],
     triggers: [Door('blue', 480, 336, 80), Door('red', 608, 336, 80)],
-    area: R(64, 224, 352, 96),
-    gadgets: { ramp: 1, domino: 3, switch_red: 1 },
-    hints: [Hn('ramp', 128, 320, false), Hn('domino', 224, 320, false), Hn('domino', 256, 320, false), Hn('domino', 288, 320, false), Hn('switch_red', 352, 320, false)],
-    hintText: ['あおい ボタンは とおりみちで ふめる', 'あかい ボタンは ドミノに おまかせ', 'ふたつ あけたら ゴールへ'],
+    area: R(64, 224, 288, 96),
+    gadgets: { ramp: 1, domino: 3 },
+    hints: [Hn('ramp', 128, 320, false), Hn('domino', 256, 320, false), Hn('domino', 288, 320, false), Hn('domino', 320, 320, false)],
+    hintText: ['あおい ボタンは とおりみちで ふめる', 'たなの うえの あかい ボタンは ドミノで', 'ふたつ あけたら ゴールへ'],
     limit: 30 },
 
   // 41 さんだん・ほし・ワープ (3-tier)
@@ -526,14 +533,14 @@ const LEVELS = [
     hintText: ['うえの だんを ベルトで かけぬける', 'みぎはしから おちたら たいほうへ', 'たいほうで だいの うえに もどる'],
     limit: 28 },
 
-  // 44 わかれみちの だんだん (branch)
-  { name: 'わかれみちの だんだん', branch: true, ball: { x: 400, y: 64 }, goal: { x: 416, y: 394 },
-    statics: [B(288, 160, 512, 184), B(96, 288, 352, 312), B(0, 320, 16, 416), B(0, 416, 800, 480)],
-    triggers: [Door('blue', 320, 336, 80)],
-    area: R(24, 64, 488, 384),
-    gadgets: { ramp: 2, switch_blue: 1 },
-    hints: [Hn('ramp', 400, 160, true), Hn('ramp', 64, 416, false), Hn('switch_blue', 192, 416, false)],
-    hintText: ['さかの むきで いきさきが かわる', 'ひだりに おりて ボタンを ふもう', 'とびらが あいたら ゴールへ'],
+  // 44 だんだん リレー (3-tier + つきおとし)
+  { name: 'だんだん リレー',
+    balls: [{ x: 128, y: 64 }, { x: 592, y: 252 }], goalBall: 1, goal: { x: 672, y: 394 },
+    statics: [B(96, 192, 320, 216), B(288, 288, 608, 312), B(576, 264, 608, 288), F(0, 800)],
+    area: R(64, 96, 512, 224),
+    gadgets: { ramp: 1, domino: 3 },
+    hints: [Hn('ramp', 128, 192, false), Hn('domino', 480, 288, false), Hn('domino', 512, 288, false), Hn('domino', 544, 288, false)],
+    hintText: ['あかい ボールが だんを おりて ドミノへ', 'れんさが だいの うえの ボールを つきおとす', 'おちた ボールが ゴールまで ころがる'],
     limit: 26 },
 
   // 45 ワープと ふたいろ
@@ -621,15 +628,18 @@ const LEVELS = [
     hintText: ['ドミノを たおして きいろい ボタンON', 'かぜが ふきだして おしもどされる', 'もどった さきが ゴール'],
     limit: 30 },
 
-  // 53 わかれみちと ふたつの とびら (branch)
-  { name: 'わかれみち ふたつの とびら', branch: true, ball: { x: 336, y: 128 }, goal: { x: 776, y: 394 },
-    statics: [B(272, 256, 400, 280), B(288, 416, 800, 480)],
-    triggers: [Door('red', 640, 336, 80), Door('blue', 744, 336, 80)],
-    area: R(240, 192, 520, 256),
-    gadgets: { ramp: 1, switch_red: 1, switch_blue: 1 },
-    hints: [Hn('ramp', 336, 256, false), Hn('switch_red', 576, 416, false), Hn('switch_blue', 704, 416, false)],
-    hintText: ['さかで ただしい みちへ おとそう', 'ころがりながら ふたつの ボタンを ふむ', 'とびらが ぜんぶ あけば ゴール'],
-    limit: 26 },
+  // 53 おおきな リレーそうち: ベルト→れんさ→つきおとし→さか→ほし→ボタン→とびら
+  { name: 'おおきな リレーそうち',
+    balls: [{ x: 128, y: 240 }, { x: 496, y: 284 }], goalBall: 1, goal: { x: 768, y: 394 },
+    statics: [F(0, 800), B(96, 320, 224, 344), B(288, 320, 512, 344), B(480, 296, 512, 320)],
+    fixed: [Hn('ramp', 128, 320, false), Hn('ramp', 528, 416, false), { type: 'switch_red', x: 656, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(608, 404)],
+    triggers: [Door('red', 720, 336, 80)],
+    area: R(160, 224, 352, 112),
+    gadgets: { belt: 1, domino: 3 },
+    hints: [Hn('belt', 256, 320, false), Hn('domino', 384, 320, false), Hn('domino', 416, 320, false), Hn('domino', 448, 320, false)],
+    hintText: ['あなは ベルトで わたる', 'ドミノが あおい ボールを つきおとす', 'さかで はしって ほし→ボタン→ゴール'],
+    limit: 30 },
 
   // 54 ベルトから ドミノへ (coop)
   { name: 'ベルトから ドミノへ', balls: [{ x: 160, y: 240 }, { x: 32, y: 208 }], goalBall: 1, goal: { x: 656, y: 394 },
