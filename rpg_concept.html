@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>黄昏の勇者 — 物語設定書 v0.1</title>
+<style>
+/* ===== トークン ===== */
+:root{
+  --bg:#0d1020; --bg2:#12162a; --panel:#171d33; --panel2:#1e2544;
+  --ink:#ece4d2; --ink-dim:#9c96a8; --line:#293052;
+  --amber:#eac06a; --amber-deep:#c99a3e; --amber-soft:rgba(234,192,106,.14);
+  --past:#71d1a2; --present:#dc9070;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN","HGS明朝E",serif;
+  --gothic:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --bg:#ece3cf; --bg2:#e4d8bd; --panel:#f6efdf; --panel2:#efe5cd;
+    --ink:#2a2417; --ink-dim:#6d6450; --line:#d6c8a6;
+    --amber:#976415; --amber-deep:#7d520f; --amber-soft:rgba(151,100,21,.12);
+    --past:#2c8a5e; --present:#af5c37;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1020; --bg2:#12162a; --panel:#171d33; --panel2:#1e2544;
+  --ink:#ece4d2; --ink-dim:#9c96a8; --line:#293052;
+  --amber:#eac06a; --amber-deep:#c99a3e; --amber-soft:rgba(234,192,106,.14);
+  --past:#71d1a2; --present:#dc9070;
+}
+:root[data-theme="light"]{
+  --bg:#ece3cf; --bg2:#e4d8bd; --panel:#f6efdf; --panel2:#efe5cd;
+  --ink:#2a2417; --ink-dim:#6d6450; --line:#d6c8a6;
+  --amber:#976415; --amber-deep:#7d520f; --amber-soft:rgba(151,100,21,.12);
+  --past:#2c8a5e; --present:#af5c37;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--gothic); line-height:1.9; letter-spacing:.01em;
+  font-size:16px; overflow-x:hidden;
+}
+.wrap{max-width:760px; margin:0 auto; padding:0 22px 96px;}
+
+/* ===== ヘッダー(夜空の記憶。テーマ非依存) ===== */
+.hero{position:relative; overflow:hidden; background:linear-gradient(#0a0c18 0%, #141a38 55%, #26305c 100%); color:#ece4d2;}
+.hero canvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
+.hero .heroInner{position:relative; max-width:760px; margin:0 auto; padding:clamp(56px,13vw,110px) 22px clamp(40px,9vw,72px);}
+.eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.42em; text-transform:uppercase; color:#c9a24e;}
+.hero h1{
+  font-family:var(--serif); font-weight:600;
+  font-size:clamp(38px,11vw,68px); line-height:1.08; letter-spacing:.04em;
+  margin:18px 0 4px; text-wrap:balance;
+  text-shadow:0 2px 30px rgba(234,192,106,.25);
+}
+.hero .reading{font-family:var(--mono); font-size:12px; letter-spacing:.3em; color:#9aa6c8;}
+.hero .thesis{
+  font-family:var(--serif); font-size:clamp(16px,4.4vw,21px); line-height:1.95;
+  color:#e2dccf; margin-top:26px; max-width:30em; text-wrap:pretty;
+}
+.hero .thesis em{color:var(--amber); font-style:normal;}
+.eraline{display:flex; align-items:center; gap:14px; margin-top:34px; font-family:var(--mono); font-size:12px; letter-spacing:.16em;}
+.eraline .y{padding:5px 12px; border:1px solid; border-radius:99px;}
+.eraline .y.past{color:#84dcb0; border-color:#2f6b52;}
+.eraline .y.now{color:#e6a483; border-color:#7a4a38;}
+.eraline .arrow{flex:1; height:1px; background:linear-gradient(90deg,#2f6b52,#7a4a38); position:relative;}
+.eraline .arrow::after{content:"";position:absolute;right:0;top:-3px;border-left:6px solid #7a4a38;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;}
+
+/* ===== 共通ブロック ===== */
+section{margin-top:56px;}
+.sec-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.34em; text-transform:uppercase; color:var(--amber-deep); display:flex; align-items:center; gap:12px;}
+.sec-eyebrow::before{content:""; width:26px; height:1px; background:var(--amber-deep); opacity:.7;}
+h2{font-family:var(--serif); font-weight:600; font-size:clamp(24px,6.4vw,34px); line-height:1.25; letter-spacing:.02em; margin:14px 0 18px; text-wrap:balance;}
+h3{font-family:var(--gothic); font-weight:700; font-size:17px; letter-spacing:.04em; margin:26px 0 8px; color:var(--ink);}
+p{margin:0 0 15px; text-wrap:pretty;}
+p.lead{font-family:var(--serif); font-size:18px; color:var(--ink);}
+strong{color:var(--amber-deep); font-weight:700;}
+.dim{color:var(--ink-dim);}
+
+/* ===== 二つの時代カード ===== */
+.eras{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:22px 0;}
+@media(max-width:520px){ .eras{grid-template-columns:1fr;} }
+.era{border:1px solid var(--line); border-radius:12px; padding:18px 18px 20px; background:var(--panel);}
+.era .tag{font-family:var(--mono); font-size:11px; letter-spacing:.2em; padding:4px 10px; border-radius:99px; display:inline-block; margin-bottom:12px;}
+.era.past .tag{color:var(--past); border:1px solid var(--past);}
+.era.now .tag{color:var(--present); border:1px solid var(--present);}
+.era h4{font-family:var(--serif); font-size:19px; font-weight:600; margin-bottom:8px;}
+.era p{font-size:14.5px; color:var(--ink-dim); margin-bottom:0; line-height:1.85;}
+
+/* ===== 気づき(Insight)コールアウト ===== */
+.insight{
+  position:relative; background:var(--panel); border:1px solid var(--line);
+  border-left:3px solid var(--amber); border-radius:0 12px 12px 0;
+  padding:20px 22px; margin:20px 0; box-shadow:0 0 40px -28px var(--amber);
+}
+.insight .k{font-family:var(--mono); font-size:11px; letter-spacing:.24em; color:var(--amber-deep); text-transform:uppercase;}
+.insight .flow{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
+.insight .step{display:flex; gap:12px; align-items:baseline; font-size:15px;}
+.insight .step .lbl{flex:0 0 5.6em; font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--ink-dim); text-align:right; padding-top:2px;}
+.insight .step .txt{flex:1;}
+.insight .step.reveal .txt{color:var(--amber-deep); font-weight:600;}
+
+/* ===== 弧(タイムライン) ===== */
+.arc{position:relative; margin:24px 0 8px; padding-left:26px;}
+.arc::before{content:""; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--past),var(--amber),var(--present));}
+.beat{position:relative; margin-bottom:22px;}
+.beat::before{content:""; position:absolute; left:-26px; top:5px; width:11px; height:11px; border-radius:50%; background:var(--bg); border:2px solid var(--amber);}
+.beat h4{font-family:var(--gothic); font-weight:700; font-size:15.5px; letter-spacing:.03em; margin-bottom:4px;}
+.beat p{font-size:14.5px; color:var(--ink-dim); margin-bottom:0; line-height:1.85;}
+
+/* ===== 最初の30分(ステップ) ===== */
+.steps{counter-reset:st; display:flex; flex-direction:column; gap:2px; margin:20px 0;}
+.step-row{display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--line);}
+.step-row:last-child{border-bottom:none;}
+.step-row .num{counter-increment:st; font-family:var(--mono); font-size:13px; color:var(--amber-deep); flex:0 0 auto; padding-top:2px;}
+.step-row .num::before{content:counter(st,decimal-leading-zero);}
+.step-row .body h4{margin:0 0 4px; font-size:15.5px;}
+.step-row .body p{margin:0; font-size:14.5px; color:var(--ink-dim); line-height:1.8;}
+
+/* ===== 汎用パネル ===== */
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:20px 0;}
+.panel.amber{background:var(--amber-soft); border-color:var(--amber-deep);}
+ul.clean{list-style:none; display:flex; flex-direction:column; gap:11px; margin:12px 0 4px;}
+ul.clean li{position:relative; padding-left:20px; font-size:15px; line-height:1.8;}
+ul.clean li::before{content:"◇"; position:absolute; left:0; top:0; color:var(--amber); font-size:11px;}
+.q li::before{content:"→"; color:var(--present); font-weight:700;}
+hr.soft{border:none; border-top:1px solid var(--line); margin:40px 0 0;}
+.foot{margin-top:34px; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--ink-dim); line-height:1.9;}
+.kicker{font-family:var(--serif); font-style:italic; color:var(--ink); font-size:17px; line-height:2; padding:6px 0 0;}
+
+/* テーマ切替ボタン */
+#tt{position:fixed; top:12px; right:12px; z-index:9; font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+  background:rgba(20,24,44,.6); color:#e8e2d4; border:1px solid rgba(255,255,255,.18); border-radius:99px; padding:7px 13px; cursor:pointer; backdrop-filter:blur(6px);}
+:root[data-theme="light"] #tt{background:rgba(255,255,255,.5); color:#2a2417; border-color:rgba(0,0,0,.16);}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<button id="tt">☾ / ☀</button>
+
+<header class="hero">
+  <canvas id="stars"></canvas>
+  <div class="heroInner">
+    <div class="eyebrow">剣と魔法の国 — 物語設定書 v0.1</div>
+    <h1>黄昏の勇者</h1>
+    <div class="reading">仮題 ／ TASOGARE ― THE HERO WHO CAME BACK</div>
+    <p class="thesis">その世界は、もう子供の頃のようには<em>未知</em>ではない。<br>だから旅の意味を、<em>再発見</em>に変えた。</p>
+    <div class="eraline">
+      <span class="y past">あの頃 · 1987</span>
+      <span class="arrow"></span>
+      <span class="y now">いま · 2026</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="sec-eyebrow">この物語がやろうとしていること</div>
+  <h2>「未知」ではなく、<br>「既知の再発見」を旅する</h2>
+  <p class="lead">たくさんのゲームを遊び、世界も旅してきた大人にとって、本当の意味での“未知”はもう多くない。ならば旅の駆動力を、初めて見る驚きから——<strong>わかっていたつもりのものが、ある日まるで違って見える驚き</strong>へと移し替える。</p>
+  <p>これは物語論でいう<strong>「異化」</strong>——見慣れたものから自動認識の膜を剥がし、初めて見るように差し出す技法です。子供の頃のわくわくの正体は、新しい風景そのものより、<em class="dim">「あ、そういうことだったのか」</em>と世界の意味がふっと反転した、あの瞬間だったはず。この作品は、その瞬間を設計の中心に据えます。</p>
+  <div class="panel amber">
+    <h3 style="margin-top:0">背骨にあるメタファー（作り手の私たちだけが知っていていい、隠し味）</h3>
+    <p style="margin-bottom:0"><strong>1987</strong>＝主人公が世界を旅した少年の日。そして、あなたがこのRPGを夢見た中学生の頃。<br><strong>2026</strong>＝老いた勇者が帰ってくる“今”。そして、あなたがそれを作っている今。<br><span class="dim">プレイヤーの人生経験そのものが、物語の共鳴板になる。だから“懐かしさ”は、あなたの世代だからこそ描ける情感になります。</span></p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">世界</div>
+  <h2>黄昏の国リーメン</h2>
+  <p>かつて剣と魔法が息づいた、中世ヨーロッパ風の王国。四十年前、若き勇者が世界を救い、平和が訪れた——と、誰もが信じている。だが今、その国は<strong>ゆるやかに黄昏れている</strong>。破滅ではない。もっと静かな、たそがれ。森は違うかたちに伸び、川は細り、勇者が救った村の子供たちは、もう年老いた。</p>
+  <p>そして地図の下には、もうひとつの時間が眠っている。この一見“中世”の世界は、実は<strong>かつて栄えて滅んだ古代文明の廃墟の上</strong >に建っている。遺跡、古文書、意味の分からない壁画。歩けば歩くほど、世界がずっと古く、ずっと深かったと気づいていく——マイト＆マジックが「実はSFだった」で見せた、あの“底が抜ける”感覚です。</p>
+  <div class="panel">
+    <p style="margin-bottom:0"><span class="dim">■ 二種類の“過去”が重なっているのがこの世界の肝です。</span><br>
+    ① <strong>あなたの過去</strong>（四十年前の、少年の冒険）＝ 感情の層（F）<br>
+    ② <strong>世界の過去</strong>（古代文明の遺構）＝ 神話の層（C）<br>
+    そして二つは繋がっている——<em>少年の日の“勝利”は、知らぬまに世界の過去に触れていた。</em></p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">主人公</div>
+  <h2>帰ってきた勇者、アルス</h2>
+  <p>四十年前、この国を救った伝説の剣士。今は白髪の老人となり、理由あってふたたび“はじまりの草原”に立つ。<strong>記憶を失ってはいない。</strong>失われたのは記憶ではなく——出来事の<em>意味</em>。あの日15歳の彼には理解できなかったものが、いくつもある。人が死ぬこと。大人が子供に嘘をつくこと。“悪”にも事情があること。輝いていた宝に、見えない代償があったこと。</p>
+  <p class="kicker">少年の日、彼は世界を“わかっていなかった”。老いた今なら、ようやくわかる。<br>——この作品の探索は、地図を埋める旅ではなく、<strong>意味を埋め直す旅</strong>です。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">見せ方 · アート</div>
+  <h2>二つの時代を、色で語る</h2>
+  <p>1987と2026を、設定だけでなく<strong>画面の質感そのもの</strong>で描き分けます。プレイヤー（＝80年代のゲームを実際に憶えている世代）の二重のノスタルジーに、直接触れにいく。</p>
+  <div class="eras">
+    <div class="era past">
+      <span class="tag">あの頃 · 記憶</span>
+      <h4>鮮烈な蛍光色</h4>
+      <p>回想・伝説として現れる少年時代は、ハイドライドや初代Ysのような、澄んで彩度の高いドット絵で。実際より輝いて見える——“美化された記憶”そのものの色。ふとした瞬間、画面の隅を若き日の自分が駆け抜ける。</p>
+    </div>
+    <div class="era now">
+      <span class="tag">いま · 現実</span>
+      <h4>くすんだ黄昏</h4>
+      <p>老勇者が歩く“今”は、光と陰影のニュアンスを増した、少し色褪せた世界。同じ場所なのに、四十年ぶんの時間が積もっている。夕暮れと夜の色調が、旅にたそがれの情感を添える。</p>
+    </div>
+  </div>
+  <p class="dim" style="font-size:14.5px">※ 現行モックアップの素朴なレトロ絵は、この“いま”側の下地としてそのまま活かせます。回想側だけ彩度とコントラストを上げれば、二層の対比が生まれます。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">核となる仕掛け · D</div>
+  <h2>再解釈 —— 世界は変わらない。<br>変わるのは、読み方だけ</h2>
+  <p>成長の軸を「強くなる」だけにしない。もうひとつの軸として<strong>「賢くなる＝世界の読み方が変わる」</strong>を据えます。旅の中で<strong>気づき（さとり）</strong>——老いた今だからこそ得られる、人生の理解のかけら——を手に入れる。気づきは“鍵”のように働き、既知の場所の<em>意味</em>を上書きしていく。いわば<strong>知識版メトロイドヴァニア</strong>。</p>
+
+  <p>そして最も大切なのは、少年のRPGの論理を、老勇者の論理で書き換えること：</p>
+  <div class="panel amber">
+    <p style="margin-bottom:0; text-align:center; font-family:var(--serif); font-size:18px; line-height:2.2">
+      <span class="dim">少年のRPG</span>　奪う · 倒す · 手に入れる<br>
+      ↓<br>
+      <strong>老勇者のRPG　返す · 理解する · 繕う</strong>
+    </p>
+  </div>
+
+  <h3>再解釈の実例</h3>
+
+  <div class="insight">
+    <div class="k">Insight ケース 1 — 光る石</div>
+    <div class="flow">
+      <div class="step"><div class="lbl">あの頃</div><div class="txt">洞窟の祭壇から“光る石”を宝物として持ち帰り、それを対価に鋼の剣を得た。少年には、ただの宝だった。</div></div>
+      <div class="step"><div class="lbl">気づき</div><div class="txt">墓を悼む心を知る。「あれは——墓標だったのではないか」</div></div>
+      <div class="step reveal"><div class="lbl">再解釈</div><div class="txt">石を返しに戻ると、封じられていた声が解ける。奪う少年の論理を、返す老勇者の論理が上書きする。</div></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="k">Insight ケース 2 — 魔王を倒した英雄</div>
+    <div class="flow">
+      <div class="step"><div class="lbl">あの頃</div><div class="txt">吟遊詩人は「勇者は魔王を倒した」と歌う。だが歌詞は、代を経るごとに少しずつ真実からずれてきた。</div></div>
+      <div class="step"><div class="lbl">気づき</div><div class="txt">大人は、子供の英雄に都合の悪い真実を伏せることがある。</div></div>
+      <div class="step reveal"><div class="lbl">再解釈</div><div class="txt">かつての仲間に問い直すと——“魔王”は古代文明の最後の守り手で、封印を破ったのは勇者自身だった、と明かされる。</div></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="k">Insight ケース 3 — 草原の、一本の木</div>
+    <div class="flow">
+      <div class="step"><div class="lbl">あの頃</div><div class="txt">はじまりの草原に立つ、なんでもない一本の木。少年は毎日その横を素通りしていた。</div></div>
+      <div class="step"><div class="lbl">気づき</div><div class="txt">旅の途中で失ったものの重さを、今なら量れる。</div></div>
+      <div class="step reveal"><div class="lbl">再解釈</div><div class="txt">その木の下に、道半ばで喪った仲間が眠っていると気づく。地図は同じ。ひとつの風景の意味だけが、静かに反転する。</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">物語の弧 · ラストへの直結</div>
+  <h2>四十年ぶんの理解が、<br>最後の扉を開ける</h2>
+  <div class="arc">
+    <div class="beat"><h4>帰還</h4><p>老いた勇者が、ひとり“はじまりの草原”に立つ。誰も彼を勇者と気づかない。世界は栄誉ではなく、静かな衰えに包まれている。</p></div>
+    <div class="beat"><h4>再訪</h4><p>かつての冒険の地を巡る。各地に、気づきで解ける“再解釈”が眠る。歌われる伝説と、本当に起きたことの食い違いが、少しずつ広がっていく。</p></div>
+    <div class="beat"><h4>底が抜ける</h4><p>再解釈が積み重なり、世界の下の古代文明が姿を現す。そして——少年の日の“英雄的な一撃”こそが、世界の緩やかな死を先延ばしにしていた均衡を壊した張本人だったと分かる。今の黄昏は、その帰結。</p></div>
+    <div class="beat"><h4>最後の扉</h4><p>天空の塔の最上階は、<strong>四十年ぶんの喪失と理解を抱えた者にしか開かない</strong>。若く強いだけでは届かない。そこで最後の再解釈と向き合い、選ぶ——世界の死を受け容れるか、若き日の“勝利”を、老いた手で繕い直すか。</p></div>
+  </div>
+  <p class="dim" style="font-size:14.5px">※ 結末は複数の“繕い方”を用意できます（受容／回復／継承）。ここは今後いっしょに詰めるところ。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">体験設計</div>
+  <h2>最初の30分</h2>
+  <div class="steps">
+    <div class="step-row"><div class="num"></div><div class="body"><h4>オープニング</h4><p>老いた旅人が、はじまりの草原にひとり立つ。BGMはどこか懐かしい8-bitの旋律。画面の隅を一瞬、鮮やかな“あの頃”の色で、若き日の自分が駆け抜ける。</p></div></div>
+    <div class="step-row"><div class="num"></div><div class="body"><h4>リーメンの町へ</h4><p>四十年で皆が年老い、世代が変わり、誰も彼を勇者と気づかない。子供たちが“勇者の伝説”を歌っている——けれど、歌詞はどこか間違っている。</p></div></div>
+    <div class="step-row"><div class="num"></div><div class="body"><h4>最初の気づき</h4><p>宿屋の老婆が、かつて勇者が助けた少女だと分かる（最初のInsight）。彼女のひと言で、洞窟の“光る石”の記憶が、胸の奥で疼きだす。</p></div></div>
+    <div class="step-row"><div class="num"></div><div class="body"><h4>洞窟の再訪</h4><p>少年の日に鋼の剣を得た祭壇へ。今なら分かる——あれは墓標だった。ここで最初の“再解釈パズル”：奪うのではなく、返す。</p></div></div>
+    <div class="step-row"><div class="num"></div><div class="body"><h4>引き</h4><p>石を返すと、封じられた声が古代文明の存在をほのめかす。遠く、天空の塔がかすかに応える。旅の本当の意味が、ほんの少しだけ見えてくる。</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">トーン</div>
+  <h2>たそがれと、わくわくの両立</h2>
+  <p>この方向は放っておくと切なさに傾きます。でも狙いはあくまで<strong>子供の頃のわくわく</strong>。両立の鍵は、再解釈を<em>悲しみ</em>だけで終わらせず、必ず<em class="dim">「あ、そういうことか！」</em>という発見の喜び（“！”）を伴わせること。そして古代文明の探索には、純粋な畏怖と冒険の高揚（マイト＆マジックの底なしのわくわく）を残す。</p>
+  <p class="kicker">目指すのは、<strong>もののあはれ</strong>——驚きと慈しみが同居する、ほろ苦い光。<br>子供の日のわくわくを、大人の胸で、もう一度。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">継続性</div>
+  <h2>今のモックアップは、無駄にならない</h2>
+  <p>すでに作ったv0.2の要素は、この物語にそのまま組み込めます：</p>
+  <ul class="clean">
+    <li><strong>天空の塔（封印）</strong> … 古代文明の遺構であり、最後の扉。「そらのカギ」の意味が、ラストで裏返る。</li>
+    <li><strong>くらやみの洞窟／鋼の剣</strong> … Insightケース1「光る石」の舞台。最初の再解釈パズルの現場に。</li>
+    <li><strong>長老</strong> … かつての仲間の成れの果て（ケース2で真実を明かす人物）に昇格できる。</li>
+    <li><strong>リーメンの町</strong> … 勇者の故郷。“年老いた世界”の最初の実感を得る場所。</li>
+    <li><strong>フィールドと戦闘の分離</strong> … 「強くなる（戦闘）」と「賢くなる＝再解釈（フィールド探索）」の二軸に、きれいに対応する。</li>
+  </ul>
+</section>
+
+<hr class="soft">
+
+<section style="margin-top:34px">
+  <div class="sec-eyebrow">次に決めたいこと</div>
+  <ul class="clean q">
+    <li><strong>タイトルの方向性</strong>：仮題は『黄昏の勇者』。ほかに『四十年目の空』『帰り道の国』『星よみの帰還』など。どの温度感が好みですか？</li>
+    <li><strong>結末の“繕い方”</strong>：世界の死を受け容れる（もののあはれ寄り）／若き日の過ちを回復する（王道寄り）／次代へ継ぐ（継承）。どれを軸に据えたいか。</li>
+    <li><strong>主人公の連れ</strong>：ひとり旅の孤独を貫くか、道中で若い世代を仲間にして「継承」の情感を足すか（M&M的パーティにも繋がる）。</li>
+    <li><strong>“気づき”の獲得源</strong>：人との再会で得るのを主にするか、遺跡の解読など探索報酬も混ぜるか。</li>
+  </ul>
+</section>
+
+<p class="foot">
+  剣と魔法の国 — 物語設定書 v0.1（叩き台）<br>
+  骨子：C（廃墟からの再構築）× D（再解釈＝知識のメトロイドヴァニア）× F（帰ってきた勇者）<br>
+  この設定書自体、反応をもらいながら育てていく前提です。刺さった箇所・違うと感じた箇所を、遠慮なく。
+</p>
+
+</div>
+
+<script>
+/* テーマ切替 */
+(function(){
+  var root=document.documentElement, btn=document.getElementById('tt');
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    if(!cur){ cur = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark':'light'; }
+    root.setAttribute('data-theme', cur==='dark'?'light':'dark');
+  });
+})();
+
+/* ヘッダーの星空(記憶のきらめき) */
+(function(){
+  var cv=document.getElementById('stars'); if(!cv) return;
+  var ctx=cv.getContext('2d'), stars=[], reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function seed(w,h){
+    stars=[]; var n=Math.round(w*h/5200);
+    for(var i=0;i<n;i++){
+      // 過去(緑)と現在(橙)の粒を混ぜる — 二つの時代のきらめき
+      var era=Math.random(); var col= era<0.5 ? [130,220,176] : (era<0.72 ? [230,164,131] : [236,228,210]);
+      stars.push({x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.3+0.3, c:col, ph:Math.random()*6.28, sp:0.4+Math.random()*1.2});
+    }
+  }
+  function resize(){
+    var r=cv.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1);
+    cv.width=r.width*dpr; cv.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    seed(r.width,r.height);
+  }
+  var t=0;
+  function draw(){
+    var r=cv.getBoundingClientRect();
+    ctx.clearRect(0,0,r.width,r.height);
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      var a = reduce ? 0.55 : 0.35+0.45*Math.sin(t*s.sp+s.ph);
+      if(a<0.06) continue;
+      ctx.fillStyle='rgba('+s.c[0]+','+s.c[1]+','+s.c[2]+','+a.toFixed(3)+')';
+      ctx.fillRect(s.x, s.y, s.r*2, s.r*2);
+    }
+    if(!reduce){ t+=0.016; requestAnimationFrame(draw); }
+  }
+  addEventListener('resize',function(){resize();if(reduce)draw();});
+  resize(); draw();
+})();
+</script>
+</body>
+</html>
