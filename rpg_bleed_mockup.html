@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>にじみ — 過去と現在のビジュアル検証</title>
+<style>
+:root{
+  --bg:#0b0c14; --panel:#12131f; --ink:#ece7db; --dim:#8f8ba0; --line:#262838;
+  --past:#7fe0b0; --now:#e79a72; --amber:#ecc069;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:radial-gradient(ellipse at 50% -10%,#1a1c2e,#0b0c14 60%);color:var(--ink);
+  font-family:var(--goth);min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+  padding:22px 16px 40px;}
+.head{max-width:440px;text-align:center;margin-bottom:16px;}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;color:var(--amber);text-transform:uppercase;}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.5vw,30px);letter-spacing:.06em;margin:8px 0 6px;}
+.head p{font-size:13px;color:var(--dim);line-height:1.8;}
+/* 端末フレーム */
+.phone{position:relative;width:min(88vw,340px);aspect-ratio:300/500;border-radius:26px;
+  background:#000;box-shadow:0 24px 60px -20px #000,0 0 0 2px #23252f,0 0 0 8px #0e0f18;
+  overflow:hidden;}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.era-badge{position:absolute;top:12px;left:12px;z-index:4;font-family:var(--mono);font-size:10px;
+  letter-spacing:.2em;padding:5px 11px;border-radius:99px;background:rgba(0,0,0,.42);
+  border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(4px);transition:color .4s,border-color .4s;}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:78px;height:5px;border-radius:99px;
+  background:#1c1e28;z-index:5;}
+/* 字幕 */
+.caption{position:absolute;left:12px;right:12px;bottom:12px;z-index:4;
+  background:linear-gradient(180deg,rgba(8,9,15,0),rgba(8,9,15,.82) 40%);
+  padding:26px 14px 14px;border-radius:14px;}
+.caption .cl{font-family:var(--mono);font-size:10px;letter-spacing:.22em;margin-bottom:5px;transition:color .4s;}
+.caption .ct{font-family:var(--serif);font-size:14.5px;line-height:1.8;min-height:3.4em;}
+.caption .ct em{color:var(--amber);font-style:normal;}
+/* コントロール */
+.ctl{max-width:340px;width:min(88vw,340px);margin-top:20px;}
+.chips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:11px 4px;border-radius:10px;
+  background:var(--panel);border:1px solid var(--line);color:var(--dim);cursor:pointer;text-align:center;
+  transition:all .25s;line-height:1.5;}
+.chip b{display:block;font-size:12.5px;letter-spacing:.1em;color:var(--ink);margin-bottom:2px;font-weight:700;}
+.chip.on{border-color:var(--amber);background:rgba(236,192,105,.1);}
+.chip.on b{color:var(--amber);}
+.slidewrap{padding:2px 4px;}
+.slidewrap .lbls{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.14em;color:var(--dim);margin-bottom:8px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:99px;
+  background:linear-gradient(90deg,var(--past),var(--amber),var(--now));outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#f2ecdd;border:3px solid #0b0c14;box-shadow:0 2px 8px #000;cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#f2ecdd;border:3px solid #0b0c14;cursor:pointer;}
+.hint{text-align:center;font-size:11px;color:var(--dim);margin-top:14px;font-family:var(--mono);letter-spacing:.06em;}
+.legend{max-width:440px;margin-top:26px;display:flex;flex-direction:column;gap:10px;}
+.legend .row{display:flex;gap:11px;align-items:flex-start;font-size:12.5px;color:var(--dim);line-height:1.7;}
+.legend .row b{color:var(--ink);font-weight:700;}
+.dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:5px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="eyebrow">剣と魔法の国 — Visual Study</div>
+  <h1>にじみ</h1>
+  <p>同じ場所を、三つの読み方で。<br>過去はドット絵、現在は写実。その境で"再解釈"が起きる。</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="era-badge" id="badge">あの頃 · 1987</div>
+  <canvas id="scene" width="300" height="500"></canvas>
+  <div class="caption">
+    <div class="cl" id="capLabel">洞窟の祭壇</div>
+    <div class="ct" id="capText"></div>
+  </div>
+</div>
+
+<div class="ctl">
+  <div class="chips">
+    <div class="chip on" data-t="0"><b>あの頃</b>1987 · ドット</div>
+    <div class="chip" data-t="0.5"><b>にじみ</b>2026 · 重なり</div>
+    <div class="chip" data-t="1"><b>いま</b>2026 · 写実</div>
+  </div>
+  <div class="slidewrap">
+    <div class="lbls"><span>PIXEL</span><span>BLEED</span><span>REAL</span></div>
+    <input type="range" id="slider" min="0" max="1" step="0.01" value="0">
+  </div>
+  <div class="hint">チップをタップ／スライダーをドラッグ</div>
+</div>
+
+<div class="legend">
+  <div class="row"><span class="dot" style="background:var(--past)"></span><span><b>あの頃（ドット絵）</b>　少年が遊んだ80年代のRPG。洞窟の祭壇で光る石を"たからもの"として手に入れた——奪う・倒す・手に入れる、子供の論理。</span></div>
+  <div class="row"><span class="dot" style="background:var(--amber)"></span><span><b>にじみ（重なり）</b>　2026年の路地に、あのドット絵が滲み出す一瞬。ここで気づきが起動し、意味が裏返りはじめる。</span></div>
+  <div class="row"><span class="dot" style="background:var(--now)"></span><span><b>いま（写実）</b>　同じ場所は、道端の小さな供養塔だった。あれは宝ではなく、墓標だったのか——返す・繕う、大人の論理へ。</span></div>
+</div>
+
+<script>
+"use strict";
+const cv=document.getElementById("scene"), ctx=cv.getContext("2d");
+const W=300,H=500;
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* 供養塔/祭壇の位置(両シーンで一致させる) */
+const STONE={x:150, top:300, w:46, h:96};
+
+/* ===== 過去: ドット絵(洞窟の祭壇) ===== */
+const PW=100, PH=166;
+const pix=document.createElement("canvas"); pix.width=PW; pix.height=PH;
+const pctx=pix.getContext("2d");
+function px(c,x,y,w,h){pctx.fillStyle=c;pctx.fillRect(x,y,w,h);}
+function drawPast(time){
+  pctx.clearRect(0,0,PW,PH);
+  // 壁(暗い紫青)+レンガ
+  px("#1b1636",0,0,PW,PH);
+  for(let y=0;y<PH;y+=8)for(let x=0;x<PW;x+=16){
+    const off=((y/8)&1)?8:0;
+    px("#241d44",x+off,y,14,6);
+    px("#181230",x+off,y+6,14,2);
+  }
+  // 奥の闇
+  px("#120e26",22,20,56,74);
+  // 床(石タイル)
+  for(let y=104;y<PH;y+=8)for(let x=0;x<PW;x+=12){
+    px(((x/12+y/8)&1)?"#3a3452":"#332e4a",x,y,12,8);
+    px("#282340",x,y+7,12,1);
+  }
+  px("#2b2644",0,102,PW,2);
+  // 祭壇(台座)
+  const bx=38,by=96;
+  px("#5a5270",bx,by,24,26);
+  px("#6f6688",bx,by,24,4);
+  px("#48425c",bx,by+22,24,6);
+  px("#7d7498",bx+2,by+2,20,2);
+  px("#3d3850",bx+4,by+26,16,10); // 台座の脚影
+  // 光る石(脈動)
+  const pulse=reduce?0.6:0.5+0.5*Math.sin(time*3);
+  const gx=bx+9, gy=by-10;
+  // 発光ハロ
+  pctx.globalAlpha=0.18+0.16*pulse;
+  px("#ffe89a",gx-6,gy-6,18,18);
+  pctx.globalAlpha=0.32+0.2*pulse;
+  px("#ffdf7a",gx-3,gy-3,12,12);
+  pctx.globalAlpha=1;
+  // 石本体(菱形)
+  px("#c99a3e",gx,gy,6,8);
+  px("#ffd873",gx+1,gy+1,4,6);
+  px("#fff2b0",gx+2,gy+2,2,2);
+  px("#e9c46a",gx+1,gy-1,4,1);
+  px("#e9c46a",gx+1,gy+8,4,1);
+  // きらめき
+  if(pulse>0.6){ px("#fff2b0",gx-3,gy+2,1,1); px("#fff2b0",gx+8,gy+5,1,1); px("#fff2b0",gx+3,gy-4,1,1); }
+  // 松明(左右)
+  drawTorch(10,54,time); drawTorch(84,54,time+1.3);
+}
+function drawTorch(x,y,time){
+  px("#5b3a1e",x+2,y,3,18);        // 柄
+  px("#3a2512",x+2,y+10,3,8);
+  const f=reduce?0.5:0.5+0.5*Math.sin(time*8);
+  pctx.globalAlpha=0.5;
+  px("#ff9a3c",x-1,y-8,7,9);
+  pctx.globalAlpha=1;
+  px("#ffb347",x,y-7,5,8);
+  px("#ffe07a",x+1,y-6+((f>0.5)?-1:0),3,6);
+  px("#fff2b0",x+2,y-4,1,3);
+}
+
+/* ===== 現在: 写実(2026年 夕暮れの路地 + 供養塔) ===== */
+// グレイン(ノイズタイル)を一度だけ生成
+const noise=document.createElement("canvas"); noise.width=64; noise.height=64;
+(function(){const n=noise.getContext("2d"),d=n.createImageData(64,64);
+  let s=12345; const rnd=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};
+  for(let i=0;i<d.data.length;i+=4){const v=200+rnd()*55;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=Math.round(rnd()*22);}
+  n.putImageData(d,0,0);})();
+
+function drawPresent(time){
+  // --- 空(夕暮れ) ---
+  const sky=ctx.createLinearGradient(0,0,0,H*0.66);
+  sky.addColorStop(0,"#1d1a38"); sky.addColorStop(.42,"#402a54");
+  sky.addColorStop(.72,"#8a4f5a"); sky.addColorStop(1,"#c9764a");
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.66);
+  // 夕陽のにじみ
+  radial(150,H*0.6,10,150,"rgba(255,190,120,.55)","rgba(255,190,120,0)");
+  // 遠景ビル(シルエット+窓)
+  const far=["#211d33","#1b1830","#26213a"];
+  const bh=[120,86,150,70,132,96,160];
+  let bx=-6;
+  for(let i=0;i<7;i++){const w=44+((i*29)%26), h=bh[i];
+    ctx.fillStyle=far[i%3]; ctx.fillRect(bx,H*0.66-h,w,h);
+    // 窓
+    for(let wy=H*0.66-h+8; wy<H*0.66-6; wy+=13)
+      for(let wx=bx+5; wx<bx+w-6; wx+=11){
+        if(((wx*7+wy*3)%5)<2){ctx.fillStyle=((wx+wy)%3?"rgba(240,196,110,.7)":"rgba(150,210,230,.5)");ctx.fillRect(wx,wy,4,6);}
+      }
+    bx+=w-4;
+  }
+  // 電線
+  ctx.strokeStyle="#0e0c16"; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(0,116); ctx.quadraticCurveTo(150,132,300,110); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,128); ctx.quadraticCurveTo(150,146,300,124); ctx.stroke();
+  ctx.fillStyle="#0c0a14"; ctx.fillRect(228,96,5,84); // 電柱
+  // --- 路地の壁(左右・パース) ---
+  ctx.fillStyle="#0f0d18";
+  ctx.beginPath();ctx.moveTo(0,120);ctx.lineTo(64,150);ctx.lineTo(64,H);ctx.lineTo(0,H);ctx.fill();
+  ctx.beginPath();ctx.moveTo(300,104);ctx.lineTo(236,150);ctx.lineTo(236,H);ctx.lineTo(300,H);ctx.fill();
+  // 自販機(左手前・発光)
+  const vm={x:8,y:236,w:60,h:118};
+  ctx.save();
+  ctx.shadowColor="rgba(90,220,235,.6)"; ctx.shadowBlur=26;
+  ctx.fillStyle="#1b2a34"; roundRect(vm.x,vm.y,vm.w,vm.h,4); ctx.fill();
+  ctx.restore();
+  const vg=ctx.createLinearGradient(vm.x,0,vm.x+vm.w,0);
+  vg.addColorStop(0,"#2ea9bd");vg.addColorStop(.5,"#7fe6f0");vg.addColorStop(1,"#2ea9bd");
+  ctx.fillStyle=vg; ctx.fillRect(vm.x+5,vm.y+8,vm.w-10,58);
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){ctx.fillStyle=["#e2554e","#e0a63a","#4b8fd0"][(r+c)%3];ctx.fillRect(vm.x+9+c*16,vm.y+14+r*17,11,12);}
+  ctx.fillStyle="#0e1a20"; ctx.fillRect(vm.x+6,vm.y+72,vm.w-12,40);
+  ctx.fillStyle="#f6f9d6"; ctx.fillRect(vm.x+11,vm.y+78,26,9); // 取り出し口の光
+  // 街灯(オレンジ)
+  radial(276,150,4,120,"rgba(255,176,96,.5)","rgba(255,176,96,0)");
+  ctx.fillStyle="rgba(255,214,150,.95)"; ctx.beginPath();ctx.arc(276,150,4,0,7);ctx.fill();
+  // --- 地面(濡れたアスファルト) ---
+  const g=ctx.createLinearGradient(0,H*0.62,0,H);
+  g.addColorStop(0,"#211d2b"); g.addColorStop(.5,"#151220"); g.addColorStop(1,"#0b0912");
+  ctx.fillStyle=g; ctx.fillRect(0,H*0.62,W,H*0.38);
+  // 反射(自販機・街灯)
+  reflect(38,vm.y+vm.h, 44, "rgba(120,225,235,.22)");
+  reflect(258,314, 30, "rgba(255,176,96,.20)");
+  reflect(150,H*0.66, 60, "rgba(200,120,80,.12)");
+  // 水たまりのハイライト
+  ctx.fillStyle="rgba(150,170,200,.10)"; ctx.beginPath();ctx.ellipse(96,452,40,7,0,0,7);ctx.fill();
+
+  // --- 供養塔(石地蔵) ---
+  drawJizo(time);
+
+  // --- 大気: フォグ + ヴィネット + グレイン ---
+  radial(150,250,20,260,"rgba(60,40,70,0)","rgba(8,6,14,.6)"); // ヴィネット
+  ctx.globalAlpha=0.5; ctx.fillStyle="rgba(120,90,140,.06)"; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+  // グレイン
+  const gy2=reduce?0:(time*8)%64;
+  ctx.globalAlpha=0.55;
+  for(let y=-64+((gy2)%64);y<H;y+=64)for(let x=0;x<W;x+=64) ctx.drawImage(noise,x,y);
+  ctx.globalAlpha=1;
+}
+function drawJizo(time){
+  const {x,top,w,h}=STONE;
+  const left=x-w/2;
+  // 落ち影
+  ctx.fillStyle="rgba(0,0,0,.4)"; ctx.beginPath();ctx.ellipse(x+4,top+h,w*0.7,10,0,0,7);ctx.fill();
+  // 台石
+  ctx.fillStyle="#3b3a42"; ctx.fillRect(left-6,top+h-14,w+12,14);
+  ctx.fillStyle="#4a4952"; ctx.fillRect(left-6,top+h-14,w+12,3);
+  ctx.fillStyle="#26252c"; ctx.fillRect(left-6,top+h-3,w+12,3);
+  // 塔身(丸頭の石柱)。右(自販機)側から光
+  const sg=ctx.createLinearGradient(left,0,left+w,0);
+  sg.addColorStop(0,"#3e3d47"); sg.addColorStop(.55,"#6f6d78"); sg.addColorStop(1,"#8f9098");
+  ctx.fillStyle=sg;
+  roundTop(left,top,w,h-14,w/2); ctx.fill();
+  // 陰影(左)とAO(下)
+  ctx.fillStyle="rgba(20,18,26,.5)"; ctx.fillRect(left,top+8,7,h-24);
+  ctx.fillStyle="rgba(20,18,26,.35)"; ctx.fillRect(left,top+h-22,w,6);
+  // リムライト(右・自販機のシアン)
+  ctx.fillStyle="rgba(150,230,240,.5)"; ctx.fillRect(left+w-3,top+10,2,h-30);
+  ctx.fillStyle="rgba(255,200,150,.35)"; ctx.fillRect(left+3,top+2,w-8,2); // 頭頂の街灯
+  // 顔のくぼみ(地蔵)
+  ctx.fillStyle="rgba(30,28,36,.45)"; ctx.beginPath();ctx.ellipse(x,top+20,9,11,0,0,7);ctx.fill();
+  // 赤い前掛け
+  ctx.fillStyle="#b23a34"; roundRect(left+5,top+30,w-10,20,3); ctx.fill();
+  ctx.fillStyle="#8f2a26"; ctx.fillRect(left+5,top+46,w-10,4);
+  ctx.fillStyle="rgba(255,150,150,.3)"; ctx.fillRect(left+6,top+31,w-12,2);
+  // 供えられた小さな花
+  ctx.fillStyle="#d8d2c4"; ctx.fillRect(left-2,top+h-16,7,5);   // 花立て
+  ctx.fillStyle="#e56b8a"; ctx.fillRect(left-3,top+h-22,3,4);
+  ctx.fillStyle="#f0e2a0"; ctx.fillRect(left+1,top+h-24,3,4);
+  ctx.fillStyle="#7fc98a"; ctx.fillRect(left-1,top+h-19,4,4);
+}
+
+/* ===== にじみ(グリッチ重なり) ===== */
+function drawBleed(a,time){
+  const {x,top}=STONE;
+  // 8-bitの光る石が供養塔の頭上に明滅
+  const flick=reduce?1:(Math.sin(time*20)>-.3?1:0.25);
+  ctx.save(); ctx.globalAlpha=a*flick; ctx.imageSmoothingEnabled=false;
+  const s=3.2, gw=6*s, gh=8*s, gx=x-gw/2, gy=top-6;
+  // ハロ
+  ctx.globalAlpha=a*0.35*flick; radial(x,gy+gh/2,4,40,"rgba(255,223,122,.9)","rgba(255,223,122,0)");
+  ctx.globalAlpha=a*flick;
+  ctx.fillStyle="#c99a3e"; ctx.fillRect(gx,gy,gw,gh);
+  ctx.fillStyle="#ffd873"; ctx.fillRect(gx+s,gy+s,gw-2*s,gh-2*s);
+  ctx.fillStyle="#fff2b0"; ctx.fillRect(gx+2*s,gy+2*s,s,s);
+  ctx.restore();
+  // ピクセルのきらめき粒
+  ctx.save(); ctx.globalAlpha=a; ctx.fillStyle="#fff2b0";
+  for(let i=0;i<7;i++){
+    const t2=(time*1.5+i*0.9)%1;
+    const sxp=x-40+((i*57)%80), syp=top+70-t2*90;
+    ctx.globalAlpha=a*(1-t2)*flick; ctx.fillRect(sxp,syp,3,3);
+  }
+  ctx.restore();
+  // 走査線グリッチ(横ずれ帯)
+  if(!reduce){
+    const band=Math.floor((time*60)%H/40)*40;
+    const by=(band+ (Math.sin(time*3)*120))%H;
+    try{
+      const slice=ctx.getImageData(0,Math.max(0,by),W,10);
+      ctx.globalAlpha=a*0.9; ctx.putImageData(slice, Math.sin(time*40)*6, Math.max(0,by));
+      ctx.globalAlpha=1;
+    }catch(e){}
+  }
+  // 全体のスキャンライン
+  ctx.globalAlpha=a*0.14; ctx.fillStyle="#000";
+  for(let y=0;y<H;y+=3) ctx.fillRect(0,y,W,1);
+  ctx.globalAlpha=1;
+}
+
+/* ヘルパ */
+function radial(cx,cy,r0,r1,c0,c1){const g=ctx.createRadialGradient(cx,cy,r0,cx,cy,r1);g.addColorStop(0,c0);g.addColorStop(1,c1);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function reflect(cx,topY,len,col){const g=ctx.createLinearGradient(0,topY,0,topY+len);g.addColorStop(0,col);g.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=g;ctx.fillRect(cx-16,topY,32,len);}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function roundTop(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h);ctx.closePath();}
+
+/* ===== 合成 ===== */
+let T=0; // 0=過去 .5=にじみ 1=現在
+function render(time){
+  ctx.clearRect(0,0,W,H);
+  const pastA=Math.max(0,Math.min(1,1-T/0.58));
+  const bleedA=Math.max(0,1-Math.abs(T-0.5)/0.34);
+  // 現在(ベース)
+  drawPresent(time);
+  // 過去(上に重ねてフェード)
+  if(pastA>0.01){
+    ctx.save(); ctx.globalAlpha=pastA; ctx.imageSmoothingEnabled=false;
+    drawPast(time);
+    ctx.drawImage(pix,0,0,PW,PH,0,2,W,H-4);
+    ctx.restore();
+  }
+  // にじみ
+  if(bleedA>0.01) drawBleed(bleedA,time);
+}
+
+/* 字幕・バッジ */
+const badge=document.getElementById("badge");
+const capL=document.getElementById("capLabel"), capT=document.getElementById("capText");
+const CAPS=[
+  {at:0,  b:"あの頃 · 1987", bc:"var(--past)", l:"洞窟の祭壇", t:'少年は、光る石を"たからもの"として持ち帰った。それを対価に、鋼の剣を得た。'},
+  {at:0.5,b:"にじみ · 2026", bc:"var(--amber)", l:"帰り道の路地", t:"見慣れた路地の隅に、あのドット絵が滲む——<em>この光、知っている。</em>"},
+  {at:1,  b:"いま · 2026",   bc:"var(--now)",  l:"道端の供養塔", t:"それは、小さな供養塔だった。花が供えてある。<em>……あれは、墓標だったのか。</em>"},
+];
+function updateCap(){
+  let c=CAPS[0]; for(const k of CAPS) if(T>=k.at-0.001) c=k;
+  // にじみ帯では中央寄せ
+  if(T>0.28&&T<0.72) c=CAPS[1]; else if(T>=0.72) c=CAPS[2]; else c=CAPS[0];
+  badge.textContent=c.b; badge.style.color=c.bc; badge.style.borderColor=c.bc;
+  capL.textContent=c.l; capL.style.color=c.bc; capT.innerHTML=c.t;
+}
+
+/* 操作 */
+const slider=document.getElementById("slider");
+const chips=[...document.querySelectorAll(".chip")];
+function setT(v,fromChip){
+  T=v; slider.value=v; updateCap();
+  chips.forEach(ch=>ch.classList.toggle("on", Math.abs(parseFloat(ch.dataset.t)-v)<0.02 || (v>0.28&&v<0.72&&ch.dataset.t==="0.5")));
+}
+slider.addEventListener("input",e=>setT(parseFloat(e.target.value)));
+chips.forEach(ch=>ch.addEventListener("click",()=>animateTo(parseFloat(ch.dataset.t))));
+let anim=null;
+function animateTo(target){
+  cancelAnimationFrame(anim); const from=T, t0=performance.now(), dur=520;
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    setT(from+(target-from)*e);
+    if(k<1) anim=requestAnimationFrame(step);
+  })(t0);
+}
+updateCap();
+
+/* ループ */
+function loop(now){ render(now/1000); requestAnimationFrame(loop); }
+if(reduce){ render(0); setInterval(()=>render(performance.now()/1000), 200); }
+else requestAnimationFrame(loop);
+</script>
+</body>
+</html>
