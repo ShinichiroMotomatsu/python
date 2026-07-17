@@ -80,6 +80,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.5vw,30px);let
     <div style="flex:30;background:var(--c4)">終章·再訪</div>
   </div>
   <div class="tlnote"><span>0:00</span><span>0:25</span><span>1:25</span><span>2:40</span><span>3:30</span><span>4:00</span></div>
+  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.06em">+ 任意サブクエスト SQ1〜SQ6 約2時間(灰色の拠点) — 詳細はデータ設計書へ</div>
 </div>
 
 <div class="notes">
@@ -97,6 +98,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.5vw,30px);let
 
 <div class="notes">
   <b>終章「再訪」。</b>魔王城で真実が開示された後(残り30分)、1 の村から<em>同じ道をもう一度歩く</em>。すべての場所でにじみが起き、2026年の姿が重なる。最後に 5 天空の塔(給水塔)の扉が開く。<br><br>
+  <b>消えたものたち。</b>この世界の「黄昏」の実体は、30年のあいだに消えたものたちだ——公衆電話、レンタルビデオ、土管の空き地、銭湯、駄菓子屋。再訪でそれらの場所に立つと、<em>消えた側の風景</em>が2026年に重なる。そして 19 赤の大灯台(東京タワー)だけは、両方の時代で同じ場所に立ち続ける——二つの地図を重ねる、記憶の基準点。<br><br>
   <b>海=世界の果て。</b>この大陸の形は「自転車で行けた範囲」。海の向こうは描かれない——子供の世界はここまでで、だからこそ中は無限に深かった。
 </div>
 
@@ -154,6 +156,8 @@ blob("m",16,56,5,9);blob("m",14,70,4,7);blob("m",20,64,3,5);
 blob("h",22,52,4,4);blob("h",20,74,4,4);blob("h",25,63,3,6);
 // 南東・点在
 blob("m",104,78,4,5);blob("h",100,72,4,4);blob("h",44,90,4,3);blob("h",84,26,4,3);
+// 東の岬(坂の寺町と赤の大灯台)
+blob("h",106,58,4,3);blob("h",100,64,3,2);
 // --- 森 ---
 blob("f",92,98,13,9);blob("f",82,92,6,5);blob("f",102,92,5,5);   // 迷いの森
 blob("f",46,74,5,4);blob("f",64,76,5,4);                          // 村のまわり
@@ -359,6 +363,43 @@ function drawShrineRoad(){
   const[px,py]=T(56.2,64);
   pr(0,px,py,5,6);pdr(px+1,py+1,3,4,0.5,1,2);pr(7,px+1,py+3,3,2);
 }
+function drawTeramachi(){ // 坂の寺町(麻布台の坂の町)
+  const[px,py]=T(99,60.5);
+  pdr(px-2,py+8,6,16,0.6,0,6);                                  // 坂の石段
+  house(px+4,py+2,6);house(px+14,py+8,7);house(px+2,py+16,3);house(px+14,py+20,6);
+  pr(0,px+22,py-3,17,13);pdr(px+23,py-2,15,5,0.5,1,2);          // 御堂(甍)
+  pr(3,px+23,py+3,15,6);pr(0,px+29,py+5,3,4);
+}
+function drawRedTower(){ // 赤の大灯台(東京タワー) — 両時代で不変
+  const[px,py]=T(107,53.5);
+  for(let j=0;j<22;j++){
+    const w=2+Math.round(j*0.45);
+    const ci=(j%6<3)?7:3;                                        // 紅白の縞
+    pr(ci,px-Math.floor(w/2),py+j,w,1);
+  }
+  pr(0,px-6,py+22,13,2);                                         // 基部
+  pr(0,px-4,py+8,9,1);pr(3,px-4,py+9,9,1);                       // 展望台
+  pr(3,px,py-2,2,2);ps(px+1,py-3,7);                             // 頂の灯
+}
+function drawMaboroshiZa(){ // まぼろし座(レンタルビデオ店)
+  const[px,py]=T(76.5,66.5);
+  pr(0,px-1,py-1,16,13);pr(1,px,py,14,3);pr(3,px,py+3,14,8);
+  pr(7,px+1,py+2,3,8);ps(px+2,py+4,3);ps(px+2,py+6,3);ps(px+2,py+8,3);  // 縦看板
+  pr(0,px+7,py+7,3,4);pr(2,px+11,py+5,2,2);
+}
+function drawDragonBones(){ // 竜骨の野原(土管の空き地)
+  const[px,py]=T(44,82);
+  pdr(px-4,py-2,28,15,0.26,4,5);                                 // 空き地
+  for(const[ox,oy]of[[0,2],[13,6]]){
+    for(let a=0;a<22;a++){const th=a/22*6.283;
+      ps(px+ox+5+Math.round(Math.cos(th)*4.6),py+oy+3+Math.round(Math.sin(th)*3.4),3);}
+    pr(0,px+ox+3,py+oy+1,5,4);pr(1,px+ox+4,py+oy+2,3,2);         // 土管の穴
+  }
+}
+function drawPhoneBox(tx,ty){ // でんわボックス(緑の公衆電話)
+  const[px,py]=T(tx,ty);
+  pr(0,px-1,py-1,6,9);pr(5,px,py,4,7);pr(2,px+1,py+1,2,4);pr(3,px,py,4,1);
+}
 
 /* ---- 描画実行 ---- */
 drawTerrain();
@@ -366,6 +407,8 @@ drawCastleTown();drawTower();drawFactory();drawTemple();drawArena();
 drawSchool();drawMarket();drawCave();drawOnsen();drawLibrary();
 drawTent();drawIslandShrine();drawCheckpoint();drawPassGate();
 drawVillage();drawShrineRoad();
+drawTeramachi();drawRedTower();drawMaboroshiZa();drawDragonBones();
+for(const[bx,by]of[[52.5,73.5],[58,35.5],[74,71.5],[27.5,30],[101,66.5]])drawPhoneBox(bx,by);
 pc.putImageData(pimg,0,0);
 mx.imageSmoothingEnabled=false;
 mx.drawImage(pix,0,0,PW,PH,0,0,1080,1080);
@@ -393,6 +436,11 @@ const SPOTS=[
  {n:15,name:"中州の祠",           now:"多摩川の中州",     ch:"三", col:"--c3", tx:84,   ty:50.5, note:"渡し舟で渡る。『そらのカギ』が眠る(虹のしずくの文法)。"},
  {n:16,name:"切通しの門",         now:"踏切",             ch:"三", col:"--c3", tx:73.5, ty:20,   note:"北の山脈=線路を越える唯一の口。縞の遮断機。最後の境界。"},
  {n:17,name:"魔王城",             now:"川向こうの工場",   ch:"三", col:"--c3", tx:97,   ty:8.5,  note:"三本の尖塔=煙突。沼(造成地)の先。『魔王』の正体と開示。気づき【郷】。"},
+ {n:18,name:"坂の寺町",           now:"麻布台の坂の町",   ch:"任", col:"--cx", tx:101,  ty:62,   note:"祖父の家がある坂と石段の町。2026年、ここは天空都市に変わり——主人公はいまそこに住む。SQ6。"},
+ {n:19,name:"赤の大灯台",         now:"東京タワー",       ch:"終", col:"--c4", tx:107.5,ty:56,   note:"紅白の鉄塔。30年前も今も、変わらずそこにある唯一のもの。二つの時代の地図を重ねる基準点。"},
+ {n:20,name:"まぼろし座",         now:"レンタルビデオ店", ch:"任", col:"--cx", tx:78,   ty:68,   note:"他人の『記憶』を貸す店(今は配信の彼方)。サブクエストのハブ。返却期限にはご注意を。"},
+ {n:21,name:"竜骨の野原",         now:"土管の空き地",     ch:"任", col:"--cx", tx:46,   ty:84,   note:"巨竜の骨(=土管)が転がる空き地。今はマンション。秘密基地とタイムカプセル。SQ3。"},
+ {n:22,name:"でんわボックス",     now:"公衆電話(撤去済)", ch:"任", col:"--cx", tx:53,   ty:73.5, note:"10円玉で母に電話する=セーブ。国じゅうに5箇所。すべて巡るとSQ1が起きる。"},
 ];
 const ROUTES=[
  {col:"--c0",w:5, pts:[[55,80],[55,64],[55,50],[55,36],[55.5,32]]},

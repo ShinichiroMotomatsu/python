@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ゲームデータ設計書 v0.1 — 消えたもの・サブクエ・呪文・装備・敵</title>
+<style>
+:root{
+  --bg:#0b0c14; --panel:#12131f; --ink:#ece7db; --dim:#8f8ba0; --line:#262838; --amber:#ecc069; --past:#7fe0b0; --now:#e79a72;
+  --c1:#5aa9e6; --c2:#b58ae0; --c3:#e06060; --cx:#8f8ba0;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:radial-gradient(ellipse at 50% -10%,#1a1c2e,#0b0c14 60%);color:var(--ink);
+  font-family:var(--goth);min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:24px 14px 70px;line-height:1.85;}
+.wrap{width:min(94vw,640px);}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;color:var(--amber);text-transform:uppercase;text-align:center;}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.2vw,30px);letter-spacing:.05em;margin:10px 0 4px;text-align:center;text-wrap:balance;}
+.sub{font-size:12.5px;color:var(--dim);text-align:center;margin-bottom:8px;}
+section{margin-top:44px;}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--amber);display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.sec::before{content:"";width:26px;height:1px;background:var(--amber);opacity:.7;}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(19px,5vw,24px);letter-spacing:.03em;margin-bottom:12px;text-wrap:balance;}
+p{color:var(--dim);font-size:13.5px;margin-bottom:12px;text-wrap:pretty;}
+p b,td b{color:var(--ink);}
+em{color:var(--amber);font-style:normal;}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:12.5px;}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber);text-align:left;
+  padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:rgba(236,192,105,.05);}
+td{padding:9px 12px;border-bottom:1px solid rgba(38,40,56,.6);vertical-align:top;color:var(--dim);}
+tr:last-child td{border-bottom:none;}
+td.nm{color:var(--ink);font-weight:700;white-space:nowrap;}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+td.lost{color:var(--past);font-family:var(--mono);font-size:11.5px;}
+.sq{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:10px;}
+.sq .t{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.sq .id{font-family:var(--mono);font-size:11px;color:#0d0e16;background:var(--cx);border-radius:99px;padding:2px 10px;font-weight:700;}
+.sq .nm2{font-size:15px;font-weight:700;}
+.sq .tm{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--amber);}
+.sq .fr{font-family:var(--mono);font-size:10.5px;color:var(--past);margin:4px 0 6px;}
+.sq p{margin-bottom:6px;font-size:13px;}
+.sq .rw{font-size:12.5px;color:var(--ink);}
+.sq .rw span{color:var(--amber);font-family:var(--mono);font-size:10px;letter-spacing:.1em;margin-right:8px;}
+.note{background:rgba(236,192,105,.07);border:1px solid var(--amber);border-radius:12px;padding:14px 17px;font-size:13px;color:var(--dim);margin-top:14px;}
+.tag{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;padding:1px 8px;border-radius:99px;border:1px solid var(--dim);color:var(--dim);margin-left:6px;vertical-align:1px;}
+.tag.boss{border-color:var(--c3);color:var(--c3);}
+.tag.event{border-color:var(--c2);color:var(--c2);}
+.foot{margin-top:44px;font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;line-height:2;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">剣と魔法の国 — Game Data Draft</div>
+  <h1>データ設計書 v0.1</h1>
+  <div class="sub">消えたものたち ／ サブクエスト(約2時間) ／ 呪文10 ／ 武器7·鎧7·盾3 ／ 敵40種</div>
+
+  <!-- ============ 消えたものたち ============ -->
+  <section>
+    <div class="sec">LOST &amp; FOUND</div>
+    <h2>消えたものたち — 世界の黄昏の実体</h2>
+    <p>この30年で消えたものが、過去世界では<b>生きた場所・生きた仕組み</b>として存在する。終章の再訪では、消えた側の風景が2026年に重なって見える。そして最後の行だけが逆——<em>変わらないもの</em>。</p>
+    <div class="tw"><table>
+      <tr><th>2026年(消えた/変わった)</th><th>過去世界での姿</th><th>ゲーム上の役割</th></tr>
+      <tr><td class="lost">公衆電話(撤去)</td><td class="nm">でんわボックス</td><td>10円玉で母に電話=<b>セーブ</b>。国中に5箇所。SQ1</td></tr>
+      <tr><td class="lost">レンタルビデオ店(配信へ)</td><td class="nm">まぼろし座</td><td>他人の記憶を貸す店=<b>サブクエのハブ</b>。返却期限あり</td></tr>
+      <tr><td class="lost">土管の空き地(マンションに)</td><td class="nm">竜骨の野原</td><td>秘密基地。タイムカプセル。SQ3</td></tr>
+      <tr><td class="lost">銭湯(廃業)</td><td class="nm">湯の村</td><td>全回復+うわさ話。ペンキ絵のSQ4</td></tr>
+      <tr><td class="lost">駄菓子屋(閉店)</td><td class="nm">砂の行商人</td><td>隠しショップ。掘り出し物</td></tr>
+      <tr><td class="lost">ゲームセンター(コンビニに)</td><td class="nm">からくり遊技場</td><td>リーメン城下の一角。ハイスコアのSQ5</td></tr>
+      <tr><td class="lost">駅前の書店・貸本屋(閉店)</td><td class="nm">魔導書院</td><td><b>呪文は本で覚える</b>(下記·呪文表)</td></tr>
+      <tr><td class="lost">団地の給水塔(解体)</td><td class="nm">天空の塔</td><td>最終目的地。四十年の気づきが鍵</td></tr>
+      <tr><td class="lost">開かずの踏切(高架化)</td><td class="nm">切通しの門</td><td>北の山脈=線路の唯一の口。縞の遮断機</td></tr>
+      <tr><td class="lost">麻布台の坂の町(再開発)</td><td class="nm">坂の寺町</td><td>祖父の家。主人公の現住所の"前世"。SQ6</td></tr>
+      <tr><td class="lost">ブラウン管の砂嵐</td><td class="nm">「にじみ」の画面演出</td><td>時代が切り替わる時のグリッチ表現</td></tr>
+      <tr><td style="color:var(--now);font-family:var(--mono);font-size:11.5px">東京タワー(不変)</td><td class="nm">赤の大灯台</td><td><b>両時代で唯一変わらない</b>。二つの地図を重ねる基準点</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ サブクエスト ============ -->
+  <section>
+    <div class="sec">SIDE QUESTS · 約2時間</div>
+    <h2>サブクエスト SQ1〜SQ6</h2>
+    <p>すべて任意。<b>報酬は「実利」と「情緒」の二段構え</b>——強い装備や種と同時に、本編の結末を少しだけ豊かにするエピローグ片が手に入る。合計 約135分。</p>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ1</span><span class="nm2">10えんだまの声</span><span class="tm">約20分</span></div>
+      <div class="fr">受注: どこかのでんわボックスで最初に電話をかけた時</div>
+      <p>国中に5つあるでんわボックスをすべて巡り、母に電話をかける(=セーブ)。5箇所目のあと、ポケットの10円玉が勝手に転がり出し——「もう使われていない番号」に繋がってしまう。受話器の向こうは、四十年前の自分の家。</p>
+      <div class="rw"><span>REWARD</span>いのりの10円玉(全滅時に一度だけ復活) ／ 終章の再訪に母のエピローグが追加</div>
+    </div>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ2</span><span class="nm2">まぼろし座の返却期限</span><span class="tm">約40分</span></div>
+      <div class="fr">受注: まぼろし座(20) 店主ギンジ</div>
+      <p>閉店を決めた店主から「貸したきり返ってこない記憶が3本ある」と回収を頼まれる。借り手は練兵場の老教官・湯の村の女将・砂の行商人。それぞれの記憶を短く追体験(ミニ過去パート)して回収する——人は、返しそびれた記憶で生きている。</p>
+      <div class="rw"><span>REWARD</span>まほうのせいすい×3、ちからのたね ／ 最後に店主が「君の借りっぱなしの一本」を見せてくれる(アルスの少年時代の未公開シーン)</div>
+    </div>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ3</span><span class="nm2">竜骨の秘密基地</span><span class="tm">約20分</span></div>
+      <div class="fr">受注: 竜骨の野原(21) 土管の落書きを調べる</div>
+      <p>土管の奥に幼なじみと埋めたタイムカプセル。掘り出す合言葉は「木剣に刻んだ二人の印」——練兵場(6)の決闘の記憶を再解釈すると思い出せる。カプセルの中身は、折れたはずの木剣と、未来の自分への手紙。</p>
+      <div class="rw"><span>REWARD</span><b>やくそくの木剣</b>(武器·終章で真価を発揮) ／ 幼なじみの「その後」が分かる手がかり</div>
+    </div>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ4</span><span class="nm2">消えた富士</span><span class="tm">約15分</span></div>
+      <div class="fr">受注: 湯の村(9) 老いた看板絵師</div>
+      <p>湯屋のペンキ絵の富士が剥げ落ちた。絵師のために三色の顔料を集める——赤は大灯台の麓の錆、白は北の山の雪、藍は中州の川底の石。仕上がった富士は、2026年の廃業した銭湯の壁にも、うっすら残っている。</p>
+      <div class="rw"><span>REWARD</span>湯の効能が強化(宿泊無料+一時的に守+5) ／ 再訪時、銭湯跡の壁のにじみが変化</div>
+    </div>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ5</span><span class="nm2">ハイスコアの亡霊</span><span class="tm">約15分</span></div>
+      <div class="fr">受注: リーメン城下(4)のからくり遊技場</div>
+      <p>誰にも破れない伝説のハイスコア「ＡＲＳ」。夜にだけ現れる少年の影と、からくり遊びで対決する。影の正体は——四十年前の自分。老いた手は少年に敵わない。でも、負けたのに、なぜか誇らしい。</p>
+      <div class="rw"><span>REWARD</span>きんのメダル(行商人で交換) ／ 気づきの欠片(こうげき+1)</div>
+    </div>
+
+    <div class="sq">
+      <div class="t"><span class="id">SQ6</span><span class="nm2">坂の寺町の蔵</span><span class="tm">約25分</span></div>
+      <div class="fr">受注: 坂の寺町(18) 祖父の家の戸口</div>
+      <p>祖父の家の蔵には鍵がかかっている。寺の和尚、大灯台の管理人と辿って鍵を探す。蔵の中には綿入れの半纏と、若き日の祖父の日記——<em>祖父もまた、この世界に「帰ってきた」ことがある</em>。継承の伏線がここで初めて開示される。2026年、蔵のあった場所は主人公が今住む天空都市の足元だ。</p>
+      <div class="rw"><span>REWARD</span><b>ひかりのはんてん</b>(最強の鎧) ／ 祖父の日記(終章の結末に「継承」の選択肢を追加)</div>
+    </div>
+
+    <div class="note"><b>設計メモ:</b> SQは第二章以降に段階解禁。すべて「消えたもの」を一つずつ悼む構造で、6本すべて終えると終章の再訪に<em>フルバージョンのエピローグ</em>が付く。実利報酬(木剣・半纏・種)は本編の難所を楽にする=稼ぎの代替でもある。</div>
+  </section>
+
+  <!-- ============ 呪文 ============ -->
+  <section>
+    <div class="sec">SPELLS · 10</div>
+    <h2>呪文 — 「読んで」覚える魔法</h2>
+    <p>半分はレベルで、半分は<b>魔導書院(10)の本を読んで</b>覚える。本のタイトルはどこか懐かしい実用書——<em>ゲーム=現実の器</em>の意匠。</p>
+    <div class="tw"><table>
+      <tr><th>呪文</th><th>MP</th><th>効果</th><th>習得</th></tr>
+      <tr><td class="nm">いやし</td><td class="num">4</td><td>HPを約30回復</td><td>Lv3</td></tr>
+      <tr><td class="nm">いかずち</td><td class="num">5</td><td>敵1体に雷ダメージ</td><td>書院『図解・電気工作入門』120G</td></tr>
+      <tr><td class="nm">ねむり</td><td class="num">3</td><td>敵を眠らせる</td><td>書院『快眠のすすめ』180G</td></tr>
+      <tr><td class="nm">あかり</td><td class="num">2</td><td>洞窟・暗所を照らす</td><td>書院『懐中電灯の科学』90G</td></tr>
+      <tr><td class="nm">くちどめ</td><td class="num">2</td><td>敵の呪文を封じる</td><td>書院『沈黙は金』240G</td></tr>
+      <tr><td class="nm">かえりみち</td><td class="num">6</td><td>訪れた町へ帰る</td><td>Lv8</td></tr>
+      <tr><td class="nm">ぬけみち</td><td class="num">4</td><td>洞窟から脱出する</td><td>書院『穴掘りの手引き』150G</td></tr>
+      <tr><td class="nm">まもり</td><td class="num">3</td><td>弱い敵が寄ってこない</td><td>書院『こうつう安全読本』200G</td></tr>
+      <tr><td class="nm">おおいやし</td><td class="num">8</td><td>HPを約80回復</td><td>Lv13</td></tr>
+      <tr><td class="nm">らいめい</td><td class="num">10</td><td>敵全体に大雷ダメージ</td><td>Lv17</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ 装備 ============ -->
+  <section>
+    <div class="sec">EQUIPMENT · 武器7 / 鎧7 / 盾3</div>
+    <h2>装備 — 成長の主軸</h2>
+    <p>買い替えの節目は リーメン(4)→市場の町(7)→湯の村(9) の三段階。最強の武器と鎧は<b>店では買えない</b>——サブクエの、思い出の品。</p>
+    <div class="tw"><table>
+      <tr><th>武器</th><th>攻</th><th>価格</th><th>入手</th></tr>
+      <tr><td class="nm">ひのきのぼう</td><td class="num">+2</td><td class="num">10G</td><td>はじまりの村</td></tr>
+      <tr><td class="nm">たけのものさし</td><td class="num">+5</td><td class="num">60G</td><td>リーメン ─ 30cmの竹定規。チャンバラの定番</td></tr>
+      <tr><td class="nm">どうのつるぎ</td><td class="num">+10</td><td class="num">180G</td><td>リーメン</td></tr>
+      <tr><td class="nm">てつのオノ</td><td class="num">+15</td><td class="num">560G</td><td>市場の町 ─ 火の見倉庫の消防斧</td></tr>
+      <tr><td class="nm">はがねのつるぎ</td><td class="num">+20</td><td class="num">1500G</td><td>湯の村／くらやみの洞窟の宝</td></tr>
+      <tr><td class="nm">ほのおのつるぎ</td><td class="num">+28</td><td class="num">—</td><td>魔王城の宝物庫</td></tr>
+      <tr><td class="nm">やくそくの木剣</td><td class="num">+40</td><td class="num">—</td><td><b>SQ3</b> ─ 普段は+8。終章の再訪で覚醒し最強に(伝説の剣の正体)</td></tr>
+    </table></div>
+    <div class="tw" style="margin-top:10px"><table>
+      <tr><th>鎧</th><th>守</th><th>価格</th><th>入手</th></tr>
+      <tr><td class="nm">ぬののふく</td><td class="num">+2</td><td class="num">20G</td><td>はじまりの村</td></tr>
+      <tr><td class="nm">かわのふく</td><td class="num">+4</td><td class="num">70G</td><td>リーメン</td></tr>
+      <tr><td class="nm">はらまき</td><td class="num">+8</td><td class="num">300G</td><td>リーメン ─ 母の編んだ腹巻。脱げない</td></tr>
+      <tr><td class="nm">くさりかたびら</td><td class="num">+12</td><td class="num">480G</td><td>市場の町</td></tr>
+      <tr><td class="nm">てつのよろい</td><td class="num">+16</td><td class="num">1200G</td><td>市場の町</td></tr>
+      <tr><td class="nm">はがねのよろい</td><td class="num">+24</td><td class="num">3000G</td><td>湯の村</td></tr>
+      <tr><td class="nm">ひかりのはんてん</td><td class="num">+32</td><td class="num">—</td><td><b>SQ6</b> ─ 祖父の綿入れ半纏。呪文ダメージも軽減</td></tr>
+    </table></div>
+    <div class="tw" style="margin-top:10px"><table>
+      <tr><th>盾</th><th>守</th><th>価格</th><th>入手</th></tr>
+      <tr><td class="nm">かわのたて</td><td class="num">+2</td><td class="num">90G</td><td>リーメン</td></tr>
+      <tr><td class="nm">てつのたて</td><td class="num">+10</td><td class="num">800G</td><td>市場の町</td></tr>
+      <tr><td class="nm">かがみのたて</td><td class="num">+20</td><td class="num">—</td><td>中州の祠の宝 ─ 銭湯の三面鏡。まじょの呪文を跳ね返す</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ 敵 ============ -->
+  <section>
+    <div class="sec">BESTIARY · 40</div>
+    <h2>敵図鑑 — こわかったものの翻訳</h2>
+    <p>基本はDQ流の系統×色違い。ただしこの世界の魔物の何割かは、<b>子供の頃こわかったもの</b>の翻訳でできている——野犬、光化学スモッグ、学校の怪談、五時のカラス。正体の欄が埋まっている敵は、図鑑を進めるとその正体がそっと明かされる。</p>
+    <div class="tw"><table>
+      <tr><th>#</th><th>なまえ</th><th>主な出没</th><th>正体(こわかったもの)</th></tr>
+      <tr><td class="num">1</td><td class="nm">スライム</td><td>南の草原</td><td>—</td></tr>
+      <tr><td class="num">2</td><td class="nm">あかスライム</td><td>南の草原</td><td>—</td></tr>
+      <tr><td class="num">3</td><td class="nm">しびれスライム</td><td>川辺</td><td>—</td></tr>
+      <tr><td class="num">4</td><td class="nm">おおこうもり</td><td>洞窟・夜</td><td>—</td></tr>
+      <tr><td class="num">5</td><td class="nm">ちすいこうもり</td><td>洞窟</td><td>—</td></tr>
+      <tr><td class="num">6</td><td class="nm">やみこうもり</td><td>魔王城</td><td>—</td></tr>
+      <tr><td class="num">7</td><td class="nm">のらいぬ</td><td>南の草原</td><td>80年代の野犬</td></tr>
+      <tr><td class="num">8</td><td class="nm">あらくれ野犬</td><td>北の草原</td><td>〃(群れ)</td></tr>
+      <tr><td class="num">9</td><td class="nm">ひとづらの犬</td><td>夜道</td><td>人面犬のうわさ</td></tr>
+      <tr><td class="num">10</td><td class="nm">どろがえる</td><td>沼(造成地)</td><td>—</td></tr>
+      <tr><td class="num">11</td><td class="nm">どくがえる</td><td>沼</td><td>—</td></tr>
+      <tr><td class="num">12</td><td class="nm">ぬまの老王</td><td>沼の深部</td><td>造成地の主(ヌシ)</td></tr>
+      <tr><td class="num">13</td><td class="nm">すなさそり</td><td>砂漠</td><td>—</td></tr>
+      <tr><td class="num">14</td><td class="nm">てつさそり</td><td>砂漠</td><td>—</td></tr>
+      <tr><td class="num">15</td><td class="nm">おうごんさそり</td><td>砂漠の奥</td><td>—</td></tr>
+      <tr><td class="num">16</td><td class="nm">がいこつ兵</td><td>洞窟・関所</td><td>—</td></tr>
+      <tr><td class="num">17</td><td class="nm">がいこつ騎士</td><td>山脈以北</td><td>—</td></tr>
+      <tr><td class="num">18</td><td class="nm">ばんにんがいこつ<span class="tag event">EVENT</span></td><td>関所跡(13)</td><td>封印の番人【真】</td></tr>
+      <tr><td class="num">19</td><td class="nm">森のまじょ</td><td>迷いの森</td><td>—</td></tr>
+      <tr><td class="num">20</td><td class="nm">よるのまじょ</td><td>森(夜)</td><td>—</td></tr>
+      <tr><td class="num">21</td><td class="nm">さけぐちのまじょ</td><td>夕暮れの道</td><td>口裂け女のうわさ</td></tr>
+      <tr><td class="num">22</td><td class="nm">石のゴーレム</td><td>丘陵</td><td>—</td></tr>
+      <tr><td class="num">23</td><td class="nm">てつくずゴーレム</td><td>造成地</td><td>工事の重機</td></tr>
+      <tr><td class="num">24</td><td class="nm">コンクリゴーレム</td><td>魔王城</td><td>〃</td></tr>
+      <tr><td class="num">25</td><td class="nm">けむだま</td><td>造成地</td><td>—</td></tr>
+      <tr><td class="num">26</td><td class="nm">スモッグのせい</td><td>北部</td><td>光化学スモッグ注意報</td></tr>
+      <tr><td class="num">27</td><td class="nm">どくぎりマドウ</td><td>魔王城</td><td>工場の煙</td></tr>
+      <tr><td class="num">28</td><td class="nm">わらのかかし</td><td>畑</td><td>—</td></tr>
+      <tr><td class="num">29</td><td class="nm">くびふり人形</td><td>寺町</td><td>理髪店の人形</td></tr>
+      <tr><td class="num">30</td><td class="nm">いちまつの人形</td><td>蔵・夜</td><td>呪いの日本人形</td></tr>
+      <tr><td class="num">31</td><td class="nm">カラス</td><td>各地</td><td>—</td></tr>
+      <tr><td class="num">32</td><td class="nm">おおガラス</td><td>各地(夕)</td><td>—</td></tr>
+      <tr><td class="num">33</td><td class="nm">ゆうやけどり</td><td>夕方の空</td><td>5時のチャイムとカラスの群れ</td></tr>
+      <tr><td class="num">34</td><td class="nm">やぶかのむれ</td><td>川辺(夏)</td><td>蚊柱</td></tr>
+      <tr><td class="num">35</td><td class="nm">おおカマキリ</td><td>草むら</td><td>—</td></tr>
+      <tr><td class="num">36</td><td class="nm">ひかりクワガタ</td><td>森(夜)</td><td>夏休みの主役(倒さず捕まえると◎)</td></tr>
+      <tr><td class="num">37</td><td class="nm">テケテケ</td><td>線路ぞい</td><td>学校の怪談(逃走不可・全力で倒す)</td></tr>
+      <tr><td class="num">38</td><td class="nm">井戸のはなこ</td><td>練兵場の古井戸</td><td>花子さんのうわさ</td></tr>
+      <tr><td class="num">39</td><td class="nm">カミナリさま<span class="tag boss">BOSS</span></td><td>切通しの門(16)</td><td>線路の轟音と雷鳴</td></tr>
+      <tr><td class="num">40</td><td class="nm">魔王クロガネ<span class="tag boss">BOSS</span></td><td>魔王城(17)</td><td>工場の火と煙(真の正体は第三章で)</td></tr>
+    </table></div>
+    <div class="note"><b>ボリューム感:</b> DQ1(敵約40種・呪文10・武器7/鎧7/盾3)と同水準。系統は13。色違いは地域と難度の指標を兼ねる(南=原色、北・魔王城=闇色)。</div>
+  </section>
+
+  <div class="foot">
+    剣と魔法の国 — データ設計書 v0.1<br>
+    全体マップ v0.3(拠点22)・物語設定書と対をなす。数値はプロトタイプで実測しながら調整する。
+  </div>
+</div>
+</body>
+</html>
