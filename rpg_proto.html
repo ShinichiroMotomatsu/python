@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>にじみ — プレイアブル試作 0.1</title>
+<style>
+:root{
+  --ink:#ece7db; --dim:#9c98a8; --amber:#ecc069; --past:#7fe0b0; --now:#e79a72;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{height:100%;overflow:hidden;background:#05060c;}
+body{font-family:var(--goth);color:var(--ink);display:flex;justify-content:center;touch-action:none;}
+#stage{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;background:#05060c;}
+#scene{position:absolute;left:50%;top:0;transform:translateX(-50%);image-rendering:auto;}
+/* HUD */
+#hud{position:absolute;top:calc(env(safe-area-inset-top) + 8px);left:10px;right:10px;z-index:6;display:flex;align-items:center;gap:6px;pointer-events:none;}
+#hud .title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.55);}
+#insights{margin-left:auto;display:flex;gap:5px;}
+.ib{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:13px;color:#4a4a58;background:rgba(0,0,0,.3);transition:all .5s;}
+.ib.got{color:#1c1508;background:var(--amber);border-color:#fff6;box-shadow:0 0 12px var(--amber);}
+/* エリア名 */
+#area{position:absolute;top:calc(env(safe-area-inset-top) + 40px);left:50%;transform:translateX(-50%);z-index:5;
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;padding:4px 14px;border-radius:99px;background:rgba(5,6,12,.6);
+  border:1px solid rgba(255,255,255,.15);transition:opacity .8s;pointer-events:none;white-space:nowrap;}
+/* メッセージ窓 */
+#msg{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 150px);z-index:8;display:none;
+  background:linear-gradient(180deg,rgba(6,7,14,.4),rgba(6,7,14,.9));border:1px solid rgba(255,255,255,.18);border-radius:12px;
+  padding:16px 16px 14px;min-height:70px;}
+#msg.show{display:block;}
+#msg .who{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--amber);margin-bottom:6px;}
+#msg .tx{font-family:var(--serif);font-size:15px;line-height:1.85;}
+#msg .tx em{color:var(--amber);font-style:normal;}
+#msg .next{position:absolute;right:12px;bottom:8px;color:var(--amber);animation:bl .8s infinite;}
+@keyframes bl{50%{opacity:0}}
+/* しらべるプロンプト */
+#prompt{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 232px);z-index:7;
+  font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:#1c1508;background:var(--amber);padding:6px 14px;border-radius:99px;
+  display:none;animation:fl 1.4s infinite;box-shadow:0 3px 14px rgba(0,0,0,.5);}
+#prompt.show{display:block;}
+@keyframes fl{50%{transform:translateX(-50%) translateY(-3px);}}
+/* コントロール */
+#pad{position:absolute;left:16px;bottom:calc(env(safe-area-inset-bottom) + 20px);width:132px;height:132px;z-index:9;opacity:.9;}
+#pad button{position:absolute;width:44px;height:44px;border:1px solid #4a4e6a;border-radius:9px;background:rgba(24,26,44,.8);color:var(--ink);font-size:16px;}
+#pad button:active{background:#3a3f70;}
+#pu{left:44px;top:0;}#pl{left:0;top:44px;}#prg{right:0;top:44px;}#pdn{left:44px;bottom:0;}
+#btnA{position:absolute;right:20px;bottom:calc(env(safe-area-inset-bottom) + 40px);width:66px;height:66px;border-radius:50%;z-index:9;
+  background:radial-gradient(circle at 35% 30%,#f4d488,var(--amber) 60%,#b8923e);border:2px solid #fff4;color:#2a2008;font-weight:800;font-size:17px;}
+#btnA:active{transform:scale(.93);}
+/* 戦闘コマンド */
+#bpanel{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:10;display:none;}
+#bpanel.show{display:block;}
+#bcmds{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
+#bcmds button{padding:12px 6px;font-size:14px;letter-spacing:.12em;background:#0b0f28;color:var(--ink);border:2px solid #cfd6e8;border-radius:5px;font-family:var(--goth);}
+#bcmds button:active{background:#1a2050;}
+#bcmds button:disabled{opacity:.3;}
+#bcmds button.remember{border-color:var(--amber);color:var(--amber);}
+/* タイトル */
+#title{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  background:radial-gradient(ellipse at 50% 120%,#1a2140,#05060c 62%);text-align:center;padding:0 24px;}
+#title .k{font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--amber);}
+#title h1{font-family:var(--serif);font-size:34px;letter-spacing:.14em;margin:8px 0 2px;
+  text-shadow:0 3px 24px rgba(236,192,105,.4);}
+#title .s{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:26px;}
+#title button{width:210px;padding:13px;margin:5px;font-size:14px;letter-spacing:.2em;background:#12142a;color:var(--ink);
+  border:2px solid var(--ink);border-radius:6px;}
+#title button:active{background:#2a2e58;}
+#title .note{margin-top:24px;font-family:var(--mono);font-size:10px;color:#6f6f88;letter-spacing:.08em;line-height:2;}
+#flash{position:absolute;inset:0;z-index:20;background:#fff;opacity:0;pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="scene" width="300" height="500"></canvas>
+
+  <div id="hud">
+    <span class="title">にじみ — 帰り道</span>
+    <div id="insights">
+      <div class="ib" data-k="弔">弔</div>
+      <div class="ib" data-k="真">真</div>
+      <div class="ib" data-k="郷">郷</div>
+    </div>
+  </div>
+  <div id="area"></div>
+
+  <div id="msg"><div class="who" id="msgWho"></div><div class="tx" id="msgTx"></div><span class="next">▼</span></div>
+  <div id="prompt">A ／ しらべる</div>
+
+  <div id="pad">
+    <button id="pu">▲</button><button id="pl">◀</button><button id="prg">▶</button><button id="pdn">▼</button>
+  </div>
+  <button id="btnA">A</button>
+
+  <div id="bpanel">
+    <div id="bcmds">
+      <button data-c="attack">たたかう</button>
+      <button data-c="remember" class="remember">おもいだす</button>
+      <button data-c="heal">やくそう</button>
+      <button data-c="run">さがる</button>
+    </div>
+  </div>
+
+  <div id="flash"></div>
+
+  <div id="title">
+    <div class="k">SWORD &amp; SORCERY · にじみ</div>
+    <h1>帰り道</h1>
+    <div class="s">PLAYABLE PROTOTYPE 0.1</div>
+    <button id="btnStart">はじめる</button>
+    <button id="btnReset">さいしょから</button>
+    <div class="note">▲ すすむ ／ ◀ ▶ よこ移動 ／ A しらべる<br>PCは矢印キー＋Enter</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const cv=document.getElementById("scene"),ctx=cv.getContext("2d");
+const W=300,H=500,HZ=178;
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+const SAVE="nijimi_proto_01";
+function lerp(a,b,f){return a+(b-a)*f;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function roadL(y){return lerp(150,100,(y-HZ)/(H-HZ));}
+function roadR(y){return lerp(150,200,(y-HZ)/(H-HZ));}
+
+function fit(){
+  const st=document.getElementById("stage");
+  const s=Math.min(st.clientWidth/W, st.clientHeight/H);
+  cv.style.width=W*s+"px";cv.style.height=H*s+"px";
+}
+addEventListener("resize",fit);
+
+/* ===================== 過去=PC-88 ピクセルバッファ ===================== */
+const PW=210,PH=300,PHZ=107;
+const pix=document.createElement("canvas");pix.width=PW;pix.height=PH;
+const pc=pix.getContext("2d");const pimg=pc.createImageData(PW,PH);const buf=new Uint32Array(pimg.data.buffer);
+const PALc=[[18,20,44],[46,74,170],[120,178,236],[232,226,196],[40,116,58],[122,196,74],[178,120,50],[214,74,58]];
+const PAL=PALc.map(c=>(255<<24)|(c[2]<<16)|(c[1]<<8)|c[0]);
+const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function ps(x,y,ci){x|=0;y|=0;if(x<0||y<0||x>=PW||y>=PH)return;buf[y*PW+x]=PAL[ci];}
+function pr(ci,x,y,w,h){x|=0;y|=0;w|=0;h|=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)ps(x+i,y+j,ci);}
+function pd(x,y,t,a,b){const th=(BAYER[(y&3)*4+(x&3)]+0.5)/16;ps(x,y,t>th?b:a);}
+function hsh(a,b){return(((a*73856093)^(b*19349663))>>>0);}
+function blitPix(alpha){pc.putImageData(pimg,0,0);ctx.save();ctx.globalAlpha=alpha==null?1:alpha;ctx.imageSmoothingEnabled=false;ctx.drawImage(pix,0,0,PW,PH,0,0,W,H);ctx.restore();}
+
+// PC-88 記憶シーン: 祭壇と光る石
+function pastAltar(time){
+  buf.fill(PAL[0]);
+  for(let y=0;y<PH;y++)for(let x=0;x<PW;x++)pd(x,y,0.1+y/PH*0.22,0,1); // 洞窟の壁(暗)
+  for(let y=0;y<PH-64;y+=14){pr(0,0,y,PW,1);for(let x=((y/14)&1?12:0);x<PW;x+=24)pr(0,x,y,1,14);} // レンガの目地
+  // 床
+  for(let y=PH-64;y<PH;y++)for(let x=0;x<PW;x++)pd(x,y,0.35,0,1);
+  pr(0,0,PH-64,PW,1);
+  // 祭壇
+  pr(0,86,PH-110,40,44);pr(6,88,PH-108,36,40);pr(3,88,PH-108,36,3);pr(0,88,PH-72,36,4);
+  // 光る石(脈動)
+  const pl=reduce?0.7:0.5+0.5*Math.sin(time*3);
+  const gx=101,gy=PH-128;
+  for(let j=-8;j<=8;j++)for(let i=-8;i<=8;i++){const d=i*i+j*j;if(d<=64&&((BAYER[((gy+j)&3)*4+((gx+i)&3)])/16)<0.2+pl*0.3)ps(gx+i,gy+j,3);}
+  pr(6,gx-3,gy-5,8,11);pr(3,gx-2,gy-4,6,9);pr(2,gx-1,gy-3,2,5);ps(gx+1,gy-1,3);
+  // 松明
+  pTorch(20,PH-150,time);pTorch(184,PH-150,time+1.2);
+  // 少年
+  pBoy(101,PH-72,time);
+}
+function pTorch(x,y,t){pr(6,x+1,y,2,16);const f=reduce?0.5:Math.sin(t*8)*.5+.5;pr(7,x-1,y-8,6,9);pr(3,x,y-6-(f>.5?1:0),4,6);ps(x+1,y-3,3);}
+function pBoy(x,y,time){pr(0,x-4,y-1,9,3);pr(0,x-4,y-13,9,14);pr(1,x-3,y-7,7,6);pr(2,x-3,y-7,1,6);pr(6,x-2,y-11,5,4);pr(7,x-3,y-13,7,3);ps(x-1,y-9,0);ps(x+2,y-9,0);pr(0,x-3,y-1,3,3);pr(0,x+1,y-1,3,3);}
+
+// PC-88 記憶シーン: 城下町の道
+function pastRoad(time){
+  buf.fill(PAL[0]);
+  for(let y=0;y<PHZ;y++)for(let x=0;x<PW;x++)pd(x,y,clamp((y/PHZ-0.35)/0.65,0,1),2,3);
+  for(let j=-9;j<=9;j++)for(let i=-9;i<=9;i++)if(i*i+j*j<=80)ps(170+i,26+j,3);
+  for(let x=0;x<PW;x++){const hh=8+(hsh(x>>3,7)%4);for(let y=PHZ-hh;y<PHZ;y++)pd(x,y,(y-(PHZ-hh))/hh,4,5);}
+  pCastle(105);
+  for(let x=0;x<PW;x++)for(let y=PHZ-3;y<PHZ+1;y++)pd(x,y,0.5,1,2);
+  for(let y=PHZ;y<PH;y++){const dep=1-(y-PHZ)/(PH-PHZ);for(let x=0;x<PW;x++)pd(x,y,0.35+dep*0.4,4,5);}
+  for(let y=PHZ;y<PH;y++){const xl=lerp(103,73,(y-PHZ)/(PH-PHZ))|0,xr=lerp(107,137,(y-PHZ)/(PH-PHZ))|0;for(let x=xl;x<xr;x++){const e=Math.min(x-xl,xr-1-x);if(e<=0){ps(x,y,0);continue;}pd(x,y,e<3?0.4:0.85,0,6);}}
+  pBoy(105,PH-40,time);
+}
+function pCastle(cx){pr(0,cx-25,90,50,18);pr(6,cx-24,91,48,16);pr(3,cx-24,91,48,1);for(let i=0;i<7;i++)pr(0,cx-24+i*7,88,4,3);pr(0,cx-25,74,14,20);pr(6,cx-24,75,12,18);pr(3,cx-24,75,3,18);pr(0,cx+11,74,14,20);pr(6,cx+12,75,12,18);pr(3,cx+12,75,3,18);pr(7,cx-21,64,7,5);pr(0,cx-23,64,2,10);pr(7,cx+15,64,7,5);pr(0,cx+13,64,2,10);pr(0,cx-5,66,10,26);pr(3,cx-4,68,8,24);pr(6,cx-4,68,2,24);pr(0,cx-4,100,8,8);pr(1,cx-3,101,6,7);}
+
+// PC-88 戦闘背景 + 骸骨
+function pastBattle(time,shake){
+  buf.fill(PAL[0]);
+  for(let y=0;y<PH;y++)for(let x=0;x<PW;x++)pd(x,y,clamp(y/PH*0.7,0,1),0,1);
+  // 地面
+  for(let y=PH-70;y<PH;y++)for(let x=0;x<PW;x++)pd(x,y,0.4,1,4);
+  const sx=(shake?((time*40|0)%2?2:-2):0);
+  pSkeleton(105+sx,120);
+}
+function pSkeleton(x,y){
+  const B=3,O=0;// 骨=淡3, 影=青1
+  pr(O,x-16,y-2,34,50);          // 輪郭ベース(暗)
+  pr(B,x-10,y-30,20,18);pr(O,x-6,y-24,4,5);pr(O,x+2,y-24,4,5);pr(O,x-4,y-16,8,3); // 頭骨
+  pr(B,x-4,y-12,8,6);            // 首
+  pr(B,x-13,y-6,26,4);           // 肩
+  for(let i=0;i<5;i++)pr(B,x-11,y-2+i*4,22,2); // 肋骨
+  pr(B,x-13,y-4,3,22);pr(B,x+10,y-4,3,22);     // 腕
+  pr(B,x-2,y+18,4,26);           // 背骨
+  pr(B,x-9,y+30,6,16);pr(B,x+3,y+30,6,16);     // 脚
+  pr(7,x-14,y-6,4,3);            // 錆びた武器(赤)
+}
+
+/* ===================== 現在=写実 背景 ===================== */
+const fcv=document.createElement("canvas");fcv.width=W;fcv.height=HZ+26;const fx=fcv.getContext("2d");
+const noise=document.createElement("canvas");noise.width=72;noise.height=72;
+(function(){const n=noise.getContext("2d"),d=n.createImageData(72,72);let s=54321;const rnd=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};for(let i=0;i<d.data.length;i+=4){const v=190+rnd()*65;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=Math.round(rnd()*24);}n.putImageData(d,0,0);})();
+function radOn(c,cx,cy,r0,r1,c0,c1){const g=c.createRadialGradient(cx,cy,r0,cx,cy,r1);g.addColorStop(0,c0);g.addColorStop(1,c1);c.fillStyle=g;c.fillRect(0,0,W,H);}
+function softCloud(c,x,y,w,h,col){c.fillStyle=col;c.beginPath();c.ellipse(x,y,w/2,h,0,0,7);c.ellipse(x-w/3,y+3,w/3,h*0.7,0,0,7);c.ellipse(x+w/3,y+2,w/3,h*0.75,0,0,7);c.fill();}
+function nrnd(i){const s=Math.sin(i*127.1+i*i*0.017)*43758.5;return s-Math.floor(s);}
+function drawFar(time){
+  fx.clearRect(0,0,W,HZ+26);
+  const sky=fx.createLinearGradient(0,0,0,HZ);sky.addColorStop(0,"#3c4a70");sky.addColorStop(.42,"#8a7f92");sky.addColorStop(.74,"#d7a778");sky.addColorStop(1,"#efc98a");
+  fx.fillStyle=sky;fx.fillRect(0,0,W,HZ);
+  const g=fx.createRadialGradient(236,56,4,236,56,140);g.addColorStop(0,"rgba(255,240,205,.95)");g.addColorStop(1,"rgba(255,240,205,0)");fx.fillStyle=g;fx.fillRect(0,0,W,HZ+26);
+  fx.fillStyle="rgba(255,247,228,.96)";fx.beginPath();fx.arc(236,56,10,0,7);fx.fill();
+  softCloud(fx,54,42,58,11,"rgba(255,231,205,.5)");softCloud(fx,168,28,80,13,"rgba(250,222,198,.46)");
+  const blocks=[[10,120,28,58],[42,102,22,76],[70,130,30,48],[150,110,24,68],[178,94,28,84],[210,124,26,54],[240,106,22,72],[266,132,30,46]];
+  for(const[bx,by,bw,bh]of blocks){const h2=HZ-by;const bg=fx.createLinearGradient(bx,0,bx+bw,0);bg.addColorStop(0,"#5f6678");bg.addColorStop(.5,"#727a8c");bg.addColorStop(1,"#565d70");fx.fillStyle=bg;fx.fillRect(bx,by,bw,h2);
+    fx.fillStyle="#4c5262";fx.fillRect(bx,by-2,bw,2);fx.fillRect(bx+bw*0.55,by-7,7,5);
+    for(let wy=by+5;wy<HZ-4;wy+=6)for(let wx=bx+3;wx<bx+bw-3;wx+=5){const r=nrnd(wx*13+wy*7);fx.fillStyle=r<0.3?"rgba(255,214,150,.9)":r<0.4?"rgba(180,214,235,.7)":"rgba(40,48,64,.5)";fx.fillRect(wx,wy,2,3);}}
+  const rv=fx.createLinearGradient(0,HZ-7,0,HZ+18);rv.addColorStop(0,"#93a6b4");rv.addColorStop(.5,"#5f7d90");rv.addColorStop(1,"#3f5d6c");fx.fillStyle=rv;fx.fillRect(0,HZ-7,W,25);
+  fx.fillStyle="rgba(255,232,185,.55)";for(let x=0;x<W;x+=7)fx.fillRect(x+((time*9|0)%7),HZ+1+((x*3)%6),4,1);
+}
+function grassAndPath(time,scroll){
+  const gr=ctx.createLinearGradient(0,HZ+8,0,H);gr.addColorStop(0,"#79884a");gr.addColorStop(.42,"#697a3c");gr.addColorStop(1,"#47552b");ctx.fillStyle=gr;ctx.fillRect(0,HZ+8,W,H-HZ-8);
+  const sc=scroll*120;
+  for(let i=0;i<900;i++){const yy=HZ+10+((i*31.7+sc)%(H-HZ-10));const dep=(yy-HZ)/(H-HZ);const xx=(i*53.3+nrnd(i)*40)%W;if(xx>roadL(yy)-4&&xx<roadR(yy)+4)continue;const bl=nrnd(i*3);const len=1+dep*3;ctx.fillStyle="rgba("+(46+bl*30)+","+(60+bl*34)+","+(28+bl*16)+",0.55)";ctx.fillRect(xx,yy,0.8+dep*1.2,len);if(bl>0.62){ctx.fillStyle="rgba("+(150+bl*70)+","+(168+bl*60)+",90,"+(0.4+dep*0.4)+")";ctx.fillRect(xx+0.5,yy,0.8,len*0.6);}}
+  for(let y=HZ+8;y<H;y++){const xl=roadL(y),xr=roadR(y),dep=(y-HZ)/(H-HZ);const base=Math.round(150+dep*18);const g=ctx.createLinearGradient(xl,0,xr,0);g.addColorStop(0,"rgb("+(base-24)+","+(base-30)+","+(base-42)+")");g.addColorStop(.5,"rgb("+base+","+(base-8)+","+(base-24)+")");g.addColorStop(1,"rgb("+(base-16)+","+(base-22)+","+(base-36)+")");ctx.fillStyle=g;ctx.fillRect(xl,y,xr-xl,1);}
+  for(let i=0;i<300;i++){const yy=HZ+10+((i*29.3+sc*0.6)%(H-HZ-10));const xl=roadL(yy),xr=roadR(yy);const xx=xl+nrnd(i*7)*(xr-xl);const a=nrnd(i);ctx.fillStyle=a<0.5?"rgba(60,54,42,.4)":"rgba(230,220,190,.28)";ctx.fillRect(xx,yy,1,1+((yy-HZ)/(H-HZ)));}
+  ctx.fillStyle="rgba(50,44,34,.4)";for(let y=HZ+10;y<H;y++){ctx.fillRect(roadL(y),y,1.4,1);ctx.fillRect(roadR(y)-1.4,y,1.4,1);}
+}
+function grade(time){
+  ctx.fillStyle="rgba(255,180,120,.05)";ctx.fillRect(0,0,W,H);
+  const hz=ctx.createLinearGradient(0,HZ,0,HZ+90);hz.addColorStop(0,"rgba(240,214,170,.42)");hz.addColorStop(1,"rgba(240,214,170,0)");ctx.fillStyle=hz;ctx.fillRect(0,HZ,W,90);
+  radOn(ctx,150,300,50,320,"rgba(0,0,0,0)","rgba(8,5,12,.52)");
+  const gyy=reduce?0:(time*6)%72;ctx.globalAlpha=0.6;for(let y=-72+(gyy%72);y<H;y+=72)for(let x=0;x<W;x+=72)ctx.drawImage(noise,x,y);ctx.globalAlpha=1;
+}
+/* オブジェクト(木・地蔵・記号) 深度射影 */
+function project(ahead,side){const PMAX=64;const t=clamp(ahead/PMAX,0,1);const y=lerp(392,HZ+12,t);const cxR=(roadL(y)+roadR(y))/2;const half=(roadR(y)-roadL(y))/2;const x=cxR+side*(half+34*(1-t)*0.7+18);return{x,y,scale:lerp(1,0.12,t),t};}
+function realTreeAt(x,groundY,r,time){if(r<3)return;const sway=reduce?0:Math.sin(time*1.2+x)*1.3*(r/25);ctx.fillStyle="rgba(28,28,18,.30)";ctx.beginPath();ctx.ellipse(x-r*1.3,groundY,r*1.8,r*0.5,0,0,7);ctx.fill();ctx.fillStyle="#463726";ctx.fillRect(x-r*0.08,groundY-r*1.15,r*0.16,r*1.15);const cy=groundY-r*1.35;const cl=[[0,0,1,"#37481f"],[-0.5,-0.1,0.7,"#455a26"],[0.45,0.05,0.62,"#3d4f22"],[-0.2,-0.4,0.55,"#5c7431"],[0.15,-0.25,0.5,"#6d8a3a"]];for(const[dx,dy,s,col]of cl){ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(x+dx*r+sway,cy+dy*r,r*s,r*s*0.9,0,0,7);ctx.fill();}ctx.fillStyle="rgba(255,216,150,.4)";ctx.beginPath();ctx.ellipse(x+r*0.35+sway,cy-r*0.35,r*0.42,r*0.5,0,0,7);ctx.fill();}
+function jizoAt(x,y,sc,glow){
+  ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);
+  if(glow>0){const g=ctx.createRadialGradient(0,-8,2,0,-8,40);g.addColorStop(0,"rgba(255,223,140,"+(0.5*glow)+")");g.addColorStop(1,"rgba(255,223,140,0)");ctx.fillStyle=g;ctx.fillRect(-40,-48,80,80);}
+  ctx.fillStyle="rgba(0,0,0,.4)";ctx.beginPath();ctx.ellipse(2,16,16,5,0,0,7);ctx.fill();
+  ctx.fillStyle="#3a3942";ctx.fillRect(-11,8,24,8);
+  const g=ctx.createLinearGradient(-9,0,9,0);g.addColorStop(0,"#42414a");g.addColorStop(.6,"#6d6b76");g.addColorStop(1,"#8b8c94");ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(-9,8);ctx.lineTo(-9,-8);ctx.arcTo(-9,-18,0,-18,9);ctx.arcTo(9,-18,9,-8,9);ctx.lineTo(9,8);ctx.closePath();ctx.fill();
+  ctx.fillStyle="rgba(18,16,24,.4)";ctx.beginPath();ctx.ellipse(0,-6,5,6,0,0,7);ctx.fill();
+  ctx.fillStyle="#b23a34";ctx.fillRect(-7,-2,14,10);ctx.fillStyle="rgba(255,206,152,.45)";ctx.fillRect(6,-14,2,18);
+  ctx.fillStyle="#e56b8a";ctx.fillRect(-12,10,2,3);ctx.fillStyle="#f0e2a0";ctx.fillRect(-9,9,2,3);ctx.fillStyle="#7fc98a";ctx.fillRect(-11,11,3,2);
+  ctx.restore();
+}
+function benchAt(x,y,sc,glow){
+  ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);
+  if(glow>0){const g=ctx.createRadialGradient(0,-6,2,0,-6,36);g.addColorStop(0,"rgba(255,223,140,"+(0.5*glow)+")");g.addColorStop(1,"rgba(255,223,140,0)");ctx.fillStyle=g;ctx.fillRect(-36,-40,72,66);}
+  ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,10,20,5,0,0,7);ctx.fill();
+  ctx.fillStyle="#5b4a34";ctx.fillRect(-18,-4,36,4);ctx.fillStyle="#6e5a40";ctx.fillRect(-18,-4,36,1.5);
+  ctx.fillStyle="#4a3c2a";ctx.fillRect(-16,0,3,10);ctx.fillRect(13,0,3,10);
+  ctx.fillStyle="#5b4a34";ctx.fillRect(-18,-14,36,4);ctx.fillStyle="#4a3c2a";ctx.fillRect(-16,-12,3,8);ctx.fillRect(13,-12,3,8);
+  ctx.fillStyle="rgba(255,206,152,.4)";ctx.fillRect(-18,-14,36,1.2);
+  ctx.restore();
+}
+function heroAt(x,y,moving,time){
+  const step=(moving&&!reduce)?Math.sin(time*7):0;const ll=step>0?2:0,rl=step<0?2:0;
+  ctx.fillStyle="rgba(18,16,10,.36)";ctx.beginPath();ctx.ellipse(x-15,y+3,26,7,0,0,7);ctx.fill();
+  ctx.fillStyle="#2a2a32";ctx.fillRect(x-5,y-8+ll,4,10-ll);ctx.fillRect(x+1,y-8+rl,4,10-rl);ctx.fillStyle="#20242a";ctx.fillRect(x-5,y+1,4,2);ctx.fillRect(x+1,y+1,4,2);
+  const cg=ctx.createLinearGradient(x-7,0,x+7,0);cg.addColorStop(0,"#2c3636");cg.addColorStop(.6,"#454d47");cg.addColorStop(1,"#5b635b");ctx.fillStyle=cg;ctx.beginPath();ctx.moveTo(x-6,y-7);ctx.lineTo(x-5,y-22);ctx.quadraticCurveTo(x,y-27,x+5,y-22);ctx.lineTo(x+6,y-7);ctx.closePath();ctx.fill();
+  ctx.fillStyle="rgba(255,212,150,.5)";ctx.fillRect(x+4,y-22,2,15);
+  ctx.fillStyle="#d3af8b";ctx.beginPath();ctx.arc(x,y-27,4.6,0,7);ctx.fill();ctx.fillStyle="#dcd7cc";ctx.beginPath();ctx.arc(x,y-29,4.8,Math.PI,0);ctx.fill();ctx.fillRect(x-5,y-29,10,2);
+  ctx.strokeStyle="#6b4a2c";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+7,y-19);ctx.lineTo(x+9,y+1);ctx.stroke();
+}
+
+/* ===================== ゲーム状態 ===================== */
+let P=null,mode="title",time=0;
+const POINTS=[
+  {id:"jizo", D:34, side:0.9, kind:"jizo", area:"河川敷の入口",
+   mem:"altar", who:"記憶 · 洞窟の祭壇",
+   lines:["——ここは、あの洞窟の祭壇。","少年のわたしは、光る石を“たからもの”として持ち去った。","<em>(いまなら分かる。あれは、誰かの墓標だった)</em>","老いたアルスは、そっと手を合わせた。"],
+   insight:"弔"},
+  {id:"bench", D:82, side:-0.95, kind:"bench", area:"土手のなかほど",
+   mem:"battle", who:"記憶 · 番人との戦い",
+   preLines:["古びたベンチ。ここで少年は、道をふさぐ“魔物”と戦った。","——思い出そう。あの日、何と戦ったのかを。"],
+   insight:"真"},
+  {id:"danchi", D:150, side:0.0, kind:"danchi", area:"団地のふもと",
+   mem:"road", who:"記憶 · 城下町への道",
+   lines:["城下町リーメンへ続く、あの一本道——","<em>(ちがう。これは、団地への通学路だ)</em>","遠くにそびえる城は、わたしが生まれ育った、あの棟だった。","異国だと思っていた世界は、ずっと“ここ”だったのだ。"],
+   insight:"郷"},
+];
+function newGame(){return{dist:0,x:0,got:{},done:false};}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(P));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE));if(d&&d.got)return d;}catch(e){}return null;}
+function insightCount(){return Object.keys(P.got).length;}
+
+/* ---- 描画: フィールド ---- */
+let sceneryTrees=[];
+for(let i=0;i<10;i++)sceneryTrees.push({D:12+i*16+((i*7)%9),side:(i%2?1:-1)*(1.15+(i%3)*0.25),r:26-(i%3)*4});
+function drawField(){
+  drawFar(time);
+  ctx.save();ctx.filter="blur(1.1px)";ctx.drawImage(fcv,0,0);ctx.filter="none";ctx.restore();
+  ctx.save();ctx.globalCompositeOperation="lighten";ctx.filter="blur(5px)";ctx.globalAlpha=.42;ctx.drawImage(fcv,0,0);ctx.restore();ctx.filter="none";ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+  grassAndPath(time,P.dist);
+  // 遠景の団地に「城」がにじむ(郷の気づき前、danchiが近いと)
+  const dP=POINTS[2];const ahead=dP.D-P.dist;
+  if(!P.got["郷"] && ahead<40 && ahead>-4){
+    const a=clamp(1-Math.abs(ahead-14)/26,0,1)*(reduce?0.5:(0.4+0.3*Math.sin(time*4)));
+    ctx.save();ctx.globalAlpha=a;ctx.imageSmoothingEnabled=false;
+    ctx.fillStyle="#b07832";ctx.fillRect(135,HZ-54,30,38);ctx.fillRect(120,HZ-78,12,26);ctx.fillRect(168,HZ-78,12,26);
+    ctx.fillStyle="#d64a3a";ctx.fillRect(122,HZ-86,7,9);ctx.fillRect(170,HZ-86,7,9);ctx.fillStyle="#e8e0c4";ctx.fillRect(146,HZ-70,8,16);
+    ctx.restore();
+  }
+  // 地上オブジェクト(奥→手前)
+  const objs=[];
+  for(const t of sceneryTrees){objs.push({ahead:t.D-P.dist,side:t.side,draw:(pr2)=>realTreeAt(pr2.x,pr2.y,t.r*pr2.scale,time)});}
+  for(const pt of POINTS){const ah=pt.D-P.dist;if(ah<-6||ah>64)continue;const glow=P.got[pt.insight]?0:1;
+    objs.push({ahead:ah,side:pt.side,pt,draw:(pr2)=>{
+      if(pt.kind==="jizo")jizoAt(pr2.x,pr2.y,pr2.scale*1.1,glow*(reduce?0.6:0.5+0.5*Math.sin(time*3)));
+      else if(pt.kind==="bench")benchAt(pr2.x,pr2.y,pr2.scale*1.1,glow*(reduce?0.6:0.5+0.5*Math.sin(time*3)));
+    }});}
+  objs.sort((a,b)=>b.ahead-a.ahead);
+  const heroY=392, heroX=150+P.x*30;
+  for(const o of objs){const pr2=project(o.ahead,o.side);if(o.pt&&o.pt.kind==="danchi")continue;o.draw(pr2);}
+  heroAt(heroX,heroY, held.up, time);
+  grade(time);
+}
+
+/* ---- にじみ遷移 ---- */
+function bleedFlash(cb){
+  const fl=document.getElementById("flash");let k=0;mode="anim";
+  (function st(){k+=0.06;fl.style.opacity=Math.sin(Math.min(Math.PI,k*Math.PI));
+    // ピクセルのちらつき
+    if(k<1){requestAnimationFrame(st);}else{fl.style.opacity=0;cb();}
+  })();
+}
+
+/* ---- メッセージ ---- */
+let mq=[],mqDone=null,memScene=null;
+function say(who,lines,done){document.getElementById("msgWho").textContent=who||"";mq=lines.slice();mqDone=done||null;document.getElementById("msg").classList.add("show");mode="msg";nextMsg(true);}
+function nextMsg(first){const m=document.getElementById("msg");if(!first&&mq.length===0){m.classList.remove("show");memScene=null;const f=mqDone;mqDone=null;mode="field";if(f)f();return;}document.getElementById("msgTx").innerHTML=mq.shift();}
+
+/* ---- ポイント起動 ---- */
+function tryInteract(){
+  for(const pt of POINTS){const ah=pt.D-P.dist;
+    if(ah>-2&&ah<7 && Math.abs(P.x*30-(pt.side*24))<70){
+      if(P.got[pt.insight]) continue;
+      startPoint(pt);return true;
+    }
+  }
+  return false;
+}
+function startPoint(pt){
+  hidePrompt();
+  bleedFlash(()=>{
+    if(pt.mem==="battle"){ say(pt.who, pt.preLines, ()=>startBattle(pt)); memScene="battle0"; }
+    else { memScene=pt.mem; say(pt.who, pt.lines, ()=>grantInsight(pt)); }
+  });
+}
+function grantInsight(pt){
+  P.got[pt.insight]=true;
+  document.querySelector('.ib[data-k="'+pt.insight+'"]').classList.add("got");
+  save();
+  if(insightCount()>=3 && !P.done){ P.done=true; setTimeout(ending,600); }
+}
+
+/* ---- 戦闘(PC-88コマンド) ---- */
+let B=null;
+function startBattle(pt){
+  B={pt,ehp:24,emax:24,php:30,pmax:30,turn:"cmd",remembered:false,shake:false};
+  mode="battle";memScene="battle";
+  document.getElementById("bpanel").classList.add("show");
+  bMsg("がいこつ兵が 道を ふさいでいる!");
+  setBtns(true);
+}
+// 戦闘中はメッセージ待ち行列を使わず直接描画(mode="battle"を保つ)
+function bLine(t){document.getElementById("msgWho").textContent="戦闘 · 記憶";document.getElementById("msg").classList.add("show");document.getElementById("msgTx").innerHTML=t;}
+function bMsg(t){bLine(t);}
+function setBtns(on){document.querySelectorAll("#bcmds button").forEach(b=>b.disabled=!on);}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function bAttack(){
+  setBtns(false);bLine("アルスの こうげき!");await sleep(500);
+  const d=6+Math.floor(Math.random()*5);B.ehp-=d;B.shake=true;setTimeout(()=>B.shake=false,250);
+  bLine("がいこつ兵に "+d+"の ダメージ!");await sleep(650);
+  if(B.ehp<=0){return victoryReinterpret();}
+  await enemyTurn();
+}
+async function bRemember(){
+  setBtns(false);bLine("——アルスは、あの日を おもいだそうとした。");await sleep(750);
+  B.remembered=true;
+  bLine("<em>この骸骨は、村を 守る 封印の 番人だった。</em>");await sleep(950);
+  bLine("少年は それを知らず、ただ “魔物” として 斬った——");await sleep(950);
+  reinterpretEnd();
+}
+async function bHeal(){setBtns(false);B.php=Math.min(B.pmax,B.php+16);bLine("やくそうで HPが かいふくした。");await sleep(600);await enemyTurn();}
+async function bRun(){setBtns(false);bLine("……だが、記憶からは 逃げられない。");await sleep(800);setBtns(true);bLine("コマンド?");}
+async function enemyTurn(){
+  bLine("がいこつ兵の こうげき!");await sleep(500);
+  const d=4+Math.floor(Math.random()*4);B.php-=d;
+  const fl=document.getElementById("flash");fl.style.opacity=.35;setTimeout(()=>fl.style.opacity=0,120);
+  bLine("アルスは "+d+"の ダメージ!");await sleep(650);
+  if(B.php<=0){B.php=1;bLine("(これは記憶だ。倒れることはない…)");await sleep(800);}
+  setBtns(true);bLine("コマンド? — 「おもいだす」で 真実に 気づけるかもしれない。");
+}
+async function victoryReinterpret(){
+  bLine("がいこつ兵は くずおれた——");await sleep(800);
+  bLine("<em>骨の下から、村を守る 古い 護符が こぼれ落ちた。</em>");await sleep(950);
+  bLine("……封印の番人だったのだ。少年は、それを 知らなかった。");await sleep(1000);
+  reinterpretEnd();
+}
+function reinterpretEnd(){
+  document.getElementById("bpanel").classList.remove("show");
+  const pt=B.pt;B=null;memScene=null;
+  say("気づき", ["老いたアルスは、朽ちた骨に 手を合わせた。","(すまなかった。そして——ありがとう)"], ()=>{grantInsight(pt);});
+}
+
+/* ---- 結び ---- */
+function ending(){
+  memScene=null;
+  say("——", [
+    "三つの気づきが、胸の奥で ひとつに つながる。",
+    "遠くの団地——かつて“天空の塔”と呼んだ棟が、夕陽に 赤く 灯った。",
+    "<em>ゲームだと思っていた日々は、まぎれもなく 現実だった。</em>",
+    "そして その記憶を 抱きしめ直す旅は、いま ここから 始まる。",
+    "—— 帰り道 · つづく ——",
+  ], ()=>{mode="field";});
+}
+
+/* ---- 描画ループ ---- */
+function drawMemoryStill(){
+  if(memScene==="altar")pastAltar(time);
+  else if(memScene==="road")pastRoad(time);
+  else if(memScene==="battle"||memScene==="battle0")pastBattle(time,B?B.shake:false);
+  else return false;
+  blitPix(1);return true;
+}
+function render(){
+  ctx.clearRect(0,0,W,H);
+  if(mode==="battle"||memScene){ if(drawMemoryStill()){ if(mode==="battle")drawBattleHUD(); return; } }
+  if(mode==="msg" && memScene){ drawMemoryStill(); return; }
+  drawField();
+  // プロンプト判定
+  updatePrompt();
+}
+function drawBattleHUD(){
+  // 敵HP
+  ctx.fillStyle="rgba(6,7,14,.7)";ctx.fillRect(90,44,120,26);ctx.strokeStyle="#cfd6e8";ctx.strokeRect(90,44,120,26);
+  ctx.fillStyle="#ece7db";ctx.font="10px monospace";ctx.fillText("がいこつ兵",98,58);
+  ctx.fillStyle="#000";ctx.fillRect(98,61,104,5);ctx.fillStyle="#d84838";ctx.fillRect(98,61,104*clamp(B.ehp/B.emax,0,1),5);
+  // 自分HP
+  ctx.fillStyle="rgba(6,7,14,.7)";ctx.fillRect(90,H-176,120,22);ctx.strokeStyle="#cfd6e8";ctx.strokeRect(90,H-176,120,22);
+  ctx.fillStyle="#ece7db";ctx.fillText("アルス HP "+Math.max(0,B.php)+"/"+B.pmax,98,H-161);
+}
+
+/* ---- 入力 ---- */
+const held={up:false,left:false,right:false};
+function bindHold(id,k){const el=document.getElementById(id);const on=e=>{e.preventDefault();held[k]=true;};const off=e=>{e.preventDefault();held[k]=false;};el.addEventListener("touchstart",on,{passive:false});el.addEventListener("touchend",off);el.addEventListener("touchcancel",off);el.addEventListener("mousedown",on);el.addEventListener("mouseup",off);el.addEventListener("mouseleave",off);}
+bindHold("pu","up");bindHold("pl","left");bindHold("prg","right");
+document.getElementById("pdn").addEventListener("touchstart",e=>{e.preventDefault();});
+function pressA(){
+  if(mode==="msg"){nextMsg(false);return;}
+  if(mode==="field"){ if(!tryInteract()){/* nothing */} return; }
+}
+document.getElementById("btnA").addEventListener("click",pressA);
+addEventListener("keydown",e=>{if(e.key==="ArrowUp")held.up=true;if(e.key==="ArrowLeft")held.left=true;if(e.key==="ArrowRight")held.right=true;if(e.key==="Enter"||e.key===" "){e.preventDefault();pressA();}});
+addEventListener("keyup",e=>{if(e.key==="ArrowUp")held.up=false;if(e.key==="ArrowLeft")held.left=false;if(e.key==="ArrowRight")held.right=false;});
+document.getElementById("bcmds").addEventListener("click",e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c||e.target.disabled)return;if(c==="attack")bAttack();if(c==="remember")bRemember();if(c==="heal")bHeal();if(c==="run")bRun();});
+document.getElementById("msg").addEventListener("click",()=>{if(mode==="msg")nextMsg(false);});
+
+/* プロンプト */
+function showPrompt(){document.getElementById("prompt").classList.add("show");}
+function hidePrompt(){document.getElementById("prompt").classList.remove("show");}
+function updatePrompt(){
+  if(mode!=="field"){hidePrompt();return;}
+  let near=false;
+  for(const pt of POINTS){const ah=pt.D-P.dist;if(ah>-2&&ah<7&&Math.abs(P.x*30-(pt.side*24))<70&&!P.got[pt.insight]){near=true;break;}}
+  near?showPrompt():hidePrompt();
+}
+/* エリア名 */
+let lastArea="";
+function areaCheck(){let a="";for(const pt of POINTS){if(Math.abs(pt.D-P.dist)<10)a=pt.area;}if(!a){a=P.dist<20?"多摩川の河川敷":(P.dist>140?"団地のふもと":"土手の道");}if(a!==lastArea){lastArea=a;const el=document.getElementById("area");el.textContent=a;el.style.opacity=1;clearTimeout(areaCheck.t);areaCheck.t=setTimeout(()=>el.style.opacity=0,2200);}}
+
+/* ---- メインループ ---- */
+let last=performance.now();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(50,now-last);last=now;time=now/1000;
+  if(!P){return;}
+  if(mode==="field"){
+    if(held.up){P.dist=Math.min(190,P.dist+dt/1000*7);}
+    if(held.left)P.x=clamp(P.x-dt/1000*2.2,-1,1);
+    if(held.right)P.x=clamp(P.x+dt/1000*2.2,-1,1);
+    areaCheck();
+  }
+  render();
+}
+
+/* ---- 起動 ---- */
+function begin(data){
+  P=data||newGame();
+  for(const pt of POINTS)if(P.got[pt.insight])document.querySelector('.ib[data-k="'+pt.insight+'"]').classList.add("got");
+  document.getElementById("title").style.display="none";
+  fit();mode="field";lastArea="";areaCheck();
+  if(!data){
+    say("——", [
+      "四十年ぶりの、夕暮れの河川敷。",
+      "老いた剣士アルスは、ひとり この道に 立っていた。",
+      "(この場所を、わたしは 知っている——気がする)",
+      "▲で すすみ、光る場所を Aで しらべよう。",
+    ], ()=>{mode="field";});
+  }
+}
+document.getElementById("btnStart").addEventListener("click",()=>{const d=load();begin(d);});
+document.getElementById("btnReset").addEventListener("click",()=>{localStorage.removeItem(SAVE);begin(null);});
+fit();
+requestAnimationFrame(loop);
+
+/* デバッグ */
+window.DEBUG={state:()=>P,go:d=>{P.dist=d;},pt:i=>{P.dist=POINTS[i].D-1;},mode:()=>mode};
+</script>
+</body>
+</html>

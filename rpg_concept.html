@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>物語設定書 v1.0 — 剣と魔法の国／帰り道</title>
+<style>
+:root{
+  --bg:#0d1020; --panel:#171d33; --ink:#ece4d2; --dim:#9c96a8; --line:#293052;
+  --amber:#eac06a; --amber-deep:#c99a3e; --amber-soft:rgba(234,192,106,.14);
+  --past:#71d1a2; --present:#dc9070;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --gothic:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:light){
+  :root{--bg:#ece3cf;--panel:#f6efdf;--ink:#2a2417;--dim:#6d6450;--line:#d6c8a6;
+    --amber:#976415;--amber-deep:#7d520f;--amber-soft:rgba(151,100,21,.12);--past:#2c8a5e;--present:#af5c37;}
+}
+:root[data-theme="dark"]{--bg:#0d1020;--panel:#171d33;--ink:#ece4d2;--dim:#9c96a8;--line:#293052;
+  --amber:#eac06a;--amber-deep:#c99a3e;--amber-soft:rgba(234,192,106,.14);--past:#71d1a2;--present:#dc9070;}
+:root[data-theme="light"]{--bg:#ece3cf;--panel:#f6efdf;--ink:#2a2417;--dim:#6d6450;--line:#d6c8a6;
+  --amber:#976415;--amber-deep:#7d520f;--amber-soft:rgba(151,100,21,.12);--past:#2c8a5e;--present:#af5c37;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:var(--gothic);line-height:1.9;font-size:16px;overflow-x:hidden;}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px 96px;}
+.hero{position:relative;overflow:hidden;background:linear-gradient(#0a0c18 0%,#141a38 55%,#26305c 100%);color:#ece4d2;}
+.hero .heroInner{position:relative;max-width:760px;margin:0 auto;padding:clamp(56px,13vw,110px) 22px clamp(40px,9vw,72px);}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#c9a24e;}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,10vw,62px);line-height:1.15;letter-spacing:.04em;margin:18px 0 4px;text-wrap:balance;text-shadow:0 2px 30px rgba(234,192,106,.25);}
+.hero .reading{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:#9aa6c8;}
+.hero .thesis{font-family:var(--serif);font-size:clamp(16px,4.4vw,21px);line-height:1.95;color:#e2dccf;margin-top:26px;max-width:30em;text-wrap:pretty;}
+.hero .thesis em{color:var(--amber);font-style:normal;}
+section{margin-top:56px;}
+.sec-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--amber-deep);display:flex;align-items:center;gap:12px;}
+.sec-eyebrow::before{content:"";width:26px;height:1px;background:var(--amber-deep);opacity:.7;}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,6.4vw,32px);line-height:1.3;letter-spacing:.02em;margin:14px 0 18px;text-wrap:balance;}
+h3{font-weight:700;font-size:16.5px;letter-spacing:.04em;margin:26px 0 8px;}
+p{margin:0 0 15px;text-wrap:pretty;}
+p.lead{font-family:var(--serif);font-size:18px;}
+strong{color:var(--amber-deep);}
+.dim{color:var(--dim);}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:20px 0;}
+.panel.amber{background:var(--amber-soft);border-color:var(--amber-deep);}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:18px 0;}
+table{border-collapse:collapse;width:100%;min-width:540px;font-size:13px;}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber-deep);text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--dim);line-height:1.7;}
+tr:last-child td{border-bottom:none;}
+td.f{color:var(--ink);font-weight:700;white-space:nowrap;}
+td.h{color:var(--past);font-family:var(--mono);font-size:12px;}
+td.st{font-family:var(--mono);white-space:nowrap;font-size:11px;}
+.beats{counter-reset:bt;display:flex;flex-direction:column;margin:18px 0;}
+.beat2{display:flex;gap:15px;padding:15px 2px;border-bottom:1px solid var(--line);}
+.beat2:last-child{border-bottom:none;}
+.beat2 .n{counter-increment:bt;font-family:var(--mono);font-size:12px;color:var(--amber-deep);flex:0 0 auto;padding-top:3px;}
+.beat2 .n::before{content:"B" counter(bt);}
+.beat2 h4{font-size:15px;margin-bottom:4px;}
+.beat2 p{margin:0;font-size:13.5px;color:var(--dim);}
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:11px;margin:12px 0 4px;}
+ul.clean li{position:relative;padding-left:20px;font-size:14.5px;line-height:1.85;}
+ul.clean li::before{content:"◇";position:absolute;left:0;top:1px;color:var(--amber);font-size:11px;}
+.rule li::before{content:"掟";font-size:10px;top:4px;color:var(--present);}
+.kicker{font-family:var(--serif);font-style:italic;font-size:17px;line-height:2;padding:6px 0 0;}
+hr.soft{border:none;border-top:1px solid var(--line);margin:40px 0 0;}
+.foot{margin-top:34px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--dim);line-height:1.9;}
+#tt{position:fixed;top:12px;right:12px;z-index:9;font-family:var(--mono);font-size:11px;background:rgba(20,24,44,.6);color:#e8e2d4;border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:7px 13px;cursor:pointer;backdrop-filter:blur(6px);}
+:root[data-theme="light"] #tt{background:rgba(255,255,255,.5);color:#2a2417;border-color:rgba(0,0,0,.16);}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<button id="tt">☾ / ☀</button>
+
+<header class="hero">
+  <div class="heroInner">
+    <div class="eyebrow">物語設定書 v1.0 — 構成確定版</div>
+    <h1>剣と魔法の国</h1>
+    <div class="reading">表題 ／ 真題『帰り道』は、終章ではじめて現れる</div>
+    <p class="thesis">最後の30分まで、これは<em>ただの懐かしいRPG</em>である。<br>そう信じさせ切ることに、すべてを賭ける。</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="sec-eyebrow">基本原則</div>
+  <h2>ひっくり返る構成</h2>
+  <p class="lead">プレイヤーが遊ぶのは、1987年にPC-8801で発売されていたかのような、<strong>正統派の剣と魔法のRPG</strong>だ。勇者アルスが魔王を討つ。町があり、洞窟があり、スライムがいる。約4時間(+任意サブクエスト2時間)、それ以上でも以下でもない。</p>
+  <p>だが終盤、プレイヤーの胸に小さなざわめきが積もっていく——<em class="dim">「この世界、どこかで知っている気がする」</em>。そして魔王を倒した直後、<strong>ラスト30分で世界が反転する</strong>。画面は砂嵐に呑まれ、目覚めるとそこは2026年、麻布台の高層の一室。窓の外には東京タワー。ファンタジーだと思っていた4時間は、<strong>老人がかつて生きた、本当の記憶の翻訳</strong>だった。</p>
+  <div class="panel amber">
+    <p style="margin:0"><strong>遅延タイトルドロップ。</strong>起動時に出るのはレトロゲーム然とした表題『剣と魔法の国』。反転の瞬間(B2)、写実の東京の空に、真のタイトル<strong>『帰り道』</strong>が初めて表示される。タイトル画面そのものが伏線であり、ご褒美になる。</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">構造</div>
+  <h2>三層の設計</h2>
+  <div class="tw"><table>
+    <tr><th>層</th><th>中身</th><th>プレイヤーに見える時期</th></tr>
+    <tr><td class="f">表の物語</td><td>勇者アルスが黄昏れゆくリーメン地方を旅し、魔王クロガネを討つ。純度100%のレトロファンタジー</td><td>序章〜第三章(常時)</td></tr>
+    <tr><td class="f">継ぎ目</td><td>「ほのめかし」——気のせいで済む違和感を、章が進むごとに強度を上げて注入</td><td>気づく人だけ、途中から</td></tr>
+    <tr><td class="f">裏の真実</td><td>この世界は1987年の夏の記憶の翻訳。2026年の老人・麻布台・東京タワー・多摩川の町</td><td><strong>ラスト30分のみ</strong></td></tr>
+  </table></div>
+  <p class="dim" style="font-size:14px">これまで作った視覚資産の再配置: PC-88見下ろし画面=本編(9割)。写実の夕暮れ・にじみ演出=<strong>終章専用</strong>。反転までは写実画面を一切見せない(夢のフラッシュ0.3秒を除く)。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">表現ルール</div>
+  <h2>過去編の掟 — 現実を想起させない</h2>
+  <ul class="clean rule">
+    <li><strong>現実の固有名詞・現代ガジェットは出さない。</strong>電話・ビデオ・定規・腹巻・都市伝説の名前(人面犬/花子さん等)は表の層では全面禁止。</li>
+    <li><strong>対応は「構造」で仕込み、「言葉」では言わない。</strong>祠の位置・儀式の手順・建物の形が現実と同型であればよい。名前はファンタジーに徹する。</li>
+    <li><strong>ほのめかしは1章に2〜3個まで。</strong>多いと安っぽくなる。すべて「気のせい」で流せる強度に留める。</li>
+    <li><strong>違和感の方向は「不気味」ではなく「懐かしい」。</strong>ホラーの文法(世界の綻び)ではなく、既視感の文法(胸の奥が温かくざわつく)で。</li>
+    <li><strong>開示後に二度目の意味を持つこと。</strong>すべての表の要素は、反転後に読み返すと裏の意味が立ち上がるよう二重に書く(図鑑・本の題・NPC台詞)。</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-eyebrow">命名の二重台帳</div>
+  <h2>表の名前と、裏の正体</h2>
+  <p>作り手用の鍵。<strong>右列はゲーム内ではラスト30分まで一切明示しない。</strong>開示後、図鑑や再訪の「にじみ」で静かに追記される。</p>
+  <div class="tw"><table>
+    <tr><th>表(ゲーム内の名前)</th><th>裏(正体 · 開示後)</th><th>備考</th></tr>
+    <tr><td class="f">こだまの祠</td><td class="h">公衆電話(撤去済)</td><td>白銅貨を捧げ、ほら貝で村の母へ声を届ける=セーブ。国中に5つ</td></tr>
+    <tr><td class="f">かたりべ座</td><td class="h">レンタルビデオ店</td><td>語り部が「他人の冒険譚」を貸す小屋。返し忘れの咎も</td></tr>
+    <tr><td class="f">竜骨の野原</td><td class="h">土管の空き地</td><td>巨竜の骨の中に秘密基地。表の時点で完全にファンタジー</td></tr>
+    <tr><td class="f">湯の村</td><td class="h">銭湯(廃業)</td><td>山の湯治場。壁に霊峰の絵</td></tr>
+    <tr><td class="f">魔導書院</td><td class="h">駅前の書店</td><td>呪文は本で覚える。題が妙に暮らしくさい(=ほのめかし)</td></tr>
+    <tr><td class="f">からくり遊技場</td><td class="h">ゲームセンター</td><td>点数板に消えない三文字「ＡＲＳ」</td></tr>
+    <tr><td class="f">天空の塔</td><td class="h">団地の給水塔(解体予定)</td><td>封印された最終目的地</td></tr>
+    <tr><td class="f">切通しの門</td><td class="h">開かずの踏切</td><td>山脈の唯一の口。縞模様の遮断桿</td></tr>
+    <tr><td class="f">坂の寺町</td><td class="h">麻布台の坂の町(再開発前)</td><td>祖父の家。2026年、主人公はその跡地の天空都市に住む</td></tr>
+    <tr><td class="f">赤の大灯台</td><td class="h">東京タワー(不変)</td><td>両時代で唯一同じ場所に立つ。地図を重ねる基準点</td></tr>
+    <tr><td class="f">魔王城</td><td class="h">川向こうの工場(閉鎖)</td><td>三本の尖塔=煙突。序盤から見えるが渡れない</td></tr>
+    <tr><td class="f">やくそくの木剣</td><td class="h">幼なじみと交わした木剣</td><td>最強武器。伝説の剣の正体</td></tr>
+    <tr><td class="f">毛糸の胴着／ひかりの羽織</td><td class="h">母の腹巻／祖父の綿入れ半纏</td><td>「だれかの手編み」の風合いだけ残す</td></tr>
+    <tr><td class="f">かがみの盾</td><td class="h">銭湯の三面鏡</td><td>まじょの呪文を跳ね返す</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">継ぎ目の設計</div>
+  <h2>ほのめかし — 11の種</h2>
+  <p>三段階で強度を上げる。<strong>第一段階は誰も気づかなくていい。</strong>二周目に全部見えることが目標。</p>
+  <div class="tw"><table>
+    <tr><th>段階</th><th>#</th><th>ほのめかし</th></tr>
+    <tr><td class="st" rowspan="4">Ⅰ 序〜一章<br>(気のせい)</td>
+      <td class="st">1</td><td>魔導書院の本の題が妙に暮らしくさい——『雷のしくみ(図解つき)』『よくねむるための書』</td></tr>
+    <tr><td class="st">2</td><td>こだまの祠の母の声に、一瞬だけ世界観とずれた言葉が混じる——「……ごはん、ちゃんとたべてる?」</td></tr>
+    <tr><td class="st">3</td><td>吟遊詩人の歌う「勇者の伝説」の歌詞が、聞くたび少しずつ違う</td></tr>
+    <tr><td class="st">4</td><td>赤の大灯台だけ、誰に聞いても「いつからあるのか分からない」と答える</td></tr>
+    <tr><td class="st" rowspan="4">Ⅱ 二章<br>(違和感が形に)</td>
+      <td class="st">5</td><td>宿で眠ると、見たことのない風景が0.3秒だけ閃く(写実の赤い鉄塔→砂嵐)。朝には忘れている</td></tr>
+    <tr><td class="st">6</td><td>かたりべ座の演目が、どれも「未来の話」めいている——空飛ぶ鉄の箱、遠くの人と話せる小箱</td></tr>
+    <tr><td class="st">7</td><td>図鑑のある敵のページに、主人公が勝手に書き込んでいる——「どこかで あったきがする」</td></tr>
+    <tr><td class="st">8</td><td>NPCが時々、主人公を別の名前で呼びかけて、言い直す——「おや、シン……いや、アルスさま」</td></tr>
+    <tr><td class="st" rowspan="3">Ⅲ 三章<br>(確信へ)</td>
+      <td class="st">9</td><td>魔王城の回廊の壁画に「勇者の旅」が描かれている——自分の旅と完全に一致し、最後の一枚だけが<em>「老人が塔を見上げる絵」</em></td></tr>
+    <tr><td class="st">10</td><td>雷鳴竜を倒しても、山脈の向こうから規則正しい轟音が、一定の間隔で続いている</td></tr>
+    <tr><td class="st">11</td><td>魔王クロガネの前口上——「おまえは まだ、ここが どこか おもいださないのか」</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">章構成</div>
+  <h2>本編4時間 — 純レトロRPG</h2>
+  <div class="tw"><table>
+    <tr><th>章</th><th>時間</th><th>表の物語</th><th>ほのめかし</th></tr>
+    <tr><td class="f">序章</td><td class="st">0:00–0:25</td><td>村を発ち、祠と石橋を越えて城下町リーメンへ。王命: 「魔王クロガネを討て」</td><td class="st">#1–2</td></tr>
+    <tr><td class="f">第一章</td><td class="st">0:25–1:25</td><td>装備を整え、湯の村・練兵場・くらやみの洞窟。祭壇の光る石と最初の違和感</td><td class="st">#3–4</td></tr>
+    <tr><td class="f">第二章</td><td class="st">1:25–2:40</td><td>迷いの森の神殿で予言。闘技場・関所跡の番人がいこつ。伝説のほころびが見えはじめる</td><td class="st">#5–8</td></tr>
+    <tr><td class="f">第三章</td><td class="st">2:40–3:30</td><td>中州の祠で「そらのカギ」。雷鳴竜を破り切通しの門を越え、桟道を渡って魔王城へ</td><td class="st">#9–11</td></tr>
+    <tr><td class="f">終章</td><td class="st">3:30–4:00</td><td><strong>反転。</strong>下記「ラスト30分」</td><td class="st">全開示</td></tr>
+  </table></div>
+  <p class="dim" style="font-size:14px">サブクエストSQ1〜6(約2時間)は二章以降に段階解禁。すべて表の層ではファンタジーの依頼として現れ、裏の意味は終章で立ち上がる(データ設計書参照)。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">クライマックス</div>
+  <h2>ラスト30分 — 反転と帰り道</h2>
+  <div class="beats">
+    <div class="beat2"><span class="n"></span><div><h4>魔王を討つ</h4>
+      <p>クロガネは倒れながら告げる——「この国が なぜ 黄昏れてゆくか、しりたくないか。……この世界は、おまえの<em>わすれたくない一日</em>で 織られている」。画面が砂嵐に呑まれる。</p></div></div>
+    <div class="beat2"><span class="n"></span><div><h4>目覚め — 真のタイトル</h4>
+      <p>写実の画面。2026年、麻布台の高層の一室で老人が目を覚ます。窓の外に夕暮れの東京タワー。卓上には古いパソコンと、色褪せたゲームのパッケージ『剣と魔法の国』。ここで初めて真題<strong>『帰り道』</strong>が表示される。</p></div></div>
+    <div class="beat2"><span class="n"></span><div><h4>帰り道 — 現実の再訪</h4>
+      <p>老人は電車に乗り、40年ぶりに多摩川の町へ。写実の町を歩くと、要所で「にじみ」が起きて<em>あの世界</em>が重なる——撤去された公衆電話の跡にこだまの祠が。マンションになった空き地に竜骨が。閉店したビデオ店の看板に、かたりべ座の幕が。二重台帳がここで一気に開示される。</p></div></div>
+    <div class="beat2"><span class="n"></span><div><h4>基準点</h4>
+      <p>遠くに東京タワーが見える。あの世界の赤の大灯台と、寸分たがわず同じ姿——<em>変わらないものが一つだけあるから、変わったものすべての位置が分かる。</em>二つの地図が、頭の中で重なる。</p></div></div>
+    <div class="beat2"><span class="n"></span><div><h4>天空の塔</h4>
+      <p>解体予定の囲いに包まれた団地の給水塔の前へ。最後のにじみで扉が開き、塔の最上階=記憶の核心へ。1987年の夏、本当にあったこと——何を失い、なぜこの世界を織ったのか。【弔】【真】【郷】の三つの気づきが、一本に結ばれる。</p></div></div>
+    <div class="beat2"><span class="n"></span><div><h4>エピローグ — 継承</h4>
+      <p>祖父の日記(SQ6)が明かす——この「器」を作ったのは自分が最初ではない。老人は机に向かい、記憶を次の器に写しはじめる。<em>その器こそ、いまプレイヤーが手にしているこのゲームだ。</em>メタはこの一点だけ。SQの達成度でエピローグが豊かになる(母の声・幼なじみのその後・完全版の歌)。</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-eyebrow">敵と図鑑</div>
+  <h2>魔物は魔物のまま</h2>
+  <p>敵は全編、<strong>正統派ファンタジーの魔物</strong>(スライム・こうもり・やまいぬ・がいこつ・まじょ・ゴーレム・竜)。都市伝説的な名前は表の層から排除した。ただし図鑑には<strong>裏テキスト欄</strong>が隠されており、終章の開示後に静かに追記される——<em class="dim">「みかづきのまじょ……夕暮れの帰り道、マスクの女のうわさに おびえていた」</em>。魔物たちは、子供の頃こわかったものの翻訳だった、という二度目の読みが立ち上がる。</p>
+  <p class="kicker">魔王クロガネの正体は、単一の何かではない——<br>工場の火と煙、そして<strong>「あの夏を終わらせたものすべて」</strong>。討った後にだけ、それが分かる。</p>
+</section>
+
+<section>
+  <div class="sec-eyebrow">確定事項の台帳</div>
+  <h2>これまでに決めたこと</h2>
+  <ul class="clean">
+    <li><strong>画面:</strong> 本編=PC-8801風の見下ろし2D(8色+ディザ)。終章=写実+にじみ。フィールドと戦闘は分離、戦闘はコマンド式+AUTO</li>
+    <li><strong>マップ:</strong> DQ1規模(120×120)。拠点22。海=子供の行動範囲の果て。魔王城は見えるのに渡れない島</li>
+    <li><strong>ボリューム:</strong> 本編約4時間+サブクエスト約2時間。稼ぎ最小の設計5原則(装備と気づきが成長の主軸)</li>
+    <li><strong>データ量:</strong> 呪文10・武器7・鎧7・盾3・敵40種(DQ1水準)</li>
+    <li><strong>構成:</strong> ラスト30分まで純レトロRPG→反転→現実の再訪→給水塔→継承エンド。ほのめかし11種を三段階で</li>
+    <li><strong>実行環境:</strong> 1ファイルHTML(スマホ縦持ち)。バックエンド不要。配信はArtifact/GitHub Pages</li>
+  </ul>
+</section>
+
+<hr class="soft">
+<p class="foot">
+  剣と魔法の国 ／ 帰り道 — 物語設定書 v1.0(構成確定版)<br>
+  対をなす資料: 全体マップ v0.3 ／ データ設計書 v0.2 ／ ビジュアルスタディ3種(PC-88・写実・にじみ)<br>
+  次工程: 本編プロトタイプ(序章の縦スライス)の実装
+</p>
+</div>
+
+<script>
+(function(){var root=document.documentElement,btn=document.getElementById('tt');
+btn.addEventListener('click',function(){var cur=root.getAttribute('data-theme');
+if(!cur){cur=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+root.setAttribute('data-theme',cur==='dark'?'light':'dark');});})();
+</script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>過去パート 全体マップ — リーメン地方 (設計図 v0.2 · DQ1規模)</title>
+<style>
+:root{
+  --bg:#0b0c14; --panel:#12131f; --ink:#ece7db; --dim:#8f8ba0; --line:#262838; --amber:#ecc069; --past:#7fe0b0;
+  --c0:#7fe0b0; --c1:#5aa9e6; --c2:#b58ae0; --c3:#e06060; --c4:#ecc069; --cx:#8f8ba0;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:radial-gradient(ellipse at 50% -10%,#1a1c2e,#0b0c14 60%);color:var(--ink);
+  font-family:var(--goth);min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:22px 14px 60px;}
+.head{max-width:560px;text-align:center;margin-bottom:14px;}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;color:var(--amber);text-transform:uppercase;}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.5vw,30px);letter-spacing:.06em;margin:8px 0 6px;}
+.head p{font-size:13px;color:var(--dim);line-height:1.8;}
+.mapwrap{position:relative;width:min(94vw,560px);border-radius:14px;overflow:hidden;
+  box-shadow:0 24px 60px -20px #000,0 0 0 2px #23252f;background:#000;}
+.mapwrap canvas{display:block;width:100%;height:auto;}
+#ov{position:absolute;inset:0;transition:opacity .3s;}
+.mapwrap .hint{position:absolute;right:10px;bottom:8px;font-family:var(--mono);font-size:9.5px;color:rgba(236,231,219,.5);letter-spacing:.1em;}
+.toggles{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center;}
+.tg{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:9px 15px;border-radius:99px;background:var(--panel);
+  border:1px solid var(--line);color:var(--dim);cursor:pointer;}
+.tg.on{border-color:var(--amber);color:var(--amber);background:rgba(236,192,105,.08);}
+.tl{width:min(94vw,560px);margin-top:26px;}
+.tl h2{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--amber);margin-bottom:10px;}
+.tlbar{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+.tlbar div{padding:8px 2px;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:#0d0e16;font-weight:700;}
+.tlnote{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:5px;letter-spacing:.06em;}
+.legend{width:min(94vw,560px);margin-top:22px;display:flex;flex-direction:column;gap:8px;}
+.spot{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;align-items:flex-start;}
+.spot .chip{flex:0 0 30px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:14px;color:#0d0e16;margin-top:2px;}
+.spot .bd{flex:1;min-width:0;}
+.spot .nm{font-size:14.5px;font-weight:700;letter-spacing:.02em;}
+.spot .map2{font-family:var(--mono);font-size:11px;color:var(--past);margin:2px 0 4px;letter-spacing:.04em;}
+.spot .map2 b{color:#e79a72;font-weight:700;}
+.spot .nt{font-size:12.5px;color:var(--dim);line-height:1.75;}
+.spot .ch{flex:0 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 9px;border-radius:99px;margin-top:4px;}
+.notes{width:min(94vw,560px);margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:13px;color:var(--dim);line-height:1.9;}
+.notes h3{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--amber);margin-bottom:8px;font-weight:700;}
+.notes b{color:var(--ink);}
+.notes em{color:var(--amber);font-style:normal;}
+.notes ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.notes li{position:relative;padding-left:18px;}
+.notes li::before{content:"◇";position:absolute;left:0;color:var(--amber);font-size:10px;top:2px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="eyebrow">剣と魔法の国 — World Map v0.2</div>
+  <h1>リーメン地方 全体図</h1>
+  <p>DQ1と同規模の 120×120 タイル。海は「子供の行動範囲の果て」。<br>地形はすべて2026年の町の"翻訳"。番号は下の対応表へ。</p>
+</div>
+
+<div class="mapwrap">
+  <canvas id="map" width="1080" height="1080"></canvas>
+  <canvas id="ov" width="1080" height="1080"></canvas>
+  <div class="hint">PINCH ZOOM OK</div>
+</div>
+<div class="toggles">
+  <button class="tg on" id="tgMark">番号</button>
+  <button class="tg on" id="tgRoute">章ルート</button>
+</div>
+
+<div class="tl">
+  <h2>約4時間の配分</h2>
+  <div class="tlbar">
+    <div style="flex:25;background:var(--c0)">序章</div>
+    <div style="flex:60;background:var(--c1)">第一章</div>
+    <div style="flex:75;background:var(--c2)">第二章</div>
+    <div style="flex:50;background:var(--c3)">第三章</div>
+    <div style="flex:30;background:var(--c4)">終章·再訪</div>
+  </div>
+  <div class="tlnote"><span>0:00</span><span>0:25</span><span>1:25</span><span>2:40</span><span>3:30</span><span>4:00</span></div>
+  <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.06em">+ 任意サブクエスト SQ1〜SQ6 約2時間(灰色の拠点) — 詳細はデータ設計書へ</div>
+</div>
+
+<div class="notes">
+  <h3>稼ぎ最小の設計原則</h3>
+  <ul>
+    <li><b>強さの主軸は装備と気づき。</b>店の買い替え(4·7·9)、宝箱、まれなドロップが成長の8割。レベル必要EXPは「章のルート戦闘だけで足りる」曲線に調整し、DQ1中盤のような稼ぎ区間を作らない。</li>
+    <li><b>気づき=恒久成長。</b>各章の再解釈イベントはステータス上昇+新ルート解放を兼ねる。<em>探索と物語がそのまま成長</em>になる。</li>
+    <li><b>地形で危険が読める。</b>沼(造成地)と深い森は高危険・高報酬。避けて進めば低リスク——寄るかどうかはプレイヤーの選択。</li>
+    <li><b>境界がレベルゲート。</b>石橋(3)→関所(13)→切通しの門(16)の順に敵が強くなる。門の前に立てば「まだ早い」が肌で分かる。</li>
+    <li><b>再走の負担を消す。</b>「かえりのつばさ」で拠点帰還、全滅ペナルティは軽微。終章の再訪(徒歩)だけは演出として歩かせる——そこはもう敵が出ない。</li>
+  </ul>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div class="notes">
+  <b>凡例の「↔ 2026」は作り手用の鍵。</b>ゲームはラスト30分まで純粋なレトロファンタジーRPGとして進み、<em>この対応は終章の反転まで一切明かされない</em>。表の層に現実を想起させる名前・物品は出さない(物語設定書 v1.0 の表現ルール参照)。<br><br>
+  <b>終章「反転と帰り道」。</b>魔王を討った直後に世界が反転し(残り30分)、写実の2026年へ。老人は多摩川の町を再訪し、<em>同じ道をもう一度歩く</em>。すべての場所でにじみが起き、この地図の風景が現実に重なる。最後に 5 天空の塔(給水塔)の扉が開く。<br><br>
+  <b>消えたものたち。</b>この世界の「黄昏」の実体は、30年のあいだに消えたものたちだ。反転後の再訪でそれらの場所に立つと、<em>消えた側の風景</em>が2026年に重なる。そして 19 赤の大灯台(東京タワー)だけは、両方の時代で同じ場所に立ち続ける——二つの地図を重ねる、記憶の基準点。<br><br>
+  <b>海=世界の果て。</b>この大陸の形は「自転車で行けた範囲」。海の向こうは描かれない——子供の世界はここまでで、だからこそ中は無限に深かった。
+</div>
+
+<script>
+"use strict";
+/* =========================================================
+ *  ピクセルマップ (120×120タイル · 6px/タイル · PC-88 8色)
+ * ========================================================= */
+const GW=120,GH=120,TS=6;
+const PW=GW*TS,PH=GH*TS;      // 720×720
+const mapCv=document.getElementById("map"),mx=mapCv.getContext("2d");
+const pix=document.createElement("canvas");pix.width=PW;pix.height=PH;
+const pc=pix.getContext("2d");
+const pimg=pc.createImageData(PW,PH);
+const buf=new Uint32Array(pimg.data.buffer);
+const PALc=[[18,20,44],[46,74,170],[120,178,236],[232,226,196],[40,116,58],[122,196,74],[178,120,50],[214,74,58]];
+const PAL=PALc.map(c=>(255<<24)|(c[2]<<16)|(c[1]<<8)|c[0]);
+const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function ps(x,y,ci){x|=0;y|=0;if(x<0||y<0||x>=PW||y>=PH)return;buf[y*PW+x]=PAL[ci];}
+function pr(ci,x,y,w,h){x|=0;y|=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)ps(x+i,y+j,ci);}
+function pd(x,y,t,a,b){const th=(BAYER[(y&3)*4+(x&3)]+0.5)/16;ps(x,y,t>th?b:a);}
+function pdr(x,y,w,h,t,a,b){for(let j=0;j<h;j++)for(let i=0;i<w;i++)pd(x+i,y+j,t,a,b);}
+function hsh(a,b){return(((a*73856093)^(b*19349663))>>>0);}
+
+/* ---- 地形グリッド ---- */
+const G=Array.from({length:GH},()=>Array(GW).fill("O"));   // O=海
+function set(ch,x,y){if(x>=0&&y>=0&&x<GW&&y<GH)G[y][x]=ch;}
+function blob(ch,cx,cy,rx,ry,keep){
+  for(let j=-ry-1;j<=ry+1;j++)for(let i=-rx-1;i<=rx+1;i++){
+    const d=(i*i)/(rx*rx)+(j*j)/(ry*ry);
+    if(d<=1+((hsh(cx*7+i,cy*11+j)%20)-10)/55){
+      const x=cx+i,y=cy+j;
+      if(keep&&G[y]&&keep.includes(G[y][x]))continue;
+      set(ch,x,y);
+    }
+  }
+}
+// --- 大陸(海岸線: 低周波サインの重ね合わせ = 湾と岬) ---
+for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
+  const dx=(x-60)/57,dy=(y-60)/57;
+  const th=Math.atan2(dy,dx),r=Math.sqrt(dx*dx+dy*dy);
+  const edge=0.84+0.10*Math.sin(th*3+1.2)+0.06*Math.sin(th*7+0.4)+0.045*Math.sin(th*13+2.2);
+  if(r<edge)G[y][x]=".";
+}
+// 湾を彫る
+blob("O",8,88,10,8);blob("O",112,34,9,7);blob("O",64,114,13,6);blob("O",12,20,8,6);
+// --- 丘と山 ---
+// 北の山脈=線路(切通しの門 x68..71 が唯一の口)
+for(let x=10;x<106;x++){if(x>=68&&x<=71)continue;
+  for(let y=16;y<20;y++)if(G[y][x]===".")G[y][x]="m";
+  if(hsh(x,1)%3===0&&G[15][x]===".")G[15][x]="h";
+  if(hsh(x,2)%3===1&&G[20][x]===".")G[20][x]="h";}
+// 西の丘陵(多摩丘陵)
+blob("m",16,56,5,9);blob("m",14,70,4,7);blob("m",20,64,3,5);
+blob("h",22,52,4,4);blob("h",20,74,4,4);blob("h",25,63,3,6);
+// 南東・点在
+blob("m",104,78,4,5);blob("h",100,72,4,4);blob("h",44,90,4,3);blob("h",84,26,4,3);
+// 東の岬(坂の寺町と赤の大灯台)
+blob("h",106,58,4,3);blob("h",100,64,3,2);
+// --- 森 ---
+blob("f",92,98,13,9);blob("f",82,92,6,5);blob("f",102,92,5,5);   // 迷いの森
+blob("f",46,74,5,4);blob("f",64,76,5,4);                          // 村のまわり
+blob("f",42,32,6,4);blob("f",68,38,5,3);                          // リーメン近郊
+blob("f",28,32,5,4);blob("f",34,24,4,3);                          // 湯の村の杜
+blob("f",30,64,5,5);blob("f",36,56,4,3);                          // 西の森(洞窟へ)
+blob("f",88,58,5,4);blob("f",50,92,6,4);blob("f",76,80,4,3);
+blob("f",24,12,6,3);blob("f",92,22,5,3);                          // 山脈の向こう
+// --- 魔王城の島(北東沖) ---
+blob(".",96,10,9,6);
+// --- 沼(造成地) ---
+blob("p",90,12,5,3);blob("p",97,13,4,3);                          // 魔王城の前
+blob("p",78,62,4,3);blob("p",56,88,3,2);
+// --- 砂漠(砂利採取場跡) ---
+blob("s",31,87,8,6);blob("s",38,82,4,3);
+// --- 川(多摩川) 西岸→東岸 ---
+const riverC=x=>50+Math.round(3*Math.sin((x-55)*0.10)+2*Math.sin(x*0.23));
+let x0r=0;while(x0r<GW&&G[riverC(x0r)][x0r]==="O")x0r++;
+let x1r=GW-1;while(x1r>0&&G[riverC(x1r)][x1r]==="O")x1r--;
+for(let x=x0r-2;x<=x1r+2;x++){
+  const c=riverC(x);
+  const wide=(x>=79&&x<=89)?4:2;
+  for(let dy=-wide;dy<=wide;dy++)set("w",x,c+dy);
+}
+// 中州(x81..87)
+for(let x=81;x<=87;x++){const c=riverC(x);set(".",x,c);if(x>81&&x<87)set(".",x,c-1);}
+// --- 街道(目抜きの一本道のみ · DQ流にその他は道なし) ---
+function road(pts){
+  for(let k=0;k<pts.length-1;k++){
+    let[a,b]=pts[k],[c,d]=pts[k+1];
+    const rd=(x,y)=>{const t=G[y][x];G[y][x]=(t==="w"||t==="O")?"b":"r";};
+    while(a!==c){rd(a,b);a+=Math.sign(c-a);}
+    while(b!==d){rd(a,b);b+=Math.sign(d-b);}
+    rd(c,d);
+  }
+}
+// 敷地ならし
+for(let y=28;y<=35;y++)for(let x=49;x<=62;x++)G[y][x]=".";
+for(let y=75;y<=81;y++)for(let x=51;x<=59;x++)G[y][x]=".";
+road([[55,81],[55,29]]);                 // 村→祠→橋→リーメン
+road([[55,28],[55,26]]);                 // リーメン→塔
+road([[78,15],[84,15],[84,11],[91,11]]); // 魔王城への専用桟道(工場の連絡橋)
+
+/* ---- 地形描画 ---- */
+function drawTerrain(){
+  const at=(x,y)=>(G[y]&&G[y][x])||"O";
+  const waterish=c=>c==="O"||c==="w";
+  for(let ty=0;ty<GH;ty++)for(let tx=0;tx<GW;tx++){
+    const ch=G[ty][tx],px=tx*TS,py=ty*TS,h=hsh(tx,ty);
+    if(ch==="O"||ch==="w"){
+      pdr(px,py,TS,TS,0.5,1,1);
+      const nearLand=!waterish(at(tx-1,ty))||!waterish(at(tx+1,ty))||!waterish(at(tx,ty-1))||!waterish(at(tx,ty+1));
+      if(nearLand)pdr(px,py,TS,TS,0.35,1,2);
+      else if(h%9===0)pr(2,px+1+h%3,py+2+(h>>3)%3,2,1);
+    }else if(ch==="."){
+      pdr(px,py,TS,TS,0.30,4,5);
+      if(h%11===0)pr(4,px+1+h%3,py+2+(h>>3)%3,2,1);
+      if(h%37===5)ps(px+2,py+2,3);
+    }else if(ch==="f"){
+      pdr(px,py,TS,TS,0.45,0,4);
+      const sm=(a,b)=>at(a,b)==="f";
+      if(!sm(tx-1,ty))for(let j=0;j<TS;j++)ps(px,py+j,0);
+      if(!sm(tx+1,ty))for(let j=0;j<TS;j++)ps(px+TS-1,py+j,0);
+      if(!sm(tx,ty-1)){for(let i=0;i<TS;i++)ps(px+i,py,0);}
+      if(!sm(tx,ty+1))for(let i=0;i<TS;i++)ps(px+i,py+TS-1,0);
+      if(h%4===0)pr(5,px+1+h%3,py+1+(h>>4)%3,2,1);
+    }else if(ch==="h"){
+      pdr(px,py,TS,TS,0.42,4,6);
+      pr(0,px+1,py+TS-2,TS-2,1);pr(5,px+2,py+1,2,1);
+    }else if(ch==="m"){
+      pdr(px,py,TS,TS,0.5,6,0);
+      const sm=(a,b)=>at(a,b)==="m";
+      if(!sm(tx,ty-1)){for(let i=0;i<TS;i++)ps(px+i,py,3);}
+      if(!sm(tx,ty+1))for(let i=0;i<TS;i++)ps(px+i,py+TS-1,0);
+      if(h%6===0)pr(3,px+2,py+2,2,1);
+    }else if(ch==="p"){
+      pdr(px,py,TS,TS,0.5,1,7);                            // 赤×青ディザ=毒の沼の紫
+      if(h%3===0)pr(0,px+1+h%3,py+1+(h>>3)%3,2,1);
+    }else if(ch==="s"){
+      pdr(px,py,TS,TS,0.22,3,6);
+      if(h%7===0)pr(6,px+1+h%3,py+2,2,1);
+    }else if(ch==="r"){
+      pdr(px,py,TS,TS,0.72,0,6);
+    }else if(ch==="b"){
+      pr(6,px,py,TS,TS);pr(0,px,py+1,TS,1);pr(0,px,py+4,TS,1);ps(px,py+2,3);
+    }
+  }
+  // 海岸の縁取り
+  for(let ty=0;ty<GH;ty++)for(let tx=0;tx<GW;tx++){
+    const c=at(tx,ty);if(c==="O"||c==="w")continue;
+    const px=tx*TS,py=ty*TS;
+    if(waterish(at(tx-1,ty)))for(let j=0;j<TS;j++)ps(px,py+j,0);
+    if(waterish(at(tx+1,ty)))for(let j=0;j<TS;j++)ps(px+TS-1,py+j,0);
+    if(waterish(at(tx,ty-1)))for(let i=0;i<TS;i++)ps(px+i,py,0);
+    if(waterish(at(tx,ty+1)))for(let i=0;i<TS;i++)ps(px+i,py+TS-1,0);
+  }
+}
+
+/* ---- 拠点アイコン ---- */
+const T=(tx,ty)=>[Math.round(tx*TS),Math.round(ty*TS)];
+function house(px,py,roof){pr(0,px-1,py-1,9,7);pr(roof,px,py,7,2);pr(3,px,py+2,7,3);pr(0,px+3,py+3,1,2);}
+function drawCastleTown(){
+  const[x0,y0]=T(50,28.5),W2=12*TS,H2=6.5*TS;
+  pdr(x0+2,y0+2,W2-4,H2-4,0.3,0,1);
+  for(const[wx,wy,ww,wh]of[[x0,y0,W2,3],[x0,y0+H2-3,W2,3],[x0,y0,3,H2],[x0+W2-3,y0,3,H2]])
+    {pdr(wx,wy,ww,wh,0.5,6,3);}
+  pr(0,x0,y0,W2,1);pr(0,x0,y0+H2-1,W2,1);
+  for(let x=x0;x<x0+W2;x+=6)pr(0,x,y0,2,1);
+  pr(0,55*TS-1,y0+H2-4,TS+2,4);pr(1,55*TS,y0+H2-3,TS,3);       // 南門
+  house(x0+8,y0+8,7);house(x0+22,y0+6,6);house(x0+52,y0+8,7);house(x0+58,y0+20,6);
+  const kx=x0+34,ky=y0+10;                                       // 金の天守
+  pr(0,kx-1,ky-1,12,15);pdr(kx,ky,10,13,0.3,3,6);pr(3,kx,ky,10,1);pr(7,kx+3,ky-4,3,3);
+}
+function drawTower(){ // 給水塔
+  const[px,py]=T(55,23.2);
+  pr(0,px-2,py+14,10,2);
+  pr(0,px,py+4,6,11);pdr(px+1,py+5,4,9,0.45,1,2);pr(3,px+1,py+5,1,9);
+  pr(0,px-3,py-2,12,8);pdr(px-2,py-1,10,6,0.35,2,3);pr(3,px-2,py-1,10,2);
+  ps(px+2,py-4,7);
+}
+function drawFactory(){
+  const[x0,y0]=T(93,6.5);const W2=9*TS,H2=4.5*TS;
+  pr(0,x0-2,y0-2,W2+4,H2+4);pdr(x0,y0,W2,H2,0.72,0,1);pr(0,x0,y0,W2,1);
+  for(let x=x0+4;x<x0+W2-4;x+=8){pr(0,x,y0+8,3,6);pr(7,x+1,y0+10,1,2);}
+  for(const cx of[x0+7,x0+26,x0+44]){
+    pr(0,cx-1,y0-13,6,15);pdr(cx,y0-12,4,13,0.5,0,1);pr(7,cx,y0-14,4,2);
+    pdr(cx-3,y0-19,5,3,0.35,0,1);
+  }
+  pr(1,x0+W2/2-3,y0+H2-6,6,6);
+}
+function drawTemple(){
+  const[px,py]=T(90.5,96);
+  pdr(px-5,py-4,28,18,0.3,4,5);pr(0,px-6,py-5,30,1);pr(0,px-6,py+14,30,1);
+  pr(0,px-2,py-2,20,12);pr(3,px,py,16,2);
+  for(const cx of[px+1,px+7,px+13])pr(3,cx,py+3,2,6);
+  pdr(px,py+9,16,2,0.5,0,6);pr(7,px+7,py+4,2,4);
+}
+function drawArena(){
+  const[ax,ay]=T(69,58);
+  for(let a=0;a<48;a++){const th=a/48*6.283;
+    pr(3,ax+Math.round(Math.cos(th)*10),ay+Math.round(Math.sin(th)*6),2,1);}
+  pdr(ax-8,ay-4,16,9,0.55,6,3);
+  ps(ax,ay+3,0);ps(ax-5,ay,0);ps(ax+4,ay,0);ps(ax,ay-3,0);
+}
+function drawSchool(){
+  const[px,py]=T(37,71.5);
+  pdr(px-3,py+5,26,10,0.5,6,3);
+  for(let x=px-4;x<px+23;x+=3)ps(x,py+4,0);
+  pr(0,px-1,py-5,22,11);pr(1,px,py-4,20,3);pr(3,px,py-1,20,6);
+  for(let x=px+2;x<px+18;x+=5)pr(1,x,py+1,2,3);
+  pr(0,px+22,py-9,1,6);pr(7,px+23,py-9,4,3);
+}
+function drawMarket(){
+  const[px,py]=T(70.5,68.5);
+  house(px,py,7);house(px+11,py,3);house(px+4,py+8,6);house(px+15,py+8,7);
+  pr(0,px+24,py+1,1,6);pr(7,px+25,py+1,3,4);
+}
+function drawCave(){
+  const[px,py]=T(20.5,60);
+  pr(0,px-2,py-2,11,10);pdr(px-1,py-1,9,8,0.5,6,0);
+  pr(0,px+1,py+1,5,6);pr(1,px+2,py+6,3,1);
+}
+function drawOnsen(){ // 湯の村(銭湯)
+  const[px,py]=T(29.5,27);
+  house(px,py+2,7);house(px+9,py+2,6);
+  pr(1,px+3,py+9,8,3);pr(2,px+4,py+9,6,1);           // 湯船
+  ps(px+5,py-2,3);ps(px+7,py-4,3);ps(px+9,py-2,3);   // 湯けむり
+}
+function drawLibrary(){ // 魔導書院(書店)
+  const[px,py]=T(77.5,34);
+  pr(0,px-1,py-1,14,12);pr(1,px,py,12,3);pr(3,px,py+3,12,7);
+  pr(0,px+5,py+6,2,4);pr(7,px+2,py+5,2,2);pr(1,px+9,py+5,2,2);  // 本の紋
+}
+function drawTent(){ // 砂の行商人(駄菓子屋)
+  const[px,py]=T(30,86.5);
+  pr(0,px-1,py+5,11,2);
+  for(let j=0;j<6;j++){const w=2+j*1.5;pr(j%2?7:3,px+4-w/2,py+j,w,1);}
+  ps(px+4,py-2,7);
+}
+function drawIslandShrine(){
+  const[px,py]=T(83.5,49.2);
+  pr(0,px,py,5,6);pdr(px+1,py+1,3,4,0.5,1,2);pr(3,px+1,py+1,3,1);pr(7,px+1,py+3,3,2);
+}
+function drawCheckpoint(){
+  const[px,py]=T(55,56.5);
+  pr(0,px-4,py,6,5);pr(6,px-4,py,6,2);pr(3,px-4,py,6,1);
+  pr(0,px+2,py+3,8,1);pr(6,px+3,py+3,6,1);
+}
+function drawPassGate(){ // 切通しの門(踏切)
+  const[px,py]=T(69.5,17);
+  pr(0,px-3,py-4,4,14);pr(6,px-2,py-3,2,12);
+  pr(0,px+8,py-4,4,14);pr(6,px+9,py-3,2,12);
+  pr(7,px+1,py-1,7,2);pr(3,px+2,py-1,2,2);pr(3,px+5,py-1,2,2);  // 縞の遮断機
+}
+function drawVillage(){
+  const[x0,y0]=T(51.5,75.5);
+  house(x0+2,y0+3,7);house(x0+30,y0+2,6);house(x0+2,y0+18,6);house(x0+30,y0+18,7);
+  pr(0,x0+14,y0+9,11,9);pr(2,x0+15,y0+10,9,3);pr(3,x0+15,y0+13,9,4);pr(0,x0+19,y0+14,2,3); // アルスの家(青屋根)
+  for(let j=0;j<6;j+=2)pr(6,x0+34,y0+26+j,14,1);
+  for(let j=1;j<6;j+=2)pr(5,x0+34,y0+26+j,14,1);
+}
+function drawShrineRoad(){
+  const[px,py]=T(56.2,64);
+  pr(0,px,py,5,6);pdr(px+1,py+1,3,4,0.5,1,2);pr(7,px+1,py+3,3,2);
+}
+function drawTeramachi(){ // 坂の寺町(麻布台の坂の町)
+  const[px,py]=T(99,60.5);
+  pdr(px-2,py+8,6,16,0.6,0,6);                                  // 坂の石段
+  house(px+4,py+2,6);house(px+14,py+8,7);house(px+2,py+16,3);house(px+14,py+20,6);
+  pr(0,px+22,py-3,17,13);pdr(px+23,py-2,15,5,0.5,1,2);          // 御堂(甍)
+  pr(3,px+23,py+3,15,6);pr(0,px+29,py+5,3,4);
+}
+function drawRedTower(){ // 赤の大灯台(東京タワー) — 両時代で不変
+  const[px,py]=T(107,53.5);
+  for(let j=0;j<22;j++){
+    const w=2+Math.round(j*0.45);
+    const ci=(j%6<3)?7:3;                                        // 紅白の縞
+    pr(ci,px-Math.floor(w/2),py+j,w,1);
+  }
+  pr(0,px-6,py+22,13,2);                                         // 基部
+  pr(0,px-4,py+8,9,1);pr(3,px-4,py+9,9,1);                       // 展望台
+  pr(3,px,py-2,2,2);ps(px+1,py-3,7);                             // 頂の灯
+}
+function drawMaboroshiZa(){ // まぼろし座(レンタルビデオ店)
+  const[px,py]=T(76.5,66.5);
+  pr(0,px-1,py-1,16,13);pr(1,px,py,14,3);pr(3,px,py+3,14,8);
+  pr(7,px+1,py+2,3,8);ps(px+2,py+4,3);ps(px+2,py+6,3);ps(px+2,py+8,3);  // 縦看板
+  pr(0,px+7,py+7,3,4);pr(2,px+11,py+5,2,2);
+}
+function drawDragonBones(){ // 竜骨の野原(土管の空き地)
+  const[px,py]=T(44,82);
+  pdr(px-4,py-2,28,15,0.26,4,5);                                 // 空き地
+  for(const[ox,oy]of[[0,2],[13,6]]){
+    for(let a=0;a<22;a++){const th=a/22*6.283;
+      ps(px+ox+5+Math.round(Math.cos(th)*4.6),py+oy+3+Math.round(Math.sin(th)*3.4),3);}
+    pr(0,px+ox+3,py+oy+1,5,4);pr(1,px+ox+4,py+oy+2,3,2);         // 土管の穴
+  }
+}
+function drawPhoneBox(tx,ty){ // でんわボックス(緑の公衆電話)
+  const[px,py]=T(tx,ty);
+  pr(0,px-1,py-1,6,9);pr(5,px,py,4,7);pr(2,px+1,py+1,2,4);pr(3,px,py,4,1);
+}
+
+/* ---- 描画実行 ---- */
+drawTerrain();
+drawCastleTown();drawTower();drawFactory();drawTemple();drawArena();
+drawSchool();drawMarket();drawCave();drawOnsen();drawLibrary();
+drawTent();drawIslandShrine();drawCheckpoint();drawPassGate();
+drawVillage();drawShrineRoad();
+drawTeramachi();drawRedTower();drawMaboroshiZa();drawDragonBones();
+for(const[bx,by]of[[52.5,73.5],[58,35.5],[74,71.5],[27.5,30],[101,66.5]])drawPhoneBox(bx,by);
+pc.putImageData(pimg,0,0);
+mx.imageSmoothingEnabled=false;
+mx.drawImage(pix,0,0,PW,PH,0,0,1080,1080);
+mx.fillStyle="rgba(0,0,0,.09)";
+for(let y=0;y<1080;y+=3)mx.fillRect(0,y,1080,1);
+
+/* =========================================================
+ *  オーバーレイ
+ * ========================================================= */
+const SPOTS=[
+ {n:1, name:"はじまりの村",       now:"実家のある路地",   ch:"序", col:"--c0", tx:55,   ty:78,   note:"アルスの家(青い屋根)。旅立ちの朝。終章の再訪はここから。"},
+ {n:2, name:"道端の祠",           now:"角の地蔵",         ch:"序", col:"--c0", tx:57,   ty:64.5, note:"少年は素通りした。老いた今は手を合わせる——にじみの入口。"},
+ {n:3, name:"石橋",               now:"多摩川の橋",       ch:"序", col:"--c0", tx:55,   ty:50,   note:"最初の境界。渡ると敵が強くなる(DQ1の橋の文法)。"},
+ {n:4, name:"城下町リーメン",     now:"団地",             ch:"序〜",col:"--c0", tx:55.5, ty:31.5, note:"拠点。宿・武具店・人々。装備更新の第一段階。"},
+ {n:5, name:"天空の塔",           now:"給水塔",           ch:"終", col:"--c4", tx:58,   ty:24,   note:"封印された塔。四十年ぶんの気づきだけが扉を開く。"},
+ {n:6, name:"騎士団の練兵場",     now:"小学校の校庭",     ch:"一", col:"--c1", tx:38.5, ty:71,   note:"幼なじみと木剣で競った。あの決闘の勝敗は記憶のままか。"},
+ {n:7, name:"市場の町",           now:"商店街",           ch:"一", col:"--c1", tx:72.5, ty:70,   note:"店主たちの顔に見覚えがある。装備更新の第二段階。"},
+ {n:8, name:"くらやみの洞窟",     now:"暗渠のトンネル",   ch:"一", col:"--c1", tx:21,   ty:60.5, note:"祭壇の光る石=墓標。奪う少年/返す老人。気づき【弔】。"},
+ {n:9, name:"湯の村",             now:"銭湯",             ch:"一", col:"--c1", tx:30.5, ty:27.5, note:"癒しの湯と、うわさ話。北の山脈=線路の手前の安息地。"},
+ {n:10,name:"魔導書院",           now:"駅前の書店",       ch:"二", col:"--c2", tx:78.5, ty:35,   note:"じゅもんはここで「読んで」覚える。立ち読みした本の記憶。"},
+ {n:11,name:"迷いの森と古の神殿", now:"鎮守の森と神社",   ch:"二", col:"--c2", tx:91.5, ty:97,   note:"巫女の予言の場。伝説と真実のズレが露わになる。"},
+ {n:12,name:"石の闘技場",         now:"河川敷の野球場",   ch:"二", col:"--c2", tx:69.5, ty:58.5, note:"歓声の記憶。あの勝利は誰のためのものだったのか。"},
+ {n:13,name:"関所跡",             now:"土手のベンチ",     ch:"二", col:"--c2", tx:54,   ty:57,   note:"がいこつの番人。「おもいだす」で真実へ。気づき【真】。"},
+ {n:14,name:"砂の行商人",         now:"駄菓子屋",         ch:"任", col:"--cx", tx:33,   ty:89,   note:"砂漠(砂利採取場跡)の隠れテント。掘り出し物と小さな思い出。"},
+ {n:15,name:"中州の祠",           now:"多摩川の中州",     ch:"三", col:"--c3", tx:84,   ty:50.5, note:"渡し舟で渡る。『そらのカギ』が眠る(虹のしずくの文法)。"},
+ {n:16,name:"切通しの門",         now:"踏切",             ch:"三", col:"--c3", tx:73.5, ty:20,   note:"北の山脈=線路を越える唯一の口。縞の遮断機。最後の境界。"},
+ {n:17,name:"魔王城",             now:"川向こうの工場",   ch:"三", col:"--c3", tx:97,   ty:8.5,  note:"三本の尖塔=煙突。沼(造成地)の先。『魔王』の正体と開示。気づき【郷】。"},
+ {n:18,name:"坂の寺町",           now:"麻布台の坂の町",   ch:"任", col:"--cx", tx:101,  ty:62,   note:"祖父の家がある坂と石段の町。2026年、ここは天空都市に変わり——主人公はいまそこに住む。SQ6。"},
+ {n:19,name:"赤の大灯台",         now:"東京タワー",       ch:"終", col:"--c4", tx:107.5,ty:56,   note:"紅白の鉄塔。30年前も今も、変わらずそこにある唯一のもの。二つの時代の地図を重ねる基準点。"},
+ {n:20,name:"かたりべ座",         now:"レンタルビデオ店", ch:"任", col:"--cx", tx:78,   ty:68,   note:"語り部が『他人の冒険譚』を貸す小屋。サブクエストのハブ。返し忘れの咎にご注意を。"},
+ {n:21,name:"竜骨の野原",         now:"土管の空き地",     ch:"任", col:"--cx", tx:46,   ty:84,   note:"巨竜の骨(=土管)が転がる空き地。秘密基地と約束の箱。SQ3。"},
+ {n:22,name:"こだまの祠",         now:"公衆電話(撤去済)", ch:"任", col:"--cx", tx:53,   ty:73.5, note:"白銅貨を捧げ、ほら貝で村の母へ声を届ける=セーブ。国じゅうに5箇所。すべて巡るとSQ1。"},
+];
+const ROUTES=[
+ {col:"--c0",w:5, pts:[[55,80],[55,64],[55,50],[55,36],[55.5,32]]},
+ {col:"--c1",w:5, pts:[[55,58],[47,66],[38.5,70]]},
+ {col:"--c1",w:5, pts:[[38.5,71],[30,66],[22,61]]},
+ {col:"--c1",w:5, pts:[[55,58],[64,64],[72,69]]},
+ {col:"--c1",w:5, pts:[[54,29],[42,28],[32,27.5]]},
+ {col:"--c2",w:5, pts:[[58,32],[70,34],[78,35]]},
+ {col:"--c2",w:5, pts:[[72,69],[80,80],[86,90],[90.5,95]]},
+ {col:"--c2",w:5, pts:[[72,67],[70.5,62],[69.5,59.5]]},
+ {col:"--c3",w:5, pts:[[70,57.5],[77,53.5],[83,51]]},
+ {col:"--c3",w:5, pts:[[57,29],[64,24],[70,19.5],[70,16.5],[78,15],[84,15],[84,11],[91,11],[95,9.5]]},
+ {col:"--c4",w:9, pts:[[55,80],[55,64],[55,50],[55,36],[55.5,31],[56.5,27],[57.5,25]], retrace:true},
+];
+const ov=document.getElementById("ov"),ox=ov.getContext("2d");
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SC=1080/PW;
+const P2=(tx,ty)=>[tx*TS*SC,ty*TS*SC];
+let showMark=true,showRoute=true;
+function drawOverlay(){
+  ox.clearRect(0,0,1080,1080);
+  if(showRoute){
+    for(const r of ROUTES){
+      ox.strokeStyle=cssv(r.col);
+      ox.lineWidth=r.w;ox.lineCap="round";
+      ox.setLineDash(r.retrace?[2,15]:[9,10]);
+      ox.globalAlpha=r.retrace?0.95:0.7;
+      ox.beginPath();
+      r.pts.forEach(([tx,ty],i)=>{const[x,y]=P2(tx,ty);i?ox.lineTo(x,y):ox.moveTo(x,y);});
+      ox.stroke();
+    }
+    ox.setLineDash([]);ox.globalAlpha=1;
+  }
+  if(showMark){
+    ox.font="700 23px 'SFMono-Regular','BIZ UDGothic',monospace";
+    ox.textAlign="center";ox.textBaseline="middle";
+    for(const s of SPOTS){
+      const[x,y]=P2(s.tx,s.ty);
+      ox.beginPath();ox.arc(x,y,21,0,7);
+      ox.fillStyle="rgba(10,11,20,.85)";ox.fill();
+      ox.lineWidth=3;ox.strokeStyle=cssv(s.col);ox.stroke();
+      ox.fillStyle=cssv(s.col);ox.fillText(s.n,x,y+1);
+    }
+  }
+}
+drawOverlay();
+document.getElementById("tgMark").addEventListener("click",e=>{showMark=!showMark;e.currentTarget.classList.toggle("on",showMark);drawOverlay();});
+document.getElementById("tgRoute").addEventListener("click",e=>{showRoute=!showRoute;e.currentTarget.classList.toggle("on",showRoute);drawOverlay();});
+
+/* ---- 凡例 ---- */
+const CH_LABEL={"序":"序章","序〜":"序章〜","一":"第一章","二":"第二章","三":"第三章","終":"終章","任":"任意"};
+const lg=document.getElementById("legend");
+let html="";
+for(const s of SPOTS){
+  const c=cssv(s.col);
+  html+=`<div class="spot">
+    <div class="chip" style="background:${c}">${s.n}</div>
+    <div class="bd">
+      <div class="nm">${s.name}</div>
+      <div class="map2">↔ 2026 · <b>${s.now}</b></div>
+      <div class="nt">${s.note}</div>
+    </div>
+    <div class="ch" style="color:${c};border:1px solid ${c}">${CH_LABEL[s.ch]||s.ch}</div>
+  </div>`;
+}
+lg.innerHTML=html;
+</script>
+</body>
+</html>

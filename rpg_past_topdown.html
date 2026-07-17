@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>「あの頃」画面イメージ — 見下ろしフィールド (PC-88)</title>
+<style>
+:root{
+  --bg:#0b0c14; --panel:#12131f; --ink:#ece7db; --dim:#8f8ba0; --line:#262838; --amber:#ecc069; --past:#7fe0b0;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:radial-gradient(ellipse at 50% -10%,#1a1c2e,#0b0c14 60%);color:var(--ink);
+  font-family:var(--goth);min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:22px 16px 44px;}
+.head{max-width:460px;text-align:center;margin-bottom:16px;}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;color:var(--amber);text-transform:uppercase;}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,6.5vw,30px);letter-spacing:.06em;margin:8px 0 6px;}
+.head p{font-size:13px;color:var(--dim);line-height:1.8;}
+.phone{position:relative;width:min(90vw,360px);aspect-ratio:720/1200;border-radius:26px;background:#000;
+  box-shadow:0 24px 60px -20px #000,0 0 0 2px #23252f,0 0 0 8px #0e0f18;overflow:hidden;}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:78px;height:5px;border-radius:99px;background:rgba(20,22,30,.8);z-index:5;}
+.badge{position:absolute;top:14px;left:14px;z-index:4;font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  padding:5px 11px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:var(--past);backdrop-filter:blur(4px);}
+.cap{width:min(90vw,360px);margin-top:14px;background:var(--panel);border:1px solid var(--line);
+  padding:14px 16px 13px;border-radius:14px;}
+.cap .cl{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--past);margin-bottom:5px;}
+.cap .ct{font-family:var(--serif);font-size:14.5px;line-height:1.85;}
+.cap .ct em{color:var(--amber);font-style:normal;}
+.notes{max-width:460px;margin-top:24px;display:flex;flex-direction:column;gap:10px;}
+.notes .row{display:flex;gap:11px;align-items:flex-start;font-size:12.5px;color:var(--dim);line-height:1.75;}
+.notes .row b{color:var(--ink);font-weight:700;}
+.notes .m{flex:0 0 auto;font-family:var(--mono);font-size:10px;color:var(--amber);padding-top:3px;letter-spacing:.1em;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="eyebrow">剣と魔法の国 — Past Study</div>
+  <h1>草原の一本道</h1>
+  <p>「あの頃」の見下ろしフィールド。PC-8801の流儀<br>（8色＋ディザ・タイル16px・ステータス行・CRT走査線）。</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="badge">あの頃 · 1987 · PC-88</div>
+  <canvas id="scene" width="720" height="1200"></canvas>
+</div>
+
+<div class="cap">
+  <div class="cl">リーメン城下 · 南の草原</div>
+  <div class="ct">川向こうに、城壁と金の尖塔。橋を渡れば もうすぐ町だ。<em>少年は、道端の祠に 目もくれず駆けてゆく。</em></div>
+</div>
+
+<div class="notes">
+  <div class="row"><span class="m">SPEC</span><span><b>PC-8801の再現。</b>同時8色パレット、4×4ベイヤーディザの階調、16pxタイル、下部にステータス行とメッセージ行。CRT風の走査線と明部のにじみ。</span></div>
+  <div class="row"><span class="m">LINK</span><span><b>「いま v2」と同じ構図。</b>川の向こうの城＝団地、手前へ伸びる一本道＝土手の道、道端の祠＝地蔵。終盤の再解釈で、この2枚がぴたりと重なります。</span></div>
+  <div class="row"><span class="m">LIVE</span><span><b>動くもの：</b>川の波、城の旗、少年の歩み、スライムの跳ね。80年代らしく、コマ数は少なめに。</span></div>
+</div>
+
+<script>
+"use strict";
+const cv=document.getElementById("scene"),ctx=cv.getContext("2d");
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ===== PC-88 ピクセルバッファ (240×400 → 3x表示) ===== */
+const PW=240,PH=400;
+const pix=document.createElement("canvas");pix.width=PW;pix.height=PH;
+const pc=pix.getContext("2d");
+const pimg=pc.createImageData(PW,PH);
+const buf=new Uint32Array(pimg.data.buffer);
+const PALc=[[18,20,44],[46,74,170],[120,178,236],[232,226,196],[40,116,58],[122,196,74],[178,120,50],[214,74,58]];
+const PAL=PALc.map(c=>(255<<24)|(c[2]<<16)|(c[1]<<8)|c[0]);
+const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function ps(x,y,ci){x|=0;y|=0;if(x<0||y<0||x>=PW||y>=PH)return;buf[y*PW+x]=PAL[ci];}
+function pr(ci,x,y,w,h){x|=0;y|=0;w|=0;h|=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)ps(x+i,y+j,ci);}
+function pd(x,y,t,a,b2){const th=(BAYER[(y&3)*4+(x&3)]+0.5)/16;ps(x,y,t>th?b2:a);}
+function hsh(a,b2){return(((a*73856093)^(b2*19349663))>>>0);}
+
+/* ===== マップ (16pxタイル 15列)  road=col7 ===== */
+const CO=22;                          // 城下町の縦オフセット(バッジ回避)
+const RIVER_Y=56+CO, RIVER_H=48, FIELD_Y=RIVER_Y+RIVER_H, STATUS_Y=338;
+const MAP=[
+"ff.....r.....ff",
+"fff....r....fff",
+"ff.....r......f",
+".......r.......",
+"..o....r...x...",
+".......r.s.....",
+".x.....r.......",
+".......r....ff.",
+"..x....r...fff.",
+".......r....ff.",
+"f......r.......",
+"ff..o..r....x..",
+"f......r......x",
+".......r.......",
+".......r.......",
+];
+const ROAD_X=7*16;
+
+/* ===== タイル描画 ===== */
+function grassTile(tx,ty,px,py){
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++)pd(px+i,py+j,0.30,4,5);
+  const h=hsh(tx,ty);
+  if(h%3===0){pr(4,px+2+h%6,py+3+(h>>4)%6,2,1);}
+  if(h%5===1){pr(5,px+9,py+10+(h>>3)%4,2,2);}
+  if(h%7===2){ps(px+5,py+12,4);ps(px+6,py+12,4);}
+}
+function forestTile(tx,ty,px,py){
+  const same=(a,b2)=>{const r=MAP[b2];return r&&r[a]==="f";};
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++)pd(px+i,py+j,0.42,0,4);
+  // 縁の輪郭と丸み
+  if(!same(tx-1,ty))for(let j=0;j<16;j++)ps(px,py+j,0);
+  if(!same(tx+1,ty))for(let j=0;j<16;j++)ps(px+15,py+j,0);
+  if(!same(tx,ty-1)){for(let i=0;i<16;i++)ps(px+i,py,0);for(let i=0;i<16;i++)pd(px+i,py+1,0.5,4,5);}
+  if(!same(tx,ty+1))for(let i=0;i<16;i++){ps(px+i,py+15,0);ps(px+i,py+14,0);}
+  const h=hsh(tx,ty);
+  if(h%2===0){pr(5,px+3+h%5,py+2+(h>>3)%4,2,1);}
+  if(h%3===1){pr(0,px+8,py+8+(h>>4)%4,3,2);}
+}
+function roadTile(px,py){
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++)pd(px+i,py+j,0.78,0,6);
+  for(let j=0;j<16;j++){ps(px,py+j,0);ps(px+15,py+j,0);pd(px+1,py+j,0.4,0,6);pd(px+14,py+j,0.4,0,6);}
+  // すり減った中央線
+  for(let j=0;j<16;j+=1){if(((py+j)>>2)%2===0)pd(px+7,py+j,0.7,6,3);}
+}
+function rockTile(px,py){
+  grassTileRaw(px,py);
+  pr(0,px+3,py+6,10,8);pr(6,px+4,py+7,8,6);
+  for(let j=0;j<6;j++)for(let i=0;i<8;i++)pd(px+4+i,py+7+j,0.4,6,3);
+  pr(0,px+5,py+4,6,3);pr(3,px+6,py+5,3,1);
+}
+function grassTileRaw(px,py){for(let j=0;j<16;j++)for(let i=0;i<16;i++)pd(px+i,py+j,0.30,4,5);}
+function flowerTile(tx,ty,px,py){
+  grassTile(tx,ty,px,py);
+  const h=hsh(tx,ty);
+  const fx=px+4+h%6,fy=py+4+(h>>3)%6;
+  ps(fx,fy,7);ps(fx+1,fy,3);ps(fx,fy+1,3);ps(fx+1,fy+1,7);ps(fx,fy+2,4);
+  const gx=px+10-(h>>2)%4,gy=py+10;
+  ps(gx,gy,3);ps(gx+1,gy+1,3);
+}
+function shrineTile(px,py){
+  grassTileRaw(px,py);
+  pr(0,px+3,py+2,10,13);
+  pr(1,px+4,py+3,8,11);
+  for(let j=0;j<4;j++)for(let i=0;i<8;i++)pd(px+4+i,py+3+j,0.5,1,2);
+  pr(3,px+4,py+3,8,1);
+  pr(0,px+5,py+6,6,3);
+  pr(7,px+4,py+9,8,4);   // 赤い前掛け
+  pr(3,px+2,py+13,3,2);  // 供え物
+}
+
+/* ===== 城下町 (上端・上面+南面の平面図) ===== */
+function drawCastle(fr){
+  // 城内(見えている屋根)
+  for(let y=0;y<22+CO;y++)for(let x=0;x<PW;x++)pd(x,y,0.35,0,1);
+  // 家々の屋根
+  const roofs=[[8,4,26,12,7],[44,2,30,14,6],[150,4,26,12,7],[186,2,34,14,6],[118,8,20,10,3]];
+  for(const[rx,ry,rw,rh,ci]of roofs){
+    pr(0,rx-1,ry+CO-1,rw+2,rh+2);pr(ci,rx,ry+CO,rw,rh);
+    for(let j=0;j<rh;j++)for(let i=0;i<rw;i++)pd(rx+i,ry+CO+j,0.35,ci,0);
+    pr(3,rx,ry+CO,rw,1);
+  }
+  // 金の天守(中央奥)
+  pr(0,104,CO,32,20);pr(3,106,CO,28,18);
+  for(let j=0;j<18;j++)for(let i=0;i<28;i++)pd(106+i,CO+j,0.25,3,6);
+  pr(7,116,CO,8,4);pr(3,118,CO,4,2);
+  // 城壁上面
+  for(let y=22+CO;y<34+CO;y++)for(let x=0;x<PW;x++)pd(x,y,0.55,6,3);
+  pr(0,0,22+CO,PW,1);
+  // 狭間(上面の歯形)
+  for(let x=0;x<PW;x+=12){pr(0,x,22+CO,6,4);pd(x+2,24+CO,0.5,0,6);}
+  // 城壁南面
+  for(let y=34+CO;y<52+CO;y++)for(let x=0;x<PW;x++)pd(x,y,0.42,0,6);
+  for(let x=0;x<PW;x+=16)for(let y=34+CO;y<52+CO;y++)ps(x,y,0);
+  pr(0,0,51+CO,PW,2);
+  // 塔(左右)
+  for(const tx of[36,188]){
+    pr(0,tx-2,8+CO,20,44);pr(6,tx,10+CO,16,40);
+    for(let j=0;j<40;j++)for(let i=0;i<16;i++)pd(tx+i,10+CO+j,0.5,6,3);
+    pr(3,tx,10+CO,3,40);
+    pr(0,tx-2,8+CO,20,3);
+    // 旗(はためき2コマ)
+    pr(0,tx+6,CO-10,2,12);
+    if(fr%2===0){pr(7,tx+8,CO-10,10,6);pr(0,tx+16,CO-8,2,2);}
+    else{pr(7,tx+8,CO-9,9,5);ps(tx+16,CO-7,7);}
+  }
+  // 門(道の上)
+  pr(0,ROAD_X-6,30+CO,28,22);
+  pr(3,ROAD_X-4,32+CO,24,2);
+  pr(1,ROAD_X-2,34+CO,20,18);
+  for(let j=0;j<18;j++)for(let i=0;i<20;i++)pd(ROAD_X-2+i,34+CO+j,0.6,0,1);
+  pr(0,ROAD_X+6,40+CO,4,12); // 扉の影
+}
+
+/* ===== 川と橋 ===== */
+function drawRiver(fr){
+  for(let y=RIVER_Y;y<RIVER_Y+RIVER_H;y++)for(let x=0;x<PW;x++)pd(x,y,0.5,1,1);
+  // 波(2フェーズのディザきらめき)
+  for(let y=RIVER_Y+2;y<RIVER_Y+RIVER_H-2;y+=4){
+    for(let x=((y>>2)+fr)%2===0?0:8;x<PW;x+=16){
+      const h=hsh(x,y);
+      if(h%3!==0)pr(2,x+(h%5),y,4+(h>>3)%4,1);
+    }
+  }
+  // 岸(上下)
+  for(let x=0;x<PW;x++){pd(x,RIVER_Y,0.7,0,1);pd(x,RIVER_Y+1,0.4,0,1);
+    pd(x,RIVER_Y+RIVER_H-1,0.7,0,1);pd(x,RIVER_Y+RIVER_H-2,0.4,0,1);}
+  // 橋(道の幅+欄干)
+  const bx=ROAD_X-4,bw=24;
+  pr(0,bx-2,RIVER_Y-2,bw+4,RIVER_H+4);
+  for(let y=RIVER_Y-1;y<RIVER_Y+RIVER_H+1;y++)for(let i=0;i<bw;i++)pd(bx+i,y,0.6,0,6);
+  for(let y=RIVER_Y;y<RIVER_Y+RIVER_H;y+=4)pr(0,bx,y,bw,1);          // 板の目地
+  pr(3,bx,RIVER_Y-2,bw,1);
+  for(let y=RIVER_Y-2;y<RIVER_Y+RIVER_H+2;y+=6){pr(6,bx-2,y,2,4);pr(6,bx+bw,y,2,4);} // 欄干
+}
+
+/* ===== スプライト ===== */
+function drawBoy(px,py,fr){
+  // 上向き(城へ駆ける)・2コマ
+  const st=fr%2;
+  pr(0,px+3,py+13,10,3);                       // 影
+  pr(0,px+3,py,10,14);                          // 輪郭
+  pr(7,px+4,py+1,8,4);                          // 赤い髪(後頭部)
+  pr(0,px+4,py+5,8,1);
+  pr(1,px+4,py+6,8,6);                          // 青い服
+  pr(2,px+4,py+6,1,6);
+  pr(6,px+3,py+7,1,3);pr(6,px+12,py+7,1,3);     // 腕
+  if(st===0){pr(0,px+4,py+12,3,3);pr(0,px+9,py+11,3,3);}
+  else{pr(0,px+4,py+11,3,3);pr(0,px+9,py+12,3,3);}
+  pr(3,px+11,py+3,2,6);                         // 木剣(背中)
+  pr(6,px+11,py+8,2,2);
+}
+function drawSlime(px,py,fr){
+  const sq=fr%2;
+  pr(0,px+3,py+13,10,2);                        // 影
+  const h=11-sq*2, top=py+2+sq*2;
+  // 丸いボディ(行ごとに幅を変える)
+  for(let j=0;j<h;j++){
+    const f=j/(h-1);
+    const half=Math.round(6*Math.sqrt(1-Math.pow(1-f*1.35,2))+1);
+    const cx2=px+8;
+    pr(0,cx2-half-1,top+j,half*2+2,1);           // 輪郭
+    if(j>0&&j<h-1){
+      for(let i=-half;i<half;i++)pd(cx2+i,top+j,0.3,1,2);
+    }
+  }
+  pr(2,px+5,top+2,3,2);                          // ハイライト
+  pr(3,px+5,top+4,2,2);pr(0,px+6,top+5,1,1);     // 目
+  pr(3,px+10,top+4,2,2);pr(0,px+11,top+5,1,1);
+}
+
+/* ===== ステータス行 ===== */
+function drawStatus(){
+  pr(0,0,STATUS_Y,PW,PH-STATUS_Y);
+  pr(3,0,STATUS_Y,PW,1);
+  pr(3,2,STATUS_Y+3,PW-4,1);pr(3,2,PH-3,PW-4,1);
+  pr(3,2,STATUS_Y+3,1,PH-STATUS_Y-6);pr(3,PW-3,STATUS_Y+3,1,PH-STATUS_Y-6);
+}
+function statusText(){
+  pc.font="700 9px 'MS Gothic','BIZ UDGothic',monospace";
+  pc.fillStyle="#e8e2c4";
+  pc.fillText("アルス LV 3        G 120",10,STATUS_Y+16);
+  pc.fillText("HP 21/24   MP 6/6",10,STATUS_Y+28);
+  pc.fillStyle="#7fd0e8";
+  pc.fillText("きたに リーメンの まちが みえる。",10,STATUS_Y+46);
+  pc.fillStyle="#e8e2c4";
+  pc.fillText("▼",PW-16,STATUS_Y+46);
+}
+
+/* ===== フレーム描画 ===== */
+function renderFrame(fr){
+  buf.fill(PAL[0]);
+  // フィールド(タイル)
+  for(let ty=0;ty<MAP.length;ty++){
+    for(let tx=0;tx<15;tx++){
+      const ch=MAP[ty][tx],px=tx*16,py=FIELD_Y+ty*16;
+      if(py>=STATUS_Y)continue;
+      if(ch==="f")forestTile(tx,ty,px,py);
+      else if(ch==="r")roadTile(px,py);
+      else if(ch==="o")rockTile(px,py);
+      else if(ch==="x")flowerTile(tx,ty,px,py);
+      else if(ch==="s")shrineTile(px,py);
+      else grassTile(tx,ty,px,py);
+    }
+  }
+  drawCastle(fr);
+  drawRiver(fr);
+  // 道と門の接続(川から城門へ)
+  for(let y=52+CO;y<RIVER_Y;y++)for(let i=0;i<16;i++)pd(ROAD_X+i,y,0.78,0,6);
+  // スプライト
+  drawSlime(3*16,FIELD_Y+9*16,fr);
+  drawBoy(ROAD_X,FIELD_Y+7*16-8-((fr>>1)%3)*2,fr);   // 北へ駆ける(数ドットの揺れ)
+  drawStatus();
+  pc.putImageData(pimg,0,0);
+  statusText();
+  // 表示(3x + CRT)
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,720,1200);
+  ctx.drawImage(pix,0,0,PW,PH,0,0,720,1200);
+  // 明部のにじみ(CRT bloom)
+  ctx.save();ctx.globalCompositeOperation="lighter";ctx.globalAlpha=0.10;ctx.filter="blur(3px)";
+  ctx.drawImage(pix,0,0,PW,PH,0,0,720,1200);ctx.restore();ctx.filter="none";
+  // 走査線
+  ctx.fillStyle="rgba(0,0,0,.13)";
+  for(let y=0;y<1200;y+=3)ctx.fillRect(0,y,720,1);
+  // ごく薄い面のうねり(ブラウン管の丸み)
+  const vg=ctx.createRadialGradient(360,600,300,360,600,860);
+  vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,10,.28)");
+  ctx.fillStyle=vg;ctx.fillRect(0,0,720,1200);
+}
+
+let fr=0;
+renderFrame(0);
+if(!reduce){setInterval(()=>{fr=(fr+1)%1024;renderFrame(fr);},280);}
+</script>
+</body>
+</html>

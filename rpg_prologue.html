@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>剣と魔法の国</title>
+<style>
+:root{--ink:#e8e2c4;--navy:#12142c;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{height:100%;overflow:hidden;background:#000;}
+body{font-family:"BIZ UDGothic","MS Gothic",monospace;color:var(--ink);display:flex;justify-content:center;touch-action:none;}
+#stage{position:relative;width:100%;max-width:520px;height:100dvh;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center;}
+#gameWrap{position:relative;}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;}
+#crt{position:absolute;inset:0;pointer-events:none;}
+/* 十字キー+A */
+#pad{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);width:138px;height:138px;z-index:9;opacity:.85;}
+#pad button{position:absolute;width:46px;height:46px;border:1px solid #4a4e6a;border-radius:8px;background:rgba(18,20,44,.85);color:var(--ink);font-size:15px;}
+#pad button:active{background:#2c3060;}
+#pu{left:46px;top:0;}#pl{left:0;top:46px;}#pr{right:0;top:46px;}#pdn{left:46px;bottom:0;}
+#btnA{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 38px);width:64px;height:64px;border-radius:50%;z-index:9;
+  background:#e8e2c4;border:3px solid #8a8266;color:#12142c;font-weight:800;font-size:18px;opacity:.92;}
+#btnA:active{transform:scale(.93);}
+/* 戦闘コマンド(ゲーム画面枠基準 → パネルの真上) */
+#bcmds{position:absolute;left:2%;right:2%;bottom:17.5%;z-index:10;display:none;grid-template-columns:1fr 1fr;gap:7px;}
+#bcmds.show{display:grid;}
+#bcmds button{padding:12px 6px;font-size:15px;letter-spacing:.15em;background:var(--navy);color:var(--ink);border:2px solid var(--ink);border-radius:2px;font-family:inherit;}
+#bcmds button:active{background:#2c3060;}
+#bcmds button:disabled{opacity:.35;}
+#autoBtn{position:absolute;right:2%;top:2%;z-index:10;display:none;
+  padding:8px 14px;font-size:12px;letter-spacing:.2em;background:var(--navy);color:#8a8fb4;border:2px solid #4a4e6a;border-radius:2px;font-family:inherit;}
+#autoBtn.show{display:block;}
+#autoBtn.on{color:#12142c;background:var(--ink);border-color:#fff;}
+/* シート(店・書院など) */
+.sheet{position:absolute;inset:0;z-index:20;display:none;background:rgba(4,5,14,.88);
+  padding:calc(env(safe-area-inset-top) + 40px) 14px calc(env(safe-area-inset-bottom) + 14px);overflow-y:auto;}
+.sheet.show{display:block;}
+.win{background:var(--navy);border:2px solid var(--ink);border-radius:2px;box-shadow:4px 4px 0 rgba(0,0,0,.6);padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.9;}
+.win h3{font-size:13px;letter-spacing:.25em;color:#8fd0e8;margin-bottom:8px;font-weight:400;}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px dashed #33375f;font-size:13.5px;}
+.row:last-child{border-bottom:none;}
+.row .price{color:#e8d27a;min-width:52px;text-align:right;font-variant-numeric:tabular-nums;}
+.row button{padding:7px 13px;font-size:12px;background:#2c3060;color:var(--ink);border:1px solid var(--ink);border-radius:2px;font-family:inherit;}
+.row button:disabled{opacity:.3;}
+.row .own{color:#7ac74f;font-size:11px;}
+.closeBtn{width:100%;padding:12px;font-size:14px;letter-spacing:.3em;background:var(--navy);color:var(--ink);border:2px solid var(--ink);border-radius:2px;font-family:inherit;margin-top:4px;}
+.tag{font-size:10.5px;color:#8a8fb4;}
+#menuBtn{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 118px);z-index:9;
+  padding:8px 13px;font-size:12px;background:rgba(18,20,44,.85);color:var(--ink);border:1px solid #4a4e6a;border-radius:8px;font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="gameWrap">
+    <canvas id="scr" width="720" height="1200"></canvas>
+    <canvas id="crt" width="720" height="1200"></canvas>
+    <div id="bcmds">
+      <button data-c="atk">たたかう</button><button data-c="spl">じゅもん</button>
+      <button data-c="itm">どうぐ</button><button data-c="run">にげる</button>
+    </div>
+    <button id="autoBtn">AUTO</button>
+  </div>
+  <div id="pad">
+    <button id="pu">▲</button><button id="pl">◀</button><button id="pr">▶</button><button id="pdn">▼</button>
+  </div>
+  <button id="btnA">A</button>
+  <button id="menuBtn">つよさ</button>
+
+  <div id="shShop" class="sheet"><div class="win"><h3>ぶきと ぼうぐの みせ</h3><div id="shopList"></div></div>
+    <div class="win" id="shopFoot" style="font-size:12px"></div><button class="closeBtn" onclick="closeSheet('shShop')">みせを でる</button></div>
+  <div id="shBooks" class="sheet"><div class="win"><h3>まどうしょいん の ろてん</h3><div id="bookList"></div></div>
+    <div class="win" style="font-size:12px" id="bookFoot"></div><button class="closeBtn" onclick="closeSheet('shBooks')">たなを はなれる</button></div>
+  <div id="shMenu" class="sheet"><div class="win"><h3>つよさ</h3><div id="menuStats"></div></div>
+    <div class="win"><h3>どうぐ</h3><div id="menuItems"></div></div><button class="closeBtn" onclick="closeSheet('shMenu')">とじる</button></div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+ *  剣と魔法の国 — 序章プロトタイプ (縦スライス)
+ *  PC-88風: 8色+ディザ / 見下ろし / コマンド戦闘+AUTO / こだまの祠=セーブ
+ * ===================================================================== */
+const SAVE="tsurugi_prologue_01";
+const scr=document.getElementById("scr"),ctx=scr.getContext("2d");
+const crt=document.getElementById("crt"),cx2=crt.getContext("2d");
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ---------- 表示サイズ ---------- */
+function fit(){
+  const st=document.getElementById("stage");
+  const s=Math.min(st.clientWidth/720, st.clientHeight/1200);
+  for(const c of[scr,crt]){c.style.width=720*s+"px";c.style.height=1200*s+"px";}
+}
+addEventListener("resize",fit);fit();
+
+/* ---------- PC-88 パレット/ディザ ---------- */
+const PALc=[[18,20,44],[46,74,170],[120,178,236],[232,226,196],[40,116,58],[122,196,74],[178,120,50],[214,74,58]];
+const PALs=PALc.map(c=>`rgb(${c[0]},${c[1]},${c[2]})`);
+const PAL32=PALc.map(c=>(255<<24)|(c[2]<<16)|(c[1]<<8)|c[0]);
+const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+/* ---------- ワールドマップ (15列×64行 · 16pxタイル) ---------- */
+const TW=15,TH=64,TS=16;
+const M=[
+"fff.f.T..f..fff", // 0  塔(とざされた北門のむこう)
+"ff.........ffff", // 1
+"WWWWWWWnWWWWWWW", // 2  n=北門(封)
+"WsssssssssssssW", // 3
+"Wsss#####ssssssW".slice(0,14)+"W", // 4 keep
+"Wsss#####sssssW", // 5
+"Wsss#####sssssW", // 6
+"WsssssssssssssW", // 7
+"W##ssssssss##sW", // 8  左=宿 右=店
+"W##ssssssss##sW", // 9
+"WsssssssssssssW", // 10
+"W##sssssssss=sW", // 11 左=民家 右=書院の露店(=)
+"W##sssssssssssW".slice(0,14)+"W", // 12
+"WsssssssssssssW", // 13
+"WWWWWWWgWWWWWWW", // 14 g=南門
+"ff.....r.....ff", // 15
+"fff....r....fff", // 16
+"ff.....r......f", // 17
+".......r.......", // 18
+"..f....r....f..", // 19
+".......r.......", // 20
+"~~~~~~~b~~~~~~~", // 21
+"~~~~~~~b~~~~~~~", // 22
+"~~~~~~~b~~~~~~~", // 23
+".......r.......", // 24
+"..ff...r...ff..", // 25
+".fff...r..ffff.", // 26
+".f.f...r...ff..", // 27  左の森の切れ目に宝箱(エンティティ)
+"..ff...r.......", // 28
+".......r.......", // 29
+"....f..r.......", // 30
+".......r.......", // 31
+".......r.S.....", // 32  S=こだまの祠
+".......r.......", // 33
+"..f....r....f..", // 34
+".ff....r...ff..", // 35
+".......r...ff..", // 36
+".......r..f.f..", // 37  右の森の切れ目に宝箱
+".f.....r...f...", // 38
+".......r.......", // 39
+"...P...r.......", // 40  P=たてふだ
+".......r.......", // 41
+"..f....r....f..", // 42
+".......r.......", // 43
+".......r.......", // 44
+"f......r......f", // 45
+"ff.....r.....ff", // 46
+".......r.......", // 47
+".......r.......", // 48
+"..##...r..##...", // 49  村はずれの家
+"..##...r..##...", // 50
+".......r.......", // 51
+".......r.......", // 52
+"..HH...r..##...", // 53  H=アルスの家(青屋根)
+"..HH...r..##...", // 54
+".......r.......", // 55
+".......r..qqq..", // 56  q=畑
+".......r..qqq..", // 57
+"...............", // 58
+"...............", // 59
+"..##......##...", // 60
+"..##......##...", // 61
+"...............", // 62
+"fffffffffffffff", // 63
+];
+const BLOCK=new Set(["W","#","~","f","T","H","=","q"]);
+const at=(x,y)=>(y<0||y>=TH||x<0||x>=TW)?"f":M[y][x];
+function hsh(a,b){return(((a*73856093)^(b*19349663))>>>0);}
+
+/* ---------- ワールドを2フェーズ焼き込み ---------- */
+const WPX=TW*TS,WPY=TH*TS; // 240×1024
+function bakeWorld(phase){
+  const cv=document.createElement("canvas");cv.width=WPX;cv.height=WPY;
+  const c=cv.getContext("2d");
+  const img=c.createImageData(WPX,WPY);
+  const buf=new Uint32Array(img.data.buffer);
+  const ps=(x,y,ci)=>{x|=0;y|=0;if(x<0||y<0||x>=WPX||y>=WPY)return;buf[y*WPX+x]=PAL32[ci];};
+  const pr=(ci,x,y,w,h)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++)ps(x+i,y+j,ci);};
+  const pd=(x,y,t,a,b)=>{ps(x,y,t>(BAYER[(y&3)*4+(x&3)]+0.5)/16?b:a);};
+  const pdr=(x,y,w,h,t,a,b)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++)pd(x+i,y+j,t,a,b);};
+
+  for(let ty=0;ty<TH;ty++)for(let tx=0;tx<TW;tx++){
+    const ch=at(tx,ty),px=tx*TS,py=ty*TS,h=hsh(tx,ty);
+    switch(ch){
+      case ".":{
+        pdr(px,py,TS,TS,0.30,4,5);
+        if(h%3===0)pr(4,px+2+h%6,py+3+(h>>4)%6,2,1);
+        if(h%5===1)pr(5,px+9,py+10+(h>>3)%4,2,2);
+        if(h%23===7){ps(px+4,py+4,3);ps(px+5,py+5,7);}
+        break;}
+      case "f":{
+        pdr(px,py,TS,TS,0.42,0,4);
+        const sm=(a,b)=>at(a,b)==="f";
+        if(!sm(tx-1,ty))for(let j=0;j<TS;j++)ps(px,py+j,0);
+        if(!sm(tx+1,ty))for(let j=0;j<TS;j++)ps(px+TS-1,py+j,0);
+        if(!sm(tx,ty-1)){for(let i=0;i<TS;i++)ps(px+i,py,0);pdr(px,py+1,TS,1,0.55,4,5);}
+        if(!sm(tx,ty+1))for(let i=0;i<TS;i++){ps(px+i,py+TS-1,0);ps(px+i,py+TS-2,0);}
+        if(h%2===0)pr(5,px+3+h%5,py+2+(h>>3)%5,2,1);
+        if(h%3===1)pr(0,px+8-(h>>2)%4,py+8+(h>>4)%4,3,2);
+        break;}
+      case "r":{
+        pdr(px,py,TS,TS,0.78,0,6);
+        for(let j=0;j<TS;j++){ps(px,py+j,0);ps(px+TS-1,py+j,0);pd(px+1,py+j,0.4,0,6);pd(px+14,py+j,0.4,0,6);}
+        for(let j=0;j<TS;j++)if(((py+j)>>2)%2===0)pd(px+7,py+j,0.7,6,3);
+        break;}
+      case "~":{
+        pdr(px,py,TS,TS,0.5,1,1);
+        for(let y2=py+2;y2<py+TS;y2+=4){
+          const off=((y2>>2)+phase)%2===0?0:8;
+          for(let x2=px+off;x2<px+TS;x2+=16){const hh=hsh(x2,y2);if(hh%3!==0)pr(2,x2+(hh%5),y2,4+(hh>>3)%4,1);}
+        }
+        if(at(tx,ty-1)!=="~"&&at(tx,ty-1)!=="b")for(let i=0;i<TS;i++){ps(px+i,py,0);pd(px+i,py+1,0.4,0,1);}
+        if(at(tx,ty+1)!=="~"&&at(tx,ty+1)!=="b")for(let i=0;i<TS;i++){ps(px+i,py+TS-1,0);pd(px+i,py+TS-2,0.4,0,1);}
+        break;}
+      case "b":{
+        pr(0,px-2,py,TS+4,TS);
+        pdr(px,py,TS,TS,0.6,0,6);
+        for(let y2=py;y2<py+TS;y2+=4)pr(0,px,y2,TS,1);
+        pr(3,px,py,1,TS);pr(3,px+TS-1,py,1,TS);
+        pr(6,px-2,py+2,2,5);pr(6,px+TS,py+9,2,5);
+        break;}
+      case "W":case"n":case"g":{
+        pdr(px,py,TS,TS,0.5,6,3);
+        pr(0,px,py,TS,1);pr(0,px,py+TS-1,TS,1);
+        for(let x2=px;x2<px+TS;x2+=8)pr(0,x2,py+((ty%2)?4:9),5,2);   // 石組
+        if(ch==="n"){pr(0,px+2,py+2,12,14);pr(1,px+3,py+3,10,13);pdr(px+3,py+3,10,13,0.6,0,1);pr(6,px+6,py+8,4,2);} // 封じた扉
+        if(ch==="g"){pr(0,px+2,py,12,16);pr(6,px+3,py,10,16);for(let j=2;j<16;j+=4)pr(0,px+3,py+j,10,1);}          // 開いた門
+        break;}
+      case "s":{
+        pdr(px,py,TS,TS,0.35,1,0);                                   // 石畳(藍)
+        pr(0,px,py+TS-1,TS,1);if((tx+ty)%2)pd(px+4,py+6,0.8,1,2);
+        break;}
+      case "#":case"H":case"=":{
+        pdr(px,py,TS,TS,0.35,1,0);break;}                            // 建物の下地(上に絵)
+      case "q":{
+        for(let j=0;j<TS;j+=4){pr(6,px,py+j,TS,2);pr(5,px,py+j+2,TS,2);}
+        pr(0,px,py,TS,1);break;}
+      case "S":case"P":case"T":{
+        pdr(px,py,TS,TS,0.30,4,5);break;}
+      default:pdr(px,py,TS,TS,0.30,4,5);
+    }
+  }
+  /* ---- 建物などの上絵 ---- */
+  function house(tx,ty,w,h2,roofCi){
+    const px=tx*TS,py=ty*TS,W2=w*TS,H2=h2*TS;
+    pr(0,px+1,py+1,W2-2,H2-2);
+    pr(roofCi,px+2,py+2,W2-4,Math.floor(H2*0.45));pr(3,px+2,py+2,W2-4,2);
+    pdr(px+2,py+2+Math.floor(H2*0.45),W2-4,H2-4-Math.floor(H2*0.45),0.25,3,6);
+    pr(0,px+Math.floor(W2/2)-3,py+H2-9,6,8);                          // 扉
+    pr(2,px+5,py+Math.floor(H2*0.5),4,4);                             // 窓
+  }
+  // 城内
+  (function keep(){const px=4*TS,py=4*TS;pr(0,px-2,py-2,5*TS+4,3*TS+4);
+    pdr(px,py,5*TS,3*TS,0.3,3,6);pr(3,px,py,5*TS,3);
+    pr(0,px+5,py+8,3,3*TS-8);pr(0,px+5*TS-8,py+8,3,3*TS-8);
+    pr(0,px+2*TS,py+TS,TS,2*TS);pr(1,px+2*TS+2,py+TS+2,TS-4,2*TS-2);  // 大扉
+    pr(7,px+2*TS+5,py+2,6,7);pr(0,px+2*TS+4,py+2,1,10);})();          // 旗
+  house(1,8,2,2,6);   // 宿
+  house(12,8,2,2,7);  // 店
+  house(1,11,2,2,6);  // 民家
+  house(2,49,2,2,7);house(10,49,2,2,6);
+  house(10,53,2,2,6);house(2,60,2,2,7);house(10,60,2,2,6);
+  // アルスの家(青屋根)
+  (function(){const px=2*TS,py=53*TS;pr(0,px+1,py+1,2*TS-2,2*TS-2);
+    pr(2,px+2,py+2,2*TS-4,12);pr(3,px+2,py+2,2*TS-4,2);
+    pdr(px+2,py+14,2*TS-4,2*TS-16,0.25,3,6);pr(0,px+TS-3,py+2*TS-9,6,8);pr(2,px+5,py+18,4,4);})();
+  // 書院の露店(城内)
+  (function(){const px=12*TS,py=11*TS;pr(0,px,py,TS,TS);
+    for(let j=0;j<6;j++){const w2=4+j*2;pr(j%2?7:3,px+8-w2/2,py+j,w2,1);}
+    pr(6,px+2,py+6,12,9);pr(3,px+3,py+7,4,3);pr(1,px+8,py+7,4,3);pr(7,px+3,py+11,4,3);pr(5,px+8,py+11,4,3);})(); // 本棚
+  // こだまの祠
+  (function(){const px=9*TS,py=32*TS;
+    pr(0,px+2,py+1,12,14);pr(1,px+3,py+2,10,12);pdr(px+3,py+2,10,12,0.5,1,2);
+    pr(3,px+3,py+2,10,1);pr(0,px+5,py+5,6,4);
+    pr(3,px+6,py+6,4,2);                                              // ほら貝
+    pr(7,px+4,py+10,8,3);})();                                        // 布
+  // たてふだ
+  (function(){const px=3*TS,py=40*TS;pr(6,px+7,py+4,2,10);pr(0,px+2,py+2,12,7);pr(3,px+3,py+3,10,5);
+    pr(0,px+4,py+4,8,1);pr(0,px+4,py+6,6,1);})();
+  // 塔(北のかなた)
+  (function(){const px=6*TS,py=0;pr(0,px+2,py+2,12,14);pdr(px+3,py+6,10,10,0.45,1,2);
+    pr(0,px,py,16,7);pdr(px+1,py+1,14,5,0.35,2,3);pr(3,px+1,py+1,14,2);ps(px+7,py-0,7);})();
+  // 城の旗(フェーズではためく)
+  (function(){for(const fx of[1*TS,13*TS]){pr(0,fx+7,2*TS-14,2,14);
+    if(phase===0){pr(7,fx+9,2*TS-14,8,5);}else{pr(7,fx+9,2*TS-13,7,4);} }})();
+  c.putImageData(img,0,0);
+  return cv;
+}
+const WORLD=[bakeWorld(0),bakeWorld(1)];
+
+/* ---------- スプライト ---------- */
+function makeSpr(draw){const cv=document.createElement("canvas");cv.width=16;cv.height=16;const c=cv.getContext("2d");
+  const P=(ci,x,y,w=1,h=1)=>{c.fillStyle=PALs[ci];c.fillRect(x,y,w,h);};draw(P);return cv;}
+function heroSpr(dir,fr){return makeSpr(P=>{
+  const st=fr%2;
+  P(0,3,13,10,2);                          // 影
+  P(0,3,0,10,14);                          // 輪郭
+  P(7,4,1,8,4);                            // 赤髪
+  if(dir==="down"){P(6,4,5,8,4);P(0,6,6);P(0,9,6);}
+  else if(dir==="up"){P(7,4,5,8,4);}
+  else{P(6,4,5,8,4);P(0,dir==="left"?5:10,6);}
+  P(1,4,9,8,4);P(2,4,9,1,4);               // 青い服
+  P(6,3,10,1,2);P(6,12,10,1,2);            // 腕
+  if(st===0){P(0,4,13,3,3);P(0,9,12,3,3);}else{P(0,4,12,3,3);P(0,9,13,3,3);}
+  P(3,11,2,2,6);P(6,11,8,2,2);             // 木剣(背)
+});}
+const HERO={};for(const d of["down","up","left","right"])HERO[d]=[heroSpr(d,0),heroSpr(d,1)];
+function villagerSpr(body,hair){return makeSpr(P=>{
+  P(0,3,13,10,2);P(0,3,0,10,14);
+  P(hair,4,1,8,4);P(6,4,5,8,4);P(0,6,6);P(0,9,6);
+  P(body,4,9,8,4);P(6,3,10,1,2);P(6,12,10,1,2);
+  P(0,4,13,3,3);P(0,9,13,3,3);
+});}
+function chestSpr(open){return makeSpr(P=>{
+  P(0,1,4,14,11);P(6,2,5,12,9);P(open?0:3,2,5,12,3);P(3,7,9,2,3);
+  if(open)P(0,3,3,10,2);
+});}
+
+/* ---------- エンティティ(NPC/宝箱) ---------- */
+const ENT=[
+ {id:"mother", tx:4, ty:55, spr:villagerSpr(7,6), talk:()=>talkMother()},
+ {id:"elder",  tx:8, ty:58, spr:villagerSpr(4,3), talk:()=>say(["「アルスや。リーメンの おかたが おまえを およびだ」","「みちなりに きたへ。はしを わたれば じきに つく」","「……はしの むこうは まものが つよい。むりは するでないぞ」"])},
+ {id:"guard",  tx:6, ty:15, spr:villagerSpr(1,0), talk:()=>say(["「ようこそ リーメンへ。……おや、むらの けんしどのか」","「りょうしゅさまが おまちかねだ。おくの やかたへ」"])},
+ {id:"inn",    tx:2, ty:10, spr:villagerSpr(4,6), talk:()=>innTalk()},
+ {id:"shop",   tx:12,ty:10, spr:villagerSpr(6,0), talk:()=>openShop()},
+ {id:"books",  tx:11,ty:11, spr:villagerSpr(1,3), talk:()=>openBooks()},
+ {id:"bard",   tx:5, ty:12, spr:villagerSpr(2,7), talk:()=>bardTalk()},
+ {id:"lord",   tx:7, ty:7,  spr:villagerSpr(3,3), talk:()=>lordTalk()},
+ {id:"chest1", tx:2, ty:27, chest:true, spr:chestSpr(false), sprOpen:chestSpr(true), gold:50},
+ {id:"chest2", tx:12,ty:37, chest:true, spr:chestSpr(false), sprOpen:chestSpr(true), item:"herb"},
+];
+const entAt=(x,y)=>ENT.find(e=>e.tx===x&&e.ty===y);
+
+/* ---------- プレイヤー状態 ---------- */
+let P=null;
+function newP(){return{x:14,y:116,dir:"down",lv:1,exp:0,hp:22,mp:0,gold:60,
+  weapon:"stick",armor:"cloth",shield:null,items:{herb:2},coin:1,
+  flags:{},saveCount:0,auto:false};}
+const WPN={stick:{n:"ひのきのぼう",a:2,p:10},club:{n:"こんぼう",a:5,p:60},copper:{n:"どうのつるぎ",a:10,p:180}};
+const ARM={cloth:{n:"ぬののふく",d:2,p:20},leather:{n:"かわのふく",d:4,p:70},wool:{n:"毛糸の胴着",d:8,p:300}};
+const SHD={leather:{n:"かわのたて",d:2,p:90}};
+const maxHp=()=>22+(P.lv-1)*7;
+const maxMp=()=>P.lv>=3?8+(P.lv-3)*4:0;
+const atk=()=>5+Math.round((P.lv-1)*2.2)+WPN[P.weapon].a;
+const dfn=()=>3+Math.round((P.lv-1)*1.5)+ARM[P.armor].d+(P.shield?SHD[P.shield].d:0);
+const expNeed=lv=>Math.round(7*Math.pow(lv,1.7));
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(P));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE));if(d&&d.lv)return d;}catch(e){}return null;}
+
+/* ---------- メッセージ(下部ウィンドウ · PC-88流) ---------- */
+let msgQ=[],msgCb=null,msgActive=false,curLine="";
+function say(lines,cb){msgQ=lines.slice();msgCb=cb||null;msgActive=true;nextMsg();}
+function nextMsg(){
+  if(msgQ.length===0){msgActive=false;curLine="";const f=msgCb;msgCb=null;drawStatus();if(f)f();return;}
+  curLine=msgQ.shift();drawStatus();
+}
+
+/* ---------- ステータスパネル ---------- */
+const panel=document.createElement("canvas");panel.width=240;panel.height=64;
+const pnl=panel.getContext("2d");
+function drawStatus(extra){
+  pnl.fillStyle=PALs[0];pnl.fillRect(0,0,240,64);
+  pnl.fillStyle=PALs[3];pnl.fillRect(0,0,240,1);
+  pnl.strokeStyle=PALs[3];pnl.strokeRect(2.5,3.5,235,58);
+  pnl.font="700 9px 'MS Gothic','BIZ UDGothic',monospace";
+  pnl.fillStyle="#e8e2c4";
+  if(B){ // 戦闘中
+    pnl.fillText("アルス",10,16);
+    pnl.fillText("HP "+Math.max(0,P.hp)+"/"+maxHp()+"  MP "+P.mp+"/"+maxMp(),10,28);
+    pnl.fillStyle="#8fd0e8";
+    wrapText(curLine||"",10,44,220,12);
+  }else{
+    pnl.fillText("アルス LV"+P.lv+"   G "+P.gold,10,16);
+    pnl.fillText("HP "+P.hp+"/"+maxHp()+"  MP "+P.mp+"/"+maxMp(),10,28);
+    pnl.fillStyle="#8fd0e8";
+    wrapText(curLine||"",10,44,220,12);
+  }
+  if(msgActive){pnl.fillStyle="#e8e2c4";pnl.fillText("▼",224,58);}
+}
+function wrapText(t,x,y,w,lh){
+  let line="",yy=y;
+  for(const chn of t){
+    if(pnl.measureText(line+chn).width>w){pnl.fillText(line,x,yy);line=chn;yy+=lh;if(yy>y+lh)break;}
+    else line+=chn;
+  }
+  pnl.fillText(line,x,yy);
+}
+
+/* ---------- 会話・イベント ---------- */
+function talkMother(){
+  if(!P.flags.motherIntro){P.flags.motherIntro=true;
+    say(["はは「アルス。リーメンの りょうしゅさまから おふれが きています」",
+         "はは「みちの とちゅうに こだまの祠(ほこら)が あります。白銅貨を そなえて、こえを きかせなさい」",
+         "はは「……いってらっしゃい。きを つけてね」",
+         "白銅貨を 1まい もらった!"]);}
+  else say(["はは「祠から こえを きかせてね。それだけで あんしんだから」"]);
+}
+function innTalk(){
+  if(P.gold<8){say(["「ひとばん 8ゴールドだよ。……おや、おかねが たりないね」"]);return;}
+  P.gold-=8;P.hp=maxHp();P.mp=maxMp();
+  say(["「ひとばん 8ゴールド。ゆっくり おやすみ」","…アルスは ぐっすり ねむった。","HPとMPが かいふくした!"],()=>{drawStatus();save();});
+}
+const SONGS=[
+ ["♪ つるぎを かかげて ゆうしゃは ゆく〜","♪ ひがしの おかから あさひが のぼる〜"],
+ ["♪ つるぎを にぎって ゆうしゃは はしる〜","♪ にしの おかから ゆうひが しずむ〜"],
+ ["♪ きぼうを かかげて ゆうしゃは ゆく〜","♪ ……あれ、この うた、どんな かしだったかな」"],
+];
+function bardTalk(){
+  const i=(P.flags.bardN||0)%3;P.flags.bardN=(P.flags.bardN||0)+1;
+  say(["ぎんゆうしじん「ゆうしゃの でんせつを うたおう」",...SONGS[i]]);
+}
+function lordTalk(){
+  if(P.flags.questDone){say(["りょうしゅ「たのんだぞ、アルス」"]);return;}
+  P.flags.questDone=true;
+  say(["りょうしゅ「よく きてくれた、アルスよ」",
+       "りょうしゅ「この くにが しずかに たそがれてゆくのを、かんじて おろう」",
+       "りょうしゅ「きたの やまの むこう——くろがねの しろに、まおうが おる」",
+       "りょうしゅ「ゆけ。そして この くにの ひぐれを とめてくれ」",
+       "アルスは おうめいを うけた!"],()=>{prologueEnd();});
+}
+function shrineTalk(){
+  P.saveCount++;
+  const seq=["アルスは 白銅貨を そなえ、ほら貝に ささやいた……"];
+  if(P.saveCount===1){
+    seq.push("はは『……アルス? ああ、きこえるわ。げんきそうね』");
+    seq.push("はは『きを つけてね。かみさまの ごかごが ありますように』");
+  }else if(P.saveCount===2){
+    seq.push("はは『……アルス? ……ごはん、ちゃんと たべてる?』");
+    seq.push("(……いま、なんと いった? 貝が ざわめいて、よく きこえなかった)");
+  }else{
+    seq.push("はは『いつでも こえを きかせてね』");
+  }
+  seq.push("——そなえた 白銅貨は、いつのまにか ふところに もどっている。");
+  seq.push("ぼうけんの きろくを のこした。");
+  say(seq,()=>{save();});
+}
+function signTalk(){say(["「きた → リーメンの まち」","「みなみ → はじまりの むら」"]);}
+function gateTalk(){say(["とびらは かたく とざされている。","——『そらのカギ』を もつものだけが、きたへ ゆける。"]);}
+function prologueEnd(){
+  setTimeout(()=>{
+    mode="end";
+    say(["……こうして、アルスの ながい たびが はじまった。",
+         "—— 序章 おわり ——",
+         "だいいっしょう 『じょうかの ひび』 に つづく。",
+         "(プロトタイプは ここまで。タイトルへ もどります)"],
+      ()=>{location.reload();});
+  },400);
+}
+
+/* ---------- 移動(半タイル) ---------- */
+let mode="title";        // title / field / battle / end
+let moving=null,animT=0;
+const held={up:false,down:false,left:false,right:false};
+const DIRV={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+function cellsAt(hx,hy){const x0=hx>>1,x1=(hx+1)>>1,y0=hy>>1,y1=(hy+1)>>1;const o=[];
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)o.push([x,y]);return o;}
+function passable(x,y){
+  if(BLOCK.has(at(x,y)))return false;
+  const e=entAt(x,y);if(e&&!(e.chest&&P.flags["open_"+e.id]&&false))return e?false:true;
+  if(at(x,y)==="S"||at(x,y)==="P")return false;
+  return true;
+}
+function tryMove(dk){
+  if(mode!=="field"||moving||msgActive)return;
+  P.dir=dk;
+  const[dx,dy]=DIRV[dk];
+  const nx=P.x+dx,ny=P.y+dy;
+  for(const[cx,cy]of cellsAt(nx,ny)){const t=at(cx,cy);
+    if(t==="g"&&dy<0&&!P.flags.inCity){P.flags.inCity=true;}
+    if(t==="n"){gateTalk();return;}
+  }
+  if(!cellsAt(nx,ny).every(([cx,cy])=>passable(cx,cy)))return;
+  moving={fx:P.x,fy:P.y,tx:nx,ty:ny,t:0};
+}
+function onArrive(){
+  P.x=moving.tx;P.y=moving.ty;moving=null;
+  // エンカウント(半歩あたり)
+  const cx=Math.round(P.x/2),cy=Math.round(P.y/2);
+  const t=at(cx,cy);
+  if(t==="."){
+    if(Math.random()<1/26)startBattle(cy<21?"north":"south");
+  }else if(t==="r"&&cy>14){
+    if(Math.random()<1/60)startBattle(cy<21?"north":"south");
+  }
+}
+function facing(){
+  const[dx,dy]=DIRV[P.dir];
+  const xs=dx?[dx<0?(P.x>>1)-1:((P.x+1)>>1)+1]:[P.x>>1,(P.x+1)>>1];
+  const ys=dy?[dy<0?(P.y>>1)-1:((P.y+1)>>1)+1]:[P.y>>1,(P.y+1)>>1];
+  const o=[];for(const y of ys)for(const x of xs)if(!o.some(c=>c[0]===x&&c[1]===y))o.push([x,y]);
+  return o;
+}
+function pressA(){
+  if(mode==="title"){startGame();return;}
+  if(msgActive){nextMsg();return;}
+  if(mode!=="field")return;
+  for(const[tx,ty]of facing()){
+    const t=at(tx,ty);
+    if(t==="S"){shrineTalk();return;}
+    if(t==="P"){signTalk();return;}
+    if(t==="n"){gateTalk();return;}
+    const e=entAt(tx,ty);
+    if(e){
+      if(e.chest){
+        if(P.flags["open_"+e.id]){say(["からっぽだ。"]);return;}
+        P.flags["open_"+e.id]=true;
+        if(e.gold){P.gold+=e.gold;say(["たからばこを あけた!",e.gold+"ゴールドを てにいれた!"]);}
+        else{P.items.herb=(P.items.herb||0)+1;say(["たからばこを あけた!","やくそうを てにいれた!"]);}
+        drawStatus();save();return;
+      }
+      e.talk();return;
+    }
+  }
+}
+
+/* ---------- 戦闘 ---------- */
+const EN={
+ slime:{n:"スライム",hp:8,at:6,df:1,ex:3,g:4,spr:"slime"},
+ bat:{n:"おおこうもり",hp:10,at:8,df:2,ex:4,g:6,spr:"bat"},
+ aka:{n:"あかスライム",hp:13,at:10,df:3,ex:6,g:8,spr:"slime2"},
+ dog:{n:"やまいぬ",hp:18,at:13,df:4,ex:9,g:14,spr:"dog"},
+};
+const ZONES={south:["slime","slime","bat"],north:["aka","aka","dog"]};
+let B=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const bw=()=>P.auto?360:620;
+function bLine(t){curLine=t;drawStatus();}
+function setCmds(on){document.querySelectorAll("#bcmds button").forEach(b=>b.disabled=!on);}
+function startBattle(zone){
+  const key=ZONES[zone][Math.floor(Math.random()*ZONES[zone].length)];
+  const d=EN[key];
+  B={key,d,hp:d.hp,shake:0};
+  mode="battle";
+  document.getElementById("bcmds").classList.add("show");
+  document.getElementById("autoBtn").classList.add("show");
+  updateAuto();
+  setCmds(false);
+  bLine(d.n+"が あらわれた!");
+  setTimeout(()=>playerTurn(),bw());
+}
+function playerTurn(){
+  if(!B)return;
+  if(P.auto){setCmds(false);autoAct();}
+  else{bLine("コマンド?");setCmds(true);}
+}
+async function autoAct(){
+  await sleep(280);if(!B)return;
+  if(P.hp<maxHp()*0.35&&P.mp>=4&&P.lv>=3){doSpell("heal");return;}
+  if(P.hp<maxHp()*0.35&&(P.items.herb||0)>0){doItem();return;}
+  if(P.flags.spellBolt&&P.mp>=5&&B.hp>10&&Math.random()<0.5){doSpell("bolt");return;}
+  doAtk();
+}
+const dmg=(a,d)=>Math.max(1,Math.round((a-d*0.6)*(0.85+Math.random()*0.3)));
+async function doAtk(){
+  setCmds(false);bLine("アルスの こうげき!");await sleep(bw());
+  let v=dmg(atk(),B.d.df);
+  if(Math.random()<1/16){v=Math.round(v*1.8);bLine("かいしんの いちげき!!");await sleep(bw());}
+  B.hp-=v;B.shake=6;
+  bLine(B.d.n+"に "+v+"の ダメージ!");await sleep(bw());
+  after();
+}
+async function doSpell(which){
+  const sps=[];
+  if(P.lv>=3)sps.push("heal");
+  if(P.flags.spellBolt)sps.push("bolt");
+  if(sps.length===0){bLine("まだ じゅもんを しらない!");await sleep(bw());playerTurn();return;}
+  const sp=which||(P.hp<maxHp()*0.6&&P.lv>=3?"heal":(P.flags.spellBolt?"bolt":"heal"));
+  if(sp==="heal"){
+    if(P.mp<4){bLine("MPが たりない!");await sleep(bw());playerTurn();return;}
+    setCmds(false);P.mp-=4;bLine("アルスは いやしを となえた!");await sleep(bw());
+    P.hp=Math.min(maxHp(),P.hp+30);bLine("HPが かいふくした!");
+  }else{
+    if(P.mp<5){bLine("MPが たりない!");await sleep(bw());playerTurn();return;}
+    setCmds(false);P.mp-=5;bLine("アルスは いかずちを となえた!");await sleep(bw());
+    const v=14+P.lv*2+Math.floor(Math.random()*5);B.hp-=v;B.shake=6;
+    bLine(B.d.n+"に "+v+"の ダメージ!");
+  }
+  await sleep(bw());after();
+}
+async function doItem(){
+  if((P.items.herb||0)<=0){bLine("どうぐを もっていない!");await sleep(bw());playerTurn();return;}
+  setCmds(false);P.items.herb--;
+  P.hp=Math.min(maxHp(),P.hp+28);
+  bLine("やくそうを つかった! HPが かいふくした!");await sleep(bw());after(true);
+}
+async function doRun(){
+  setCmds(false);bLine("アルスは にげだした!");await sleep(bw());
+  if(Math.random()<0.7){endBattle();return;}
+  bLine("しかし まわりこまれてしまった!");await sleep(bw());enemyTurn();
+}
+async function after(skipEnemyCheck){
+  if(B.hp<=0){await win();return;}
+  enemyTurn();
+}
+async function enemyTurn(){
+  bLine(B.d.n+"の こうげき!");await sleep(bw());
+  const v=dmg(B.d.at,dfn());P.hp-=v;
+  bLine("アルスは "+v+"の ダメージを うけた!");drawStatus();await sleep(bw());
+  if(P.hp<=0){await lose();return;}
+  playerTurn();
+}
+async function win(){
+  bLine(B.d.n+"を たおした!");await sleep(bw());
+  P.exp+=B.d.ex;P.gold+=B.d.g;
+  bLine("けいけんち "+B.d.ex+"、"+B.d.g+"ゴールドを かくとく!");drawStatus();await sleep(bw());
+  while(P.exp>=expNeed(P.lv)){
+    P.exp-=expNeed(P.lv);P.lv++;P.hp=maxHp();P.mp=maxMp();
+    bLine("レベルが "+P.lv+"に あがった!");drawStatus();await sleep(bw()+200);
+    if(P.lv===3){bLine("じゅもん 『いやし』を おぼえた!");await sleep(bw()+200);}
+  }
+  endBattle();
+}
+async function lose(){
+  bLine("アルスは たおれてしまった……");await sleep(900);
+  P.gold=Math.floor(P.gold/2);P.hp=maxHp();P.mp=maxMp();
+  P.x=14;P.y=116;P.dir="down";
+  endBattle();
+  say(["……めが さめると、むらの ちかくだった。","(しょじきんが はんぶんに なってしまった)"]);
+  save();
+}
+function endBattle(){
+  B=null;mode="field";
+  document.getElementById("bcmds").classList.remove("show");
+  document.getElementById("autoBtn").classList.remove("show");
+  curLine="";drawStatus();save();
+}
+document.getElementById("bcmds").addEventListener("click",e=>{
+  const c=e.target.dataset&&e.target.dataset.c;if(!c||e.target.disabled)return;
+  if(c==="atk")doAtk();if(c==="spl")doSpell();if(c==="itm")doItem();if(c==="run")doRun();
+});
+const autoBtn=document.getElementById("autoBtn");
+autoBtn.addEventListener("click",()=>{P.auto=!P.auto;updateAuto();save();
+  if(P.auto&&B&&!document.querySelector("#bcmds button").disabled){setCmds(false);autoAct();}});
+function updateAuto(){autoBtn.classList.toggle("on",P.auto);autoBtn.textContent=P.auto?"AUTO✓":"AUTO";}
+
+/* ---------- 敵スプライト(戦闘用 · ディザ描き) ---------- */
+function enemyCanvas(key){
+  const cv=document.createElement("canvas");cv.width=64;cv.height=64;
+  const c=cv.getContext("2d");
+  const img=c.createImageData(64,64);const buf=new Uint32Array(img.data.buffer);
+  const ps=(x,y,ci)=>{x|=0;y|=0;if(x<0||y<0||x>=64||y>=64)return;buf[y*64+x]=PAL32[ci];};
+  const pr=(ci,x,y,w,h)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++)ps(x+i,y+j,ci);};
+  const pd=(x,y,t,a,b)=>{ps(x,y,t>(BAYER[(y&3)*4+(x&3)]+0.5)/16?b:a);};
+  const pdr=(x,y,w,h,t,a,b)=>{for(let j2=0;j2<h;j2++)for(let i2=0;i2<w;i2++)pd(x+i2,y+j2,t,a,b);};
+  if(key==="slime"||key==="slime2"){
+    const main=key==="slime"?1:7,hi=key==="slime"?2:3;
+    for(let j=0;j<28;j++){const f=j/27;const half=Math.round(22*Math.sqrt(1-Math.pow(1-f*1.3,2))+2);
+      pr(0,32-half-1,20+j,half*2+2,1);
+      if(j>0&&j<27)pdr(32-half,20+j,half*2,1,0.35,main,hi);}
+    pr(hi,18,26,7,5);
+    pr(3,22,32,5,5);pr(0,24,34,2,2);pr(3,37,32,5,5);pr(0,39,34,2,2);
+    pr(0,26,42,12,3);
+  }else if(key==="bat"){
+    pr(0,8,22,20,4);pr(0,36,22,20,4);
+    pdr(6,18,22,12,0.5,0,1);pdr(36,18,22,12,0.5,0,1);
+    for(let k=0;k<3;k++){pr(0,10+k*6,30,4,6);pr(0,50-k*6,30,4,6);}
+    pdr(26,20,12,18,0.4,0,1);pr(0,26,20,12,18-16);
+    pr(7,28,26,3,3);pr(7,33,26,3,3);
+    pr(3,29,34,2,3);pr(3,33,34,2,3);
+    pr(0,24,14,4,6);pr(0,36,14,4,6);
+  }else if(key==="dog"){
+    pdr(14,30,36,14,0.5,6,0);
+    pdr(10,20,16,12,0.5,6,0);
+    pr(0,8,16,6,6);pr(6,9,17,4,4);
+    pr(7,12,24,3,3);pr(3,10,30,8,3);pr(0,10,32,8,1);
+    pr(0,16,44,4,8);pr(0,26,44,4,8);pr(0,38,44,4,8);pr(0,46,42,4,10);
+    pr(6,48,26,10,4);pr(6,54,22,4,6);
+  }
+  c.putImageData(img,0,0);
+  return cv;
+}
+const ESPR={slime:enemyCanvas("slime"),slime2:enemyCanvas("slime2"),bat:enemyCanvas("bat"),dog:enemyCanvas("dog")};
+
+/* ---------- 店・書院・メニュー ---------- */
+function openSheet(id){document.getElementById(id).classList.add("show");}
+window.closeSheet=id=>{document.getElementById(id).classList.remove("show");drawStatus();};
+function openShop(){renderShop();openSheet("shShop");}
+function renderShop(){
+  const L=document.getElementById("shopList");let h="";
+  const rw=(k,o,cur,setF)=>{const it=o[k];const own=cur===k;
+    return `<div class="row"><span>${it.n} <span class="tag">${it.a?"攻+"+it.a:"守+"+it.d}</span></span>`+
+    (own?`<span class="own">そうびちゅう</span>`:`<span class="price">${it.p}G</span><button onclick="${setF}('${k}')" ${P.gold<it.p?"disabled":""}>かう</button>`)+`</div>`;};
+  for(const k of["club","copper"])h+=rw(k,WPN,P.weapon,"buyW");
+  for(const k of["leather","wool"])h+=rw(k,ARM,P.armor,"buyA");
+  h+=rw("leather",SHD,P.shield,"buyS");
+  h+=`<div class="row"><span>やくそう <span class="tag">HP28かいふく</span></span><span class="price">8G</span><button onclick="buyI()" ${P.gold<8?"disabled":""}>かう</button></div>`;
+  L.innerHTML=h;
+  document.getElementById("shopFoot").innerHTML=`しょじきん <span style="color:#e8d27a">${P.gold}G</span> ／ やくそう×${P.items.herb||0}<br><span class="tag">かった そうびは すぐに みにつけます</span>`;
+}
+window.buyW=k=>{P.gold-=WPN[k].p;P.weapon=k;renderShop();drawStatus();save();};
+window.buyA=k=>{P.gold-=ARM[k].p;P.armor=k;renderShop();drawStatus();save();};
+window.buyS=k=>{P.gold-=SHD[k].p;P.shield=k;renderShop();drawStatus();save();};
+window.buyI=()=>{P.gold-=8;P.items.herb=(P.items.herb||0)+1;renderShop();drawStatus();save();};
+function openBooks(){
+  const L=document.getElementById("bookList");
+  const books=[
+    {t:"『雷のしくみ(図解つき)』",p:120,key:"bolt",d:"じゅもん『いかずち』を おぼえる"},
+    {t:"『よくねむるための書』",p:180,key:null,d:"(だい2しょうで はつばい)"},
+    {t:"『くらやみで本をよむ法』",p:90,key:null,d:"(だい2しょうで はつばい)"},
+    {t:"『旅路の安全読本』",p:200,key:null,d:"(だい2しょうで はつばい)"},
+  ];
+  L.innerHTML=books.map(b=>{
+    if(b.key==="bolt"&&P.flags.spellBolt)return `<div class="row"><span>${b.t}</span><span class="own">よんだ</span></div>`;
+    if(!b.key)return `<div class="row"><span>${b.t} <span class="tag">${b.d}</span></span><span class="tag">—</span></div>`;
+    return `<div class="row"><span>${b.t} <span class="tag">${b.d}</span></span><span class="price">${b.p}G</span><button onclick="buyBook()" ${P.gold<b.p?"disabled":""}>かう</button></div>`;
+  }).join("");
+  document.getElementById("bookFoot").innerHTML=`あるじ「どれも はくらいの めずらしい本さ。……ふしぎと、なつかしい においが するだろう?」<br><span class="tag">しょじきん ${P.gold}G</span>`;
+  openSheet("shBooks");
+}
+window.buyBook=()=>{P.gold-=120;P.flags.spellBolt=true;closeSheet("shBooks");say(["アルスは 本を よんだ。","じゅもん 『いかずち』を おぼえた!"]);drawStatus();save();};
+document.getElementById("menuBtn").addEventListener("click",()=>{
+  if(mode!=="field"||msgActive)return;
+  document.getElementById("menuStats").innerHTML=
+    `<div class="row"><span>レベル</span><span>${P.lv}</span></div>`+
+    `<div class="row"><span>HP / MP</span><span>${P.hp}/${maxHp()} · ${P.mp}/${maxMp()}</span></div>`+
+    `<div class="row"><span>こうげき / しゅび</span><span>${atk()} / ${dfn()}</span></div>`+
+    `<div class="row"><span>つぎのレベルまで</span><span>あと ${expNeed(P.lv)-P.exp}</span></div>`+
+    `<div class="row"><span>そうび</span><span>${WPN[P.weapon].n}・${ARM[P.armor].n}${P.shield?"・"+SHD[P.shield].n:""}</span></div>`+
+    `<div class="row"><span>じゅもん</span><span>${[P.lv>=3?"いやし":null,P.flags.spellBolt?"いかずち":null].filter(Boolean).join("・")||"なし"}</span></div>`+
+    `<div class="row"><span>白銅貨</span><span>${P.coin}まい</span></div>`;
+  window._useHerb=()=>{if((P.items.herb||0)>0){P.items.herb--;P.hp=Math.min(maxHp(),P.hp+28);document.getElementById("menuBtn").click();drawStatus();save();}};
+  document.getElementById("menuItems").innerHTML=
+    `<div class="row"><span>やくそう ×${P.items.herb||0}</span><button onclick="_useHerb()" ${(P.items.herb||0)?"":"disabled"}>つかう</button></div>`;
+  openSheet("shMenu");
+});
+
+/* ---------- 入力 ---------- */
+function bindHold(id,k){const el=document.getElementById(id);
+  const on=e=>{e.preventDefault();held[k]=true;};const off=e=>{e.preventDefault();held[k]=false;};
+  el.addEventListener("touchstart",on,{passive:false});el.addEventListener("touchend",off);el.addEventListener("touchcancel",off);
+  el.addEventListener("mousedown",on);el.addEventListener("mouseup",off);el.addEventListener("mouseleave",off);}
+bindHold("pu","up");bindHold("pdn","down");bindHold("pl","left");bindHold("pr","right");
+document.getElementById("btnA").addEventListener("click",pressA);
+addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp")held.up=true;if(e.key==="ArrowDown")held.down=true;
+  if(e.key==="ArrowLeft")held.left=true;if(e.key==="ArrowRight")held.right=true;
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();pressA();}});
+addEventListener("keyup",e=>{
+  if(e.key==="ArrowUp")held.up=false;if(e.key==="ArrowDown")held.down=false;
+  if(e.key==="ArrowLeft")held.left=false;if(e.key==="ArrowRight")held.right=false;});
+scr.addEventListener("click",()=>{if(msgActive)nextMsg();else if(mode==="title")startGame();});
+
+/* ---------- CRTオーバーレイ(1回だけ) ---------- */
+(function(){cx2.fillStyle="rgba(0,0,0,.13)";
+  for(let y=0;y<1200;y+=3)cx2.fillRect(0,y,720,1);
+  const vg=cx2.createRadialGradient(360,600,320,360,600,880);
+  vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,10,.3)");
+  cx2.fillStyle=vg;cx2.fillRect(0,0,720,1200);})();
+
+/* ---------- タイトル ---------- */
+function drawTitle(t){
+  ctx.fillStyle="#0a0c1e";ctx.fillRect(0,0,720,1200);
+  ctx.imageSmoothingEnabled=false;
+  // 星
+  for(let i=0;i<40;i++){const x=(i*173)%720,y=(i*97)%500;
+    ctx.fillStyle=`rgba(232,226,196,${0.2+((i*37)%6)/10})`;ctx.fillRect(x,y,3,3);}
+  // 塔のシルエット
+  ctx.fillStyle="#1a1e40";ctx.fillRect(330,190,60,260);ctx.fillRect(315,170,90,36);
+  ctx.fillStyle="#e8d27a";ctx.fillRect(356,240,8,10);
+  ctx.font="700 64px 'MS Gothic','BIZ UDGothic',monospace";
+  ctx.fillStyle="#e8e2c4";ctx.textAlign="center";
+  ctx.fillText("剣と魔法の国",360,560);
+  ctx.font="700 22px 'MS Gothic',monospace";
+  ctx.fillStyle="#8fd0e8";
+  ctx.fillText("— THE SWORD AND SORCERY —",360,610);
+  ctx.font="700 26px 'MS Gothic',monospace";
+  ctx.fillStyle=(t>>9)%2?"#e8e2c4":"#8a8fb4";
+  ctx.fillText(load()?"Aボタンで つづきから":"Aボタンで はじめる",360,780);
+  ctx.font="700 18px 'MS Gothic',monospace";
+  ctx.fillStyle="#6a6f94";
+  ctx.fillText("(C)1987 TASOGARE SOFT",360,1100);
+  ctx.textAlign="left";
+}
+function startGame(){
+  const d=load();
+  P=d||newP();
+  updateAuto();
+  mode="field";
+  curLine="";drawStatus();
+  if(!d){
+    say(["リーメンの りょうしゅから おふれが とどいた。",
+         "むらの けんし アルスを めして、まおう とうばつの けんを さずける——",
+         "まずは いえの ははに あいさつを してから、きたの みちを ゆこう。"]);
+  }
+}
+
+/* ---------- メインループ ---------- */
+let last=0;
+const MOVE_MS=85;
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(50,now-last);last=now;animT=now;
+  if(mode==="title"){drawTitle(now);return;}
+  if(!P)return;
+  if(mode==="field"&&moving){
+    moving.t+=dt/MOVE_MS;
+    if(moving.t>=1)onArrive();
+  }else if(mode==="field"&&!msgActive){
+    for(const k of["up","down","left","right"])if(held[k]){tryMove(k);break;}
+  }
+  render(now);
+}
+function render(now){
+  ctx.imageSmoothingEnabled=false;
+  if(mode==="battle"){
+    // 戦闘画面
+    ctx.fillStyle="#0a0c1e";ctx.fillRect(0,0,720,1200);
+    // 地面と空(ディザ風グラデをざっくり)
+    ctx.fillStyle="#12142c";ctx.fillRect(0,620,720,220);
+    ctx.fillStyle="#1a1e40";ctx.fillRect(0,600,720,20);
+    if(B){
+      const sh=B.shake>0?(B.shake--,(B.shake%2?6:-6)):0;
+      ctx.drawImage(ESPR[B.d.spr],0,0,64,64, 360-160+sh,380,320,320);
+      // 敵名ウィンドウ
+      ctx.fillStyle="#0a0c1e";ctx.fillRect(30,40,300,70);
+      ctx.strokeStyle="#e8e2c4";ctx.lineWidth=3;ctx.strokeRect(33,43,294,64);
+      ctx.font="700 28px 'MS Gothic',monospace";ctx.fillStyle="#e8e2c4";
+      ctx.fillText(B.d.n,50,84);
+      ctx.fillStyle="#000";ctx.fillRect(50,92,180,9);
+      ctx.fillStyle="#d84838";ctx.fillRect(50,92,180*Math.max(0,B.hp/B.d.hp),9);
+    }
+  }else{
+    // フィールド
+    const ph=reduce?0:((now>>8)&1);
+    const pxx=(moving?(moving.fx+(moving.tx-moving.fx)*moving.t):P.x)*8;
+    const pyy=(moving?(moving.fy+(moving.ty-moving.fy)*moving.t):P.y)*8;
+    let camY=Math.round(pyy-160+8);
+    camY=Math.max(0,Math.min(WPY-336,camY));
+    ctx.drawImage(WORLD[ph],0,camY,240,336, 0,0,720,1008);
+    // エンティティ
+    for(const e of ENT){
+      const spr=(e.chest&&P.flags["open_"+e.id])?e.sprOpen:e.spr;
+      const ex=e.tx*16,ey=e.ty*16-camY;
+      if(ey<-16||ey>336)continue;
+      ctx.drawImage(spr,0,0,16,16, ex*3,ey*3,48,48);
+    }
+    // プレイヤー
+    const st=moving?((moving.tx+moving.ty)&1):0;
+    const hx=(pxx-0)*1,hy=pyy-camY;
+    ctx.drawImage(HERO[P.dir][st],0,0,16,16, Math.round(hx*3),Math.round(hy*3),48,48);
+  }
+  // ステータスパネル
+  ctx.drawImage(panel,0,0,240,64, 0,1008,720,192);
+}
+drawStatus=((orig)=>orig)(drawStatus);
+requestAnimationFrame(loop);
+
+/* ---------- デバッグ ---------- */
+window.DEBUG={
+  st:()=>P,mode:()=>mode,
+  start:()=>startGame(),
+  warp:(x,y)=>{moving=null;P.x=x*2;P.y=y*2;},
+  battle:z=>startBattle(z||"south"),
+  msgOff:()=>{msgQ=[];msgActive=false;curLine="";drawStatus();},
+  give:g=>{P.gold+=g;drawStatus();},
+};
+</script>
+</body>
+</html>
