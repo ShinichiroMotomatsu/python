@@ -55,7 +55,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 15</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 16</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -1125,29 +1125,37 @@ function render3d(g,fr,W,F,noHud){fr=fr||0;W=W||cw;F=F||cw*0.68;
       g.fillStyle='rgba(232,244,255,.13)';
       g.beginPath();g.moveTo(xl+wpx*0.18,gy-wallH);g.lineTo(xl+wpx*0.34,gy-wallH);
       g.lineTo(xl+wpx*0.10,gy);g.lineTo(xl-wpx*0.02,gy);g.closePath();g.fill();
-     }else{ // 窓グリッド + 床スラブ線
+     }else{ // 窓グリッド + 床スラブ線 (2Dと同じ縦構成: [看板帯]→窓→1階)
       const cols=k===11?2:4;
-      for(let r2=0;r2<rows-1;r2++)for(let c2=0;c2<cols;c2++){
-       const ww=wpx/(cols+0.9), wh=rh*0.5;
-       const wx=xl+wpx*(c2+0.6)/(cols+0.9), wy=gy-wallH+r2*rh+rh*0.24;
+      const gh2=Math.max(4,Math.min(rh,wallH*0.26));      // 1階の高さ
+      let top2=gy-wallH, hAvail=wallH-gh2;
+      if(k===12){ // 上部看板帯 (屋根直下, 2Dと同じ)
+       const bandT=Math.max(3,wallH*0.12);
+       g.fillStyle=['#3d6db4','#b43d3d','#3d8a6e','#8a5aa0'][bv];
+       g.fillRect(xl,top2,wpx,bandT);
+       top2+=bandT;hAvail-=bandT;
+      }
+      const rowsW=k===11?1:k===12?2:rows-1;
+      const rhW=hAvail/rowsW;
+      for(let r2=0;r2<rowsW;r2++)for(let c2=0;c2<cols;c2++){
+       const ww=wpx/(cols+0.9), wh=rhW*0.5;
+       const wx=xl+wpx*(c2+0.6)/(cols+0.9), wy=top2+r2*rhW+rhW*0.24;
        g.fillStyle=hs(cc.x*7+c2,cc.y*5+r2,8)<.72?'#7e9cba':'#cfe0ec';
        g.fillRect(wx,wy,ww,wh);
        g.fillStyle='rgba(255,255,255,.45)';g.fillRect(wx,wy,ww,Math.max(1,wh*0.28));
        g.fillStyle='rgba(30,40,54,.45)';g.fillRect(wx,wy+wh-1,ww,1);
       }
       g.fillStyle='rgba(30,26,24,.20)';
-      for(let r2=1;r2<rows;r2++)g.fillRect(xl,gy-wallH+r2*rh,wpx,1);
-     }
-     // 1階
-     const gh2=Math.max(4,Math.min(rh,wallH*0.26));
-     if(k===12){ // 看板帯 + 店先ガラス (2Dと同色)
-      g.fillStyle=['#3d6db4','#b43d3d','#3d8a6e','#8a5aa0'][bv];
-      g.fillRect(xl,gy-gh2-Math.max(2,gh2*0.4),wpx,Math.max(2,gh2*0.4));
-      g.fillStyle='#cfe0ec';g.fillRect(xl+wpx*0.06,gy-gh2,wpx*0.88,gh2);
-      g.fillStyle='rgba(40,52,74,.4)';g.fillRect(xl+wpx*0.48,gy-gh2,Math.max(1,wpx*0.03),gh2);
-     }else{ // エントランス
-      g.fillStyle='#223048';g.fillRect(xl+wpx*0.36,gy-gh2,wpx*0.28,gh2);
-      g.fillStyle='rgba(235,245,255,.3)';g.fillRect(xl+wpx*0.36,gy-gh2,wpx*0.28,Math.max(1,gh2*0.2));
+      for(let r2=1;r2<=rowsW;r2++)g.fillRect(xl,top2+r2*rhW,wpx,1);
+      // 1階
+      if(k===12){ // 店先ガラス
+       g.fillStyle='#cfe0ec';g.fillRect(xl+wpx*0.06,gy-gh2,wpx*0.88,gh2);
+       g.fillStyle='rgba(255,255,255,.4)';g.fillRect(xl+wpx*0.06,gy-gh2,wpx*0.88,Math.max(1,gh2*0.18));
+       g.fillStyle='rgba(40,52,74,.4)';g.fillRect(xl+wpx*0.48,gy-gh2,Math.max(1,wpx*0.03),gh2);
+      }else{ // エントランス
+       g.fillStyle='#223048';g.fillRect(xl+wpx*0.36,gy-gh2,wpx*0.28,gh2);
+       g.fillStyle='rgba(235,245,255,.3)';g.fillRect(xl+wpx*0.36,gy-gh2,wpx*0.28,Math.max(1,gh2*0.2));
+      }
      }
     }
     if(k===15){ // モール: アクセント帯 + 大きな店先ガラス
