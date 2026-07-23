@@ -830,7 +830,7 @@ window.addEventListener('keydown',e=>{
  if(KEY[e.code]){
   if(view3d){
    const d=KEY[e.code];
-   if(d==='left')turn(-1);else if(d==='right')turn(1);
+   if(d==='left')fpTurn(-1);else if(d==='right')fpTurn(1);
    else if(d==='up')fpMove(false);else fpMove(true);
   }else held=KEY[e.code];
   e.preventDefault();}
@@ -842,13 +842,13 @@ for(const[id,d]of[['dU','up'],['dD','down'],['dL','left'],['dR','right']]){
  const b=document.getElementById(id);
  b.addEventListener('pointerdown',e=>{
   if(view3d){
-   if(d==='left')turn(-1);else if(d==='right')turn(1);
+   if(d==='left')fpTurn(-1);else if(d==='right')fpTurn(1);
    else if(d==='up')fpMove(false);else fpMove(true);
   }else held=d;
   e.preventDefault();});
  b.addEventListener('pointerup',()=>{if(held===d)held=null;});
  b.addEventListener('pointerleave',()=>{if(held===d)held=null;});}
-function toggleView(){view3d=!view3d;held=null;P.moving=null;
+function toggleView(){view3d=!view3d;held=null;P.moving=null;fpAnim=null;
  document.getElementById('btnV').textContent=view3d?'2D':'3D';}
 document.getElementById('btnV').addEventListener('pointerdown',e=>{toggleView();e.preventDefault();});
 document.getElementById('btnA').addEventListener('pointerdown',e=>{doA();e.preventDefault();});
@@ -862,11 +862,26 @@ const FWD={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
 const RGT={up:[1,0],right:[0,1],down:[-1,0],left:[0,-1]};
 const DIRNAME={up:'N',right:'E',down:'S',left:'W'};
 function turn(dd){P.dir=DIRORDER[(DIRORDER.indexOf(P.dir)+dd+4)%4];}
+let fpAnim=null;
 function fpMove(back){
- if(msgActive)return;
+ if(msgActive||fpAnim)return;
  const[fx,fy]=FWD[P.dir];
  const dx=back?-fx:fx,dy=back?-fy:fy;
- if(canGo(P.hx+dx*2,P.hy+dy*2)&&canGo(P.hx+dx,P.hy+dy)){P.hx+=dx*2;P.hy+=dy*2;checkArea();}
+ if(canGo(P.hx+dx*2,P.hy+dy*2)&&canGo(P.hx+dx,P.hy+dy)){
+  fpAnim={type:'move',sgn:back?-1:1,tx:P.hx+dx*2,ty:P.hy+dy*2,t0:performance.now(),dur:210};
+ }
+}
+function snap3d(){
+ const c=document.createElement('canvas');c.width=cw;c.height=chh;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ render3d(g,0);return c;
+}
+function fpTurn(dd){
+ if(msgActive||fpAnim)return;
+ const a=snap3d();
+ turn(dd);
+ const b=snap3d();
+ fpAnim={type:'turn',sgn:dd,a,b,t0:performance.now(),dur:180};
 }
 function floorCol(c,d){
  switch(c){
@@ -884,29 +899,39 @@ function shade(hex,f){ // f<1 で暗く
  const r=Math.min(255,((n>>16)&255)*f)|0,g=Math.min(255,((n>>8)&255)*f)|0,b=Math.min(255,(n&255)*f)|0;
  return `rgb(${r},${g},${b})`;
 }
-function render3d(){
+function render3d(g,fr){fr=fr||0;
  const cx2=cw/2;
  const hor=chh*0.40;
  const f=cw*0.68, z0=0.9, EYE=0.48;
- const un=d=>1/Math.max(d+z0,0.32);
+ const un=d=>1/Math.max(d-fr+z0,0.32);
  const uu=d=>f*un(d);
  const yF=d=>hor+EYE*uu(d);
  const MAXD=10;
  // 空
- const sky=ctx.createLinearGradient(0,0,0,hor);
+ const sky=g.createLinearGradient(0,0,0,hor);
  sky.addColorStop(0,'#7ab4e4');sky.addColorStop(1,'#d8ecf8');
- ctx.fillStyle=sky;ctx.fillRect(0,0,cw,hor);
- ctx.fillStyle='rgba(255,255,255,.7)';
- ctx.fillRect(cw*0.15,hor*0.3,60,10);ctx.fillRect(cw*0.6,hor*0.5,80,12);ctx.fillRect(cw*0.4,hor*0.18,50,8);
+ g.fillStyle=sky;g.fillRect(0,0,cw,hor);
+ g.fillStyle='rgba(255,255,255,.7)';
+ g.fillRect(cw*0.15,hor*0.3,60,10);g.fillRect(cw*0.6,hor*0.5,80,12);g.fillRect(cw*0.4,hor*0.18,50,8);
  // 遠景スカイライン
- ctx.fillStyle='#a8bed4';
- for(let i=0;i<12;i++){const bw=30+((i*53)%40),bh=18+((i*37)%42);ctx.fillRect(i*cw/11-10,hor-bh,bw,bh);}
- ctx.fillStyle='#c2d4e4';ctx.fillRect(0,hor-6,cw,6);
- // 地面ベース
- ctx.fillStyle='#8a8880';ctx.fillRect(0,hor,cw,chh-hor);
+ g.fillStyle='#a8bed4';
+ for(let i=0;i<12;i++){const bw=30+((i*53)%40),bh=18+((i*37)%42);g.fillRect(i*cw/11-10,hor-bh,bw,bh);}
+ g.fillStyle='#c2d4e4';g.fillRect(0,hor-6,cw,6);
  const px2=P.hx/2,py2=P.hy/2;
  const[fx,fy]=FWD[P.dir],[rx,ry]=RGT[P.dir];
  const cellAt=(d,s)=>({x:Math.round(px2+fx*d+rx*s),y:Math.round(py2+fy*d+ry*s)});
+ // 遠距離ランドマーク (奥→先に描く)
+ for(const lm of LM3D){
+  if(!lm.c)continue;
+  const relx=lm.c.x-px2,rely=lm.c.y-py2;
+  const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
+  if(fd<=MAXD+1||fd>90)continue;
+  if(Math.abs(lt)>fd*1.1)continue;
+  const w1=0.5*uu(fd);
+  drawLM3d(g,lm.k,cx2+lt*2*w1,hor+EYE*uu(fd),w1,0.55);
+ }
+ // 地面ベース
+ g.fillStyle='#8a8880';g.fillRect(0,hor,cw,chh-hor);
  // 床 (遠→近)
  for(let d=MAXD;d>=-1;d--){
   const y0=yF(d+1),y1=yF(d);
@@ -915,23 +940,46 @@ function render3d(){
   for(let s=-SW;s<=SW;s++){
    const cc=cellAt(d+1,s);
    const c=at(cc.x,cc.y);
-   ctx.fillStyle=floorCol(c);
-   ctx.beginPath();
-   ctx.moveTo(cx2+(s-0.5)*2*w0,y0);ctx.lineTo(cx2+(s+0.5)*2*w0,y0);
-   ctx.lineTo(cx2+(s+0.5)*2*w1,y1);ctx.lineTo(cx2+(s-0.5)*2*w1,y1);
-   ctx.closePath();ctx.fill();
-   if(c==='r'&&s===0&&d%2===0){ctx.fillStyle='rgba(240,238,225,.5)';
-    const mw=w1*0.08;ctx.fillRect(cx2-mw,(y0+y1)/2-1,mw*2,Math.max(2,(y1-y0)*0.3));}
+   g.fillStyle=floorCol(c);
+   g.beginPath();
+   g.moveTo(cx2+(s-0.5)*2*w0,y0);g.lineTo(cx2+(s+0.5)*2*w0,y0);
+   g.lineTo(cx2+(s+0.5)*2*w1,y1);g.lineTo(cx2+(s-0.5)*2*w1,y1);
+   g.closePath();g.fill();
+   if(c==='r'&&s===0&&d%2===0){g.fillStyle='rgba(240,238,225,.5)';
+    const mw=w1*0.08;g.fillRect(cx2-mw,(y0+y1)/2-1,mw*2,Math.max(2,(y1-y0)*0.3));}
   }
   // 霞
-  ctx.fillStyle=`rgba(200,216,232,${Math.min(.5,d*0.05)})`;
-  ctx.fillRect(0,y0,cw,y1-y0);
+  g.fillStyle=`rgba(200,216,232,${Math.min(.5,d*0.05)})`;
+  g.fillRect(0,y0,cw,y1-y0);
  }
  // 壁・ビルボード (遠→近, 外→中央)
  for(let d=MAXD;d>=0;d--){
   const w1=0.5*uu(d),w0=0.5*uu(d+1);
   const SW=Math.ceil(cx2/w1)+1;
   const fog=Math.min(.55,d*0.055);
+  // ランドマークビルボード
+  for(const lm of LM3D){
+   if(!lm.c)continue;
+   const relx=lm.c.x-px2,rely=lm.c.y-py2;
+   const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
+   if(Math.round(fd)!==d+1)continue;
+   if(Math.abs(lt)>SW+6)continue;
+   drawLM3d(g,lm.k,cx2+lt*2*w1,yF(d),w1,fog);
+  }
+  // 信号 (この深度にあるものだけ)
+  for(const sg of SIGNALS){
+   const relx=sg[0]-px2,rely=sg[1]-py2;
+   const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
+   if(Math.round(fd)!==d+1||Math.abs(lt)>SW)continue;
+   const bx2=cx2+lt*2*w1,gy=yF(d);
+   const ph=w1*2.6;
+   g.fillStyle='#4a4e56';g.fillRect(bx2-ph*0.04,gy-ph,ph*0.08,ph);
+   g.fillStyle='#2e3238';g.fillRect(bx2-ph*0.3,gy-ph,ph*0.6,ph*0.22);
+   const ly=gy-ph+ph*0.05,lw=ph*0.13;
+   g.fillStyle='#1cc86a';g.fillRect(bx2-ph*0.24,ly,lw,lw);
+   g.fillStyle='#e8c22a';g.fillRect(bx2-ph*0.065,ly,lw,lw);
+   g.fillStyle='#e84a3a';g.fillRect(bx2+ph*0.11,ly,lw,lw);
+  }
   const order=[];
   for(let s=-SW;s<=SW;s++)order.push(s);
   order.sort((a,b)=>Math.abs(b)-Math.abs(a));
@@ -943,121 +991,104 @@ function render3d(){
    const xlF=cx2+(s-0.5)*2*w0, xrF=cx2+(s+0.5)*2*w0;
    const gy=yF(d), gyF=yF(d+1);
    const HB={11:0.75,12:1.15,13:1.9,14:3.0,15:0.85,16:5.2,23:0.4};
-   if(k>=11&&k<=23&&k!==15||k===15){
+   if(k>=11){
     const hh=HB[k]||1;
     const wallH=hh*uu(d)*1.1, wallHF=hh*uu(d+1)*1.1;
     let col= k===11?'#e8dfc8': k===12?'#e0dcd2': k===13?'#98a0ac': k===14?'#8ca4c4': k===15?'#c2c8d0': k===16?'#7c94b4':'#3c424e';
     // 側面 (内側向き)
     if(s!==0&&kindAt(cellAt(d+1,s-Math.sign(s)).x,cellAt(d+1,s-Math.sign(s)).y)!==k){
      const inx1=s>0?xl:xr, inx0=s>0?xlF:xrF;
-     ctx.fillStyle=shade(col,0.62*(1-fog*0.5));
-     ctx.beginPath();
-     ctx.moveTo(inx0,gyF);ctx.lineTo(inx0,gyF-wallHF);
-     ctx.lineTo(inx1,gy-wallH);ctx.lineTo(inx1,gy);
-     ctx.closePath();ctx.fill();
+     g.fillStyle=shade(col,0.62*(1-fog*0.5));
+     g.beginPath();
+     g.moveTo(inx0,gyF);g.lineTo(inx0,gyF-wallHF);
+     g.lineTo(inx1,gy-wallH);g.lineTo(inx1,gy);
+     g.closePath();g.fill();
     }
     // 正面
-    ctx.fillStyle=shade(col,1-fog*0.6);
-    ctx.fillRect(xl,gy-wallH,xr-xl,wallH);
-    ctx.strokeStyle='rgba(30,26,24,.5)';ctx.lineWidth=1;
-    ctx.strokeRect(xl,gy-wallH,xr-xl,wallH);
-    // 窓
-    if(k>=11&&k<=16&&xr-xl>10){
-     ctx.fillStyle=k>=14?'rgba(210,230,250,.8)':'rgba(120,160,200,.75)';
-     const rows=k===11?1:k===12?2:k===13?4:k===16?9:6;
-     for(let r2=0;r2<rows;r2++){
-      const wy=gy-wallH+wallH*(r2+0.25)/(rows+0.6);
-      for(let c2=0;c2<3;c2++){
-       const wx=xl+(xr-xl)*(c2+0.4)/3.6;
-       ctx.fillRect(wx,wy,Math.max(2,(xr-xl)*0.13),Math.max(2,wallH/(rows*2.6)));
-      }
+    g.fillStyle=shade(col,1-fog*0.6);
+    g.fillRect(xl,gy-wallH,xr-xl,wallH);
+    g.strokeStyle='rgba(30,26,24,.5)';g.lineWidth=1;
+    g.strokeRect(xl,gy-wallH,xr-xl,wallH);
+    // 窓テクスチャ (アトラスのタイルを貼る)
+    if(k>=11&&k<=16&&xr-xl>8&&wallH>8){
+     const tn=k===11?'b1Win':k===12?'shopWinB':k===13?'grayWin':'glassWin';
+     const tp=AP[tn];
+     const rows=k===11?1:k===12?2:k===13?4:k===16?8:5;
+     const cols=3;
+     const bandT=k===12?wallH*0.16:wallH*0.08;
+     const cellW=(xr-xl)/cols;
+     let cellH2=(wallH-bandT)/rows;
+     const capped=Math.min(cellH2,cellW*1.15);
+     const blockTop=gy-(capped*rows);           // 窓ブロックは下詰め(1階が地面に付く)
+     for(let r2=0;r2<rows;r2++)for(let c2=0;c2<cols;c2++){
+      g.drawImage(img,tp[0],tp[1],tp[2],tp[3],
+       xl+c2*cellW+cellW*0.06,blockTop+r2*capped+capped*0.08,cellW*0.88,capped*0.84);
      }
+     if(k===12){const hcc=hs(cc.x,cc.y,9);
+      g.fillStyle=['#3d6db4','#b43d3d','#3d8a6e'][(hcc*3)|0];
+      g.fillRect(xl,gy-wallH,xr-xl,bandT);}
+     if(k===14||k===16){g.strokeStyle='rgba(60,76,100,.4)';g.lineWidth=1;
+      for(let c2=1;c2<cols;c2++){g.beginPath();g.moveTo(xl+c2*cellW,gy-wallH);g.lineTo(xl+c2*cellW,gy);g.stroke();}}
     }
     if(k===15){const i=cc.y*GW+cc.x;
-     ctx.fillStyle=KACC[i]||'#888';ctx.fillRect(xl,gy-wallH,xr-xl,Math.max(3,wallH*0.18));}
+     const sp=AP.shopWinB;
+     const sh2=Math.min(wallH*0.55,(xr-xl)*0.5);
+     for(let c2=0;c2<3;c2++)g.drawImage(img,sp[0],sp[1],sp[2],sp[3],
+      xl+c2*(xr-xl)/3+2,gy-sh2,(xr-xl)/3-3,sh2-1);
+     g.fillStyle=KACC[i]||'#888';g.fillRect(xl,gy-wallH,xr-xl,Math.max(3,wallH*0.2));}
+    // 距離フォグ
+    if(fog>0.05){g.fillStyle=`rgba(205,220,236,${fog*0.55})`;g.fillRect(xl,gy-wallH,xr-xl,wallH);}
     if(k===23){ // 駅: Mサイン
-     ctx.fillStyle='#0069b3';ctx.fillRect((xl+xr)/2-5,gy-wallH-10,10,10);
-     ctx.fillStyle='#fff';ctx.font='bold 8px monospace';ctx.fillText('M',(xl+xr)/2-3,gy-wallH-2);}
-   }else if(k===1||k===2){ // 木
+     g.fillStyle='#0069b3';g.fillRect((xl+xr)/2-5,gy-wallH-10,10,10);
+     g.fillStyle='#fff';g.font='bold 8px monospace';g.fillText('M',(xl+xr)/2-3,gy-wallH-2);}
+   }else if(k===1||k===2){ // 木 (アトラススプライト)
     const sz=(k===1?2.7:3.0)*w1;
     const bx2=(xl+xr)/2;
-    ctx.fillStyle=shade(k===1?'#3f9a44':'#2f7a3c',1-fog*0.6);
-    if(k===1){ctx.beginPath();ctx.arc(bx2,gy-sz*0.62,sz*0.52,0,7);ctx.fill();}
-    else{ctx.beginPath();ctx.moveTo(bx2,gy-sz*1.25);ctx.lineTo(bx2-sz*0.5,gy-sz*0.1);ctx.lineTo(bx2+sz*0.5,gy-sz*0.1);ctx.closePath();ctx.fill();}
-    ctx.fillStyle=shade('#6a4a30',1-fog*0.6);ctx.fillRect(bx2-sz*0.07,gy-sz*0.16,sz*0.14,sz*0.16);
+    const tp=k===1?AP.tree:AP.pine;
+    g.drawImage(img,tp[0],tp[1],tp[2],tp[3],bx2-sz*0.55,gy-sz*1.1,sz*1.1,sz*1.1);
+    if(fog>0.08){g.fillStyle=`rgba(205,220,236,${fog*0.4})`;
+     g.fillRect(bx2-sz*0.55,gy-sz*1.1,sz*1.1,sz*1.1);}
    }else if(k===3){ // 岩
     const sz=w1*1.0,bx2=(xl+xr)/2;
-    ctx.fillStyle=shade('#7e786c',1-fog*0.6);
-    ctx.beginPath();ctx.arc(bx2,gy-sz*0.35,sz*0.45,Math.PI,2*Math.PI);ctx.fill();
-    ctx.fillRect(bx2-sz*0.45,gy-sz*0.35,sz*0.9,sz*0.35);
+    g.fillStyle=shade('#7e786c',1-fog*0.6);
+    g.beginPath();g.arc(bx2,gy-sz*0.35,sz*0.45,Math.PI,2*Math.PI);g.fill();
+    g.fillRect(bx2-sz*0.45,gy-sz*0.35,sz*0.9,sz*0.35);
    }
   }
-  // 信号 (この深度にあるものだけ)
-  for(const g of SIGNALS){
-   const relx=g[0]-px2,rely=g[1]-py2;
-   const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
-   if(Math.round(fd)!==d+1||Math.abs(lt)>SW)continue;
-   const bx2=cx2+lt*2*w1,gy=yF(d);
-   const ph=w1*2.6;
-   ctx.fillStyle='#4a4e56';ctx.fillRect(bx2-ph*0.04,gy-ph,ph*0.08,ph);
-   ctx.fillStyle='#2e3238';ctx.fillRect(bx2-ph*0.3,gy-ph,ph*0.6,ph*0.22);
-   const ly=gy-ph+ph*0.05,lw=ph*0.13;
-   ctx.fillStyle='#1cc86a';ctx.fillRect(bx2-ph*0.24,ly,lw,lw);
-   ctx.fillStyle='#e8c22a';ctx.fillRect(bx2-ph*0.065,ly,lw,lw);
-   ctx.fillStyle='#e84a3a';ctx.fillRect(bx2+ph*0.11,ly,lw,lw);
-  }
-  // ランドマークビルボード
-  for(const lm of LM3D){
-   if(!lm.c)continue;
-   const relx=lm.c.x-px2,rely=lm.c.y-py2;
-   const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
-   if(Math.round(fd)!==d+1)continue;
-   if(Math.abs(lt)>SW+6)continue;
-   drawLM3d(lm.k,cx2+lt*2*w1,yF(d),w1,fog);
-  }
- }
- // 遠距離ランドマーク (MAXDより先)
- for(const lm of LM3D){
-  if(!lm.c)continue;
-  const relx=lm.c.x-px2,rely=lm.c.y-py2;
-  const fd=relx*fx+rely*fy, lt=relx*rx+rely*ry;
-  if(fd<=MAXD+1||fd>90)continue;
-  if(Math.abs(lt)>fd*1.1)continue;
-  const w1=0.5*uu(fd);
-  drawLM3d(lm.k,cx2+lt*2*w1,hor+EYE*uu(fd),w1,0.55);
+
  }
  // コンパスと枠
- ctx.fillStyle='rgba(10,12,20,.7)';ctx.fillRect(cx2-28,8,56,24);
- ctx.strokeStyle='#5a6472';ctx.strokeRect(cx2-28,8,56,24);
- ctx.fillStyle='#ffd77a';ctx.font='bold 15px monospace';
- ctx.fillText(DIRNAME[P.dir],cx2-5,25);
- ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=6;ctx.strokeRect(3,3,cw-6,chh-6);
+ g.fillStyle='rgba(10,12,20,.7)';g.fillRect(cx2-28,8,56,24);
+ g.strokeStyle='#5a6472';g.strokeRect(cx2-28,8,56,24);
+ g.fillStyle='#ffd77a';g.font='bold 15px monospace';
+ g.fillText(DIRNAME[P.dir],cx2-5,25);
+ g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=6;g.strokeRect(3,3,cw-6,chh-6);
 }
-function drawLM3d(k,bx,gy,w1,fog){
+function drawLM3d(g,k,bx,gy,w1,fog){
  if(k==='tower'){
   const h=w1*30,W2=w1*5.5;
-  ctx.fillStyle=shade('#e8543a',1-fog*0.5);
-  ctx.beginPath();ctx.moveTo(bx-W2,gy);ctx.lineTo(bx-w1*0.22,gy-h*0.72);ctx.lineTo(bx-w1*0.14,gy-h);
-  ctx.lineTo(bx+w1*0.14,gy-h);ctx.lineTo(bx+w1*0.22,gy-h*0.72);ctx.lineTo(bx+W2,gy);ctx.closePath();ctx.fill();
-  ctx.fillStyle=shade('#f4f0e6',1-fog*0.4);
-  for(let i=1;i<6;i+=2){const f=i/7;ctx.fillRect(bx-W2*(1-f)*1.05,gy-h*f-h*0.05,W2*2*(1-f)*1.05,h*0.055);}
-  ctx.fillStyle=shade('#b03a26',1-fog*0.5);
-  ctx.fillRect(bx-W2*0.44,gy-h*0.55,W2*0.88,h*0.07);
+  g.fillStyle=shade('#e8543a',1-fog*0.5);
+  g.beginPath();g.moveTo(bx-W2,gy);g.lineTo(bx-w1*0.22,gy-h*0.72);g.lineTo(bx-w1*0.14,gy-h);
+  g.lineTo(bx+w1*0.14,gy-h);g.lineTo(bx+w1*0.22,gy-h*0.72);g.lineTo(bx+W2,gy);g.closePath();g.fill();
+  g.fillStyle=shade('#f4f0e6',1-fog*0.4);
+  for(let i=1;i<6;i+=2){const f=i/7;g.fillRect(bx-W2*(1-f)*1.05,gy-h*f-h*0.05,W2*2*(1-f)*1.05,h*0.055);}
+  g.fillStyle=shade('#b03a26',1-fog*0.5);
+  g.fillRect(bx-W2*0.44,gy-h*0.55,W2*0.88,h*0.07);
  }else if(k==='zoji'){
   const W2=w1*6,h=w1*4;
-  ctx.fillStyle=shade('#57544e',1-fog*0.5);
-  ctx.beginPath();ctx.moveTo(bx-W2,gy-h*0.55);ctx.lineTo(bx-W2*0.6,gy-h);ctx.lineTo(bx+W2*0.6,gy-h);ctx.lineTo(bx+W2,gy-h*0.55);ctx.closePath();ctx.fill();
-  ctx.fillStyle=shade('#f2ecdc',1-fog*0.4);ctx.fillRect(bx-W2*0.7,gy-h*0.55,W2*1.4,h*0.55);
-  ctx.fillStyle=shade('#a03826',1-fog*0.4);
-  for(let i=-2;i<=2;i++)ctx.fillRect(bx+i*W2*0.3-1,gy-h*0.55,Math.max(2,w1*0.1),h*0.55);
-  ctx.fillStyle=shade('#2e2622',1-fog*0.4);ctx.fillRect(bx-w1*0.3,gy-h*0.4,w1*0.6,h*0.4);
+  g.fillStyle=shade('#57544e',1-fog*0.5);
+  g.beginPath();g.moveTo(bx-W2,gy-h*0.55);g.lineTo(bx-W2*0.6,gy-h);g.lineTo(bx+W2*0.6,gy-h);g.lineTo(bx+W2,gy-h*0.55);g.closePath();g.fill();
+  g.fillStyle=shade('#f2ecdc',1-fog*0.4);g.fillRect(bx-W2*0.7,gy-h*0.55,W2*1.4,h*0.55);
+  g.fillStyle=shade('#a03826',1-fog*0.4);
+  for(let i=-2;i<=2;i++)g.fillRect(bx+i*W2*0.3-1,gy-h*0.55,Math.max(2,w1*0.1),h*0.55);
+  g.fillStyle=shade('#2e2622',1-fog*0.4);g.fillRect(bx-w1*0.3,gy-h*0.4,w1*0.6,h*0.4);
  }else if(k==='gate'){
   const W2=w1*3.4,h=w1*3.4;
-  ctx.fillStyle=shade('#c8402a',1-fog*0.4);
-  ctx.fillRect(bx-W2*0.8,gy-h,W2*1.6,h*0.16);
-  ctx.fillRect(bx-W2*0.7,gy-h*0.8,W2*0.16,h*0.8);
-  ctx.fillRect(bx+W2*0.54,gy-h*0.8,W2*0.16,h*0.8);
-  ctx.fillStyle=shade('#3a3f4a',1-fog*0.4);ctx.fillRect(bx-W2*0.9,gy-h*1.12,W2*1.8,h*0.14);
+  g.fillStyle=shade('#c8402a',1-fog*0.4);
+  g.fillRect(bx-W2*0.8,gy-h,W2*1.6,h*0.16);
+  g.fillRect(bx-W2*0.7,gy-h*0.8,W2*0.16,h*0.8);
+  g.fillRect(bx+W2*0.54,gy-h*0.8,W2*0.16,h*0.8);
+  g.fillStyle=shade('#3a3f4a',1-fog*0.4);g.fillRect(bx-W2*0.9,gy-h*1.12,W2*1.8,h*0.14);
  }
 }
 
@@ -1065,7 +1096,22 @@ function drawLM3d(k,bx,gy,w1,fog){
 function tick(now){
  requestAnimationFrame(tick);
  if(!baked)return;
- if(view3d){render3d();return;}
+ if(view3d){
+  if(fpAnim){
+   const k=Math.min(1,(now-fpAnim.t0)/fpAnim.dur);
+   const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+   if(fpAnim.type==='move'){
+    render3d(ctx,e*fpAnim.sgn);
+    if(k>=1){P.hx=fpAnim.tx;P.hy=fpAnim.ty;fpAnim=null;checkArea();}
+   }else{
+    const s=fpAnim.sgn;
+    ctx.fillStyle='#0d0f14';ctx.fillRect(0,0,cw,chh);
+    ctx.drawImage(fpAnim.a,-e*cw*s,0);
+    ctx.drawImage(fpAnim.b,cw*(1-e)*s,0);
+    if(k>=1)fpAnim=null;
+   }
+  }else render3d(ctx,0);
+  return;}
  if(P.moving){
   const m=P.moving,k=Math.min(1,(now-m.t0)/MOVE_MS);
   if(k>=1){P.hx=m.tx;P.hy=m.ty;P.moving=null;P.step^=1;checkArea();}}
