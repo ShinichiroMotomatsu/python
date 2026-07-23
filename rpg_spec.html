@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ほころびの国 — 仕様書 v1.0 (現状整理)</title>
+<style>
+:root{
+  --bg:#0d1020; --panel:#171d33; --ink:#ece4d2; --dim:#9c96a8; --line:#293052;
+  --amber:#eac06a; --amber-deep:#c99a3e; --past:#71d1a2; --now:#dc9070; --warn:#e06060;
+  --serif:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;
+  --goth:"Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  --mono:"SFMono-Regular","BIZ UDGothic",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:var(--goth);line-height:1.9;font-size:15.5px;
+  display:flex;flex-direction:column;align-items:center;padding:28px 16px 90px;}
+.wrap{width:min(94vw,680px);}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;text-align:center;}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,6.5vw,34px);letter-spacing:.05em;margin:12px 0 6px;text-align:center;text-wrap:balance;}
+.sub{font-size:12.5px;color:var(--dim);text-align:center;margin-bottom:10px;line-height:1.8;}
+section{margin-top:46px;}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--amber-deep);display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.sec::before{content:"";width:26px;height:1px;background:var(--amber-deep);opacity:.7;}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(20px,5.4vw,26px);letter-spacing:.03em;margin-bottom:12px;text-wrap:balance;}
+h3{font-size:15.5px;font-weight:700;margin:20px 0 6px;}
+p{color:var(--dim);font-size:13.5px;margin-bottom:12px;text-wrap:pretty;}
+p b,li b,td b{color:var(--ink);}
+em{color:var(--amber);font-style:normal;}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:12.5px;}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber-deep);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:rgba(234,192,106,.05);}
+td{padding:8px 12px;border-bottom:1px solid rgba(41,48,82,.6);vertical-align:top;color:var(--dim);line-height:1.7;}
+tr:last-child td{border-bottom:none;}
+td.nm{color:var(--ink);font-weight:700;white-space:nowrap;}
+td.p{color:var(--past);font-family:var(--mono);font-size:11.5px;}
+td.n{color:var(--now);font-family:var(--mono);font-size:11.5px;}
+ul.c{list-style:none;display:flex;flex-direction:column;gap:9px;margin:10px 0;}
+ul.c li{position:relative;padding-left:19px;font-size:13.5px;color:var(--dim);line-height:1.8;}
+ul.c li::before{content:"◇";position:absolute;left:0;top:1px;color:var(--amber);font-size:10px;}
+.st{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:2px 9px;border-radius:99px;margin-right:6px;vertical-align:2px;white-space:nowrap;}
+.ok{border:1px solid var(--past);color:var(--past);}
+.tbd{border:1px solid var(--warn);color:var(--warn);}
+.asset{border:1px solid var(--dim);color:var(--dim);}
+.note{background:rgba(234,192,106,.07);border:1px solid var(--amber-deep);border-radius:12px;padding:13px 16px;font-size:13px;color:var(--dim);margin:14px 0;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 18px;margin:14px 0;font-size:13.5px;color:var(--dim);}
+.foot{margin-top:46px;font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;line-height:2;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Project Spec — Current State</div>
+  <h1>ほころびの国(仮) 仕様書 v1.0</h1>
+  <div class="sub">2026-07-23 時点の全決定事項の整理。<br>
+    <span class="st ok">確定</span>=このまま実装 ／ <span class="st tbd">検討中</span>=再設計・要決定 ／ <span class="st asset">資産</span>=旧構成由来・転用可</div>
+
+  <!-- ============ 概要 ============ -->
+  <section>
+    <div class="sec">1. OVERVIEW</div>
+    <h2>プロジェクト概要</h2>
+    <ul class="c">
+      <li><b>作るもの:</b> 中世ヨーロッパ風・剣と魔法のオープンワールドRPG。中学時代(1980年代)に夢見たゲームを、いまの技術と人生経験で作る</li>
+      <li><b>体験の核:</b> 未知のフィールドに踏み込むわくわく＋「既知の再発見」。<em>同じ場所を「過去(ファンタジー)」と「現在(2026年の実在の街)」の二つの時代で探索する</em></li>
+      <li><b>プレイ環境:</b> iPhoneなどスマホ縦持ち(PCでも矢印キー+Enterで可)</li>
+      <li><b>作者の実像との対応:</b> 多摩川沿いの原風景、麻布台ヒルズ(再開発)、変わらない東京タワー、消えたものたち(公衆電話・レンタルビデオ等)をファンタジーに翻訳して織り込む</li>
+    </ul>
+  </section>
+
+  <!-- ============ プロット ============ -->
+  <section>
+    <div class="sec">2. PLOT</div>
+    <h2>プロット(最新版)</h2>
+    <p><span class="st ok">確定</span>大枠は以下。<b>これが最新であり、それ以前の物語構成(「帰ってきた勇者」「ラスト30分反転」)を置き換える。</b></p>
+    <ul class="c">
+      <li><b>過去編:</b> 主人公は調査官として<em>「異変(ほころび=色を失う土地)の調査」</em>から旅を始める。目的は徐々に開示され、やがて「世界が崩壊に向かっている」ことが分かる。<b>ラスボスを倒し、いったん世界の崩壊を防いだ形で終わる</b></li>
+      <li><b>どんでん返し:</b> ラスボスは実は<em>世界の均衡を保つ存在</em>だった。均衡には創造だけでなく一定の破壊が必要であり、そのために悪役に見えていた。倒したことで、真の崩壊が始まる</li>
+      <li><b>現在編:</b> 2026年の現実の街。上記の真実が明らかになり、<b>真の世界の崩壊を防ぐ物語が続く</b>。過去編のほころび=現在の「消えた場所」(更地・工事フェンス・再開発)として現れる</li>
+    </ul>
+    <p><span class="st tbd">検討中</span>物語設定書 v2.0(新プロット版)は未執筆。過去編/現在編の時間配分、章構成、ラスボスの名前と正体の演出、現在編の敵・障害の形、エンディング。旧構成の道具(ほのめかし三段階、遅延タイトルドロップ、二重台帳、命名規則)は<em>使える部分を新プロットに移植する</em>。</p>
+    <div class="panel"><b>旧プロット(資産):</b> 「1987年のレトロRPGだと思っていたものが、ラスト30分で老人の実際の記憶だったと反転する」構成(設定書v1.0)。感情装置として強いが「わくわく不足」のため主軸から降格。要素単位(祖父の日記=継承、まぼろし座/かたりべ座、白銅貨の声など)は新プロットのサブクエ・演出に転用候補。</div>
+  </section>
+
+  <!-- ============ 二つの時代 ============ -->
+  <section>
+    <div class="sec">3. TWO ERAS</div>
+    <h2>二つの時代(ビジュアル仕様)</h2>
+    <div class="tw"><table>
+      <tr><th></th><th>過去編</th><th>現在編</th></tr>
+      <tr><td class="nm">世界</td><td>剣と魔法のリーメン地方(中世欧風)</td><td>2026年・多摩川沿いの実在感ある街</td></tr>
+      <tr><td class="nm">絵柄 <span class="st ok">確定</span></td><td><b>PC-8801風</b>: 同時8色+4×4ベイヤーディザ、16pxタイル、CRT走査線、明部のにじみ</td><td><b>SFC(DQ6)級16bitドット</b>: 24pxタイル、輪郭線、まだら草、前面ビューの建物、夕暮れグレーディング</td></tr>
+      <tr><td class="nm">主人公</td><td>若き調査官アルス(赤髪・青服のドット)</td><td>老人(白髪・コート・杖の16bitドット)</td></tr>
+      <tr><td class="nm">代表物件</td><td>城下町リーメン・王の塔・祠・石橋・井戸・樽・松明</td><td>団地5棟・給水塔(工事フェンス)・コンビニ・地蔵・自販機・電柱・駐車場</td></tr>
+    </table></div>
+    <ul class="c">
+      <li><span class="st ok">確定</span><b>同一グリッド・同一座標:</b> 両時代は1つの地形グリッドを共有し、位置が1:1対応。切替しても同じ場所に立ち続ける</li>
+      <li><span class="st ok">確定</span><b>切替演出:</b> 砂嵐(ブラウン管ノイズ)のフラッシュ。※ゲーム内でいつ/どう切替可能になるかは物語都合で設計(検討中)</li>
+      <li><span class="st ok">確定</span><b>対のオブジェクト:</b> 同座標に両時代で対になる小物(現状23箇所)。道しるべ石↔電柱、樽↔自販機、松明↔街灯、木箱↔ゴミ集積所、干し草↔プランター、石積み↔テトラポッド、石標↔カーブミラー</li>
+      <li><span class="st asset">資産</span>写実の夕暮れ1枚絵(720×1200)・「にじみ」グリッチ演出・PC-88戦闘画面・正面ロード画面などのビジュアルスタディ一式。イベントシーン/回想の一枚絵として転用可</li>
+    </ul>
+  </section>
+
+  <!-- ============ マップ ============ -->
+  <section>
+    <div class="sec">4. MAPS</div>
+    <h2>マップ仕様</h2>
+    <h3><span class="st ok">確定</span>現物: 共有グリッド 24×72 (探索ビルド)</h3>
+    <p>南から: はじまりの村/住宅地(家10軒・井戸・畑↔駐車場・柵↔ブロック塀) → 街道/土手の道(祠↔地蔵・ほころび→売地・池↔調整池・立て札↔青標識) → 大きな川/多摩川(石橋↔現代の橋・石積み↔テトラポッド) → 麦畑↔資材置き場 → リーメンの都/団地(城壁・王の塔↔給水塔・家6軒↔団地5棟・あきんどの店↔コンビニ・ほころび→工事フェンス)。ねこが両時代の同じ場所にいる。</p>
+    <h3><span class="st tbd">検討中</span>最終規模: DQ1級 120×120</h3>
+    <p>全体図v0.3で設計済み(22拠点)。海=子供の行動範囲の果て、北の山脈=線路(切通しの門=踏切)、魔王城=川向こうの工場(島・専用桟道)、迷いの森=神社、砂漠=砂利採取場跡、東の岬に坂の寺町(=麻布台)と赤の大灯台(=東京タワー・両時代で不変の基準点)。<b>新プロットでの拠点の役割再割当てと、現在編マップの全域対応が未着手。</b>地形バリエーション追加予定: 丘・沼・砂利場・線路・工場。</p>
+    <h3><span class="st ok">確定</span>消えたものたちの二重台帳(抜粋)</h3>
+    <div class="tw"><table>
+      <tr><th>過去世界</th><th>2026年</th><th>役割</th></tr>
+      <tr><td class="p">こだまの祠(白銅貨+ほら貝)</td><td class="n">公衆電話(撤去済)</td><td>セーブ。※新プロットでは「ほころびで沈黙」の演出案あり</td></tr>
+      <tr><td class="p">かたりべ座</td><td class="n">レンタルビデオ店</td><td>サブクエのハブ(他人の物語を借りる)</td></tr>
+      <tr><td class="p">魔導書院</td><td class="n">駅前の書店</td><td>呪文は本で覚える(題が妙に暮らしくさい)</td></tr>
+      <tr><td class="p">竜骨の野原</td><td class="n">土管の空き地→マンション</td><td>秘密基地・約束の木剣</td></tr>
+      <tr><td class="p">湯の村</td><td class="n">銭湯(廃業)</td><td>回復拠点・ペンキ絵SQ</td></tr>
+      <tr><td class="p">王の塔/天空の塔</td><td class="n">給水塔(解体予定)</td><td>ランドマーク・終盤の鍵</td></tr>
+      <tr><td class="p">赤の大灯台</td><td class="n">東京タワー(不変)</td><td>両時代で唯一変わらない基準点</td></tr>
+      <tr><td class="p">坂の寺町(祖父の家)</td><td class="n">麻布台の坂の町→天空都市</td><td>主人公の現住所の"前世"・継承SQ</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ システム ============ -->
+  <section>
+    <div class="sec">5. SYSTEMS</div>
+    <h2>ゲームシステム仕様</h2>
+    <ul class="c">
+      <li><span class="st ok">確定</span><b>フィールドと戦闘の分離。</b>戦闘はコマンド式(たたかう/じゅもん/どうぐ/にげる)+<b>AUTOモード</b>(HP35%未満で回復優先の簡易AI・設定保存)</li>
+      <li><span class="st ok">確定</span><b>移動:</b> 半タイル単位(Ys2式・1歩85ms)。当たり判定は重なる最大4セル。十字キー+Aボタン(タッチ)/矢印+Enter(PC)</li>
+      <li><span class="st ok">確定</span><b>セーブ:</b> localStorage自動保存+祠でのセーブ演出。全滅ペナルティ軽微(所持金半分で拠点へ)</li>
+      <li><span class="st ok">確定</span><b>稼ぎ最小の5原則:</b> ①成長の主軸は装備と物語報酬 ②イベント=恒久成長 ③地形で危険が読める ④境界(橋・関所・門)=レベルゲート ⑤再走負担ゼロ(帰還手段・軽ペナルティ)。EXP曲線は「章のルート戦闘だけで足りる」調整</li>
+      <li><span class="st ok">確定</span><b>敵の出現:</b> 草地/森で歩数判定、道は低率。川や門を境に敵が強くなる(DQ1の橋の文法)</li>
+      <li><span class="st tbd">検討中</span><b>現在編のゲームプレイ:</b> 戦闘があるのか、探索・謎解き中心か。時代切替をパズル/進行の鍵にする設計(過去で変えると現在が変わる等)。新プロットの根幹なので次の設計対象</li>
+    </ul>
+  </section>
+
+  <!-- ============ データ ============ -->
+  <section>
+    <div class="sec">6. DATA</div>
+    <h2>データ仕様(DQ1級)</h2>
+    <ul class="c">
+      <li><span class="st ok">確定</span><b>規模:</b> 呪文10 ／ 武器7・鎧7・盾3 ／ 敵40種(13系統×色違い+ボス)</li>
+      <li><span class="st ok">確定</span><b>呪文:</b> いやし・いかずち・ねむり・あかり・くちどめ・かえりみち・ぬけみち・まもり・おおいやし・らいめい。半分はレベル、半分は書院の本で習得(『雷のしくみ(図解つき)』等=軽いほのめかし)</li>
+      <li><span class="st ok">確定</span><b>装備の要点:</b> 店買い3段階+宝箱+ドロップ。最強武器「やくそくの木剣」/最強鎧「ひかりの羽織」はサブクエ報酬(店で買えない思い出の品)。かがみの盾=呪文反射</li>
+      <li><span class="st ok">確定</span><b>敵の表現ルール:</b> 表の層は正統ファンタジー名のみ(スライム/やまいぬ/じごくいぬ/みかづきのまじょ/井戸の精/地這いの亡者/雷鳴竜…)。「子供の頃こわかったものの翻訳」という正体は<em>図鑑の裏テキスト</em>として終盤に開示</li>
+      <li><span class="st asset">資産</span><b>サブクエスト6本(約2時間):</b> 白銅貨の声/かたりべ座の返しわすれ/竜骨の秘密基地/消えた霊峰/からくり盤の名前/坂の寺町の蔵(祖父も「帰ってきた」ことがある=継承)。旧プロット文脈で設計→新プロットへ再マップして採用予定</li>
+      <li><span class="st tbd">検討中</span>ラスボス(均衡の守り手)の設定・名前。旧「魔王クロガネ(工場の火と煙)」は正体設定を差し替えて続投候補</li>
+    </ul>
+  </section>
+
+  <!-- ============ 技術 ============ -->
+  <section>
+    <div class="sec">7. TECH</div>
+    <h2>技術仕様</h2>
+    <ul class="c">
+      <li><span class="st ok">確定</span><b>実行環境:</b> 1ファイル完結のHTML+Canvas(JS)。バックエンド不要、セーブはlocalStorage。配信はArtifact(開発試遊)→GitHub Pages(公開)。GASは通信要素(セーブ共有等)が欲しくなった場合の将来枠</li>
+      <li><span class="st ok">確定</span><b>描画方式:</b> ワールド全体をオフスクリーンに事前焼き込み(過去=2フェーズで波/旗アニメ、現在=1枚)→毎フレームはカメラ切り出し+スプライト合成。ピクセルバッファ(ImageData)+ベイヤーディザ関数がPC-88側の中核</li>
+      <li><span class="st ok">確定</span><b>スプライト:</b> すべてコード生成(外部画像なし)。過去16px/現在16×24px、2コマ歩行、4方向</li>
+      <li><span class="st ok">確定</span><b>品質保証:</b> Playwright(内蔵Chromium)による自動通しテスト(移動/会話/セーブ/戦闘/時代切替)+スクリーンショット目視。window.DEBUGフック(warp/era/state)を各ビルドに装備</li>
+      <li><b>PWA:</b> ホーム画面追加で全画面(apple-mobile-web-app-capable)</li>
+    </ul>
+  </section>
+
+  <!-- ============ 成果物 ============ -->
+  <section>
+    <div class="sec">8. DELIVERABLES</div>
+    <h2>成果物台帳(リポジトリ)</h2>
+    <div class="tw"><table>
+      <tr><th>ファイル</th><th>内容</th><th>状態</th></tr>
+      <tr><td class="nm">rpg_explore.html</td><td>二時代探索ビルドv0.2(共有グリッド24×72・PC-88/SFC・対オブジェクト・時代切替)</td><td><b>最新・開発の本流</b></td></tr>
+      <tr><td class="nm">rpg_prologue.html</td><td>序章の縦スライス(タイトル〜王命。戦闘/AUTO/セーブ/店/書院/ほのめかし)</td><td>戦闘・UI実装の母体(エンジン流用元)</td></tr>
+      <tr><td class="nm">rpg_worldmap.html</td><td>全体マップ設計図v0.3(DQ1級120×120・22拠点・章ルート・対応表)</td><td>設計資料(新プロットで役割再割当て予定)</td></tr>
+      <tr><td class="nm">rpg_gamedata.html</td><td>データ設計書v0.2(二重台帳/SQ6本/呪文/装備/敵40)</td><td>設計資料(有効)</td></tr>
+      <tr><td class="nm">rpg_concept.html</td><td>物語設定書v1.0(旧プロット: ラスト30分反転)</td><td>旧版→v2.0で全面改訂予定</td></tr>
+      <tr><td class="nm">rpg_present_visual.html / rpg_past_topdown.html / rpg_field_mockup.html / rpg_bleed_mockup.html</td><td>ビジュアルスタディ(写実夕暮れ1枚絵/PC-88見下ろし/PC-88⇔写実比較/にじみ)</td><td>資産(イベント絵・演出に転用)</td></tr>
+      <tr><td class="nm">rpg_proto.html / rpg.html</td><td>初期プロトタイプ(帰り道/最初のモックRPG)</td><td>旧版(参照用)</td></tr>
+    </table></div>
+    <p>ブランチ: <b>claude/medieval-fantasy-rpg-rf4h7k</b>。全ファイルはArtifactとしても公開済み(開発試遊用・非公開リンク)。</p>
+  </section>
+
+  <!-- ============ 未決事項 ============ -->
+  <section>
+    <div class="sec">9. OPEN ISSUES</div>
+    <h2>未決事項(次に決めること)</h2>
+    <ul class="c">
+      <li><b>① 物語設定書 v2.0:</b> 新プロット(ほころび調査→崩壊→均衡の守り手→現在編)の章構成・時間配分・結末。旧構成の道具の移植先の決定</li>
+      <li><b>② 現在編のゲームプレイ:</b> 戦闘の有無、時代切替の解放タイミングとルール(自由切替か・地点限定か・物語進行で解放か)</li>
+      <li><b>③ 時代間の因果:</b> 過去で行ったことが現在に反映される仕掛け(にじみ/ほころびの拡大縮小)をシステム化するか</li>
+      <li><b>④ マップ全域化:</b> 探索ビルドの24×72をDQ1級へ拡張。地形バリエーション(丘・沼・砂利場・線路・工場)と拠点の新プロット再割当て</li>
+      <li><b>⑤ 音:</b> BGM/SE(WebAudioでのチップチューン生成)は全くの未着手</li>
+      <li><b>⑥ 配信:</b> 完成時の公開方法(GitHub Pages)とタイトル確定(『ほころびの国』は仮)</li>
+    </ul>
+  </section>
+
+  <div class="foot">
+    ほころびの国(仮) — 仕様書 v1.0 · 2026-07-23<br>
+    branch: claude/medieval-fantasy-rpg-rf4h7k ／ 本仕様書は決定のたびに更新する
+  </div>
+</div>
+</body>
+</html>
