@@ -849,6 +849,8 @@ for(const[id,d]of[['dU','up'],['dD','down'],['dL','left'],['dR','right']]){
  b.addEventListener('pointerup',()=>{if(held===d)held=null;});
  b.addEventListener('pointerleave',()=>{if(held===d)held=null;});}
 function toggleView(){view3d=!view3d;held=null;P.moving=null;fpAnim=null;
+ if(view3d){ // 3Dはセル単位: 半歩位置ならスナップ(またがり両セルは歩行可なのでどちらも安全)
+  P.hx=Math.round(P.hx/2)*2;P.hy=Math.round(P.hy/2)*2;}
  document.getElementById('btnV').textContent=view3d?'2D':'3D';}
 document.getElementById('btnV').addEventListener('pointerdown',e=>{toggleView();e.preventDefault();});
 document.getElementById('btnA').addEventListener('pointerdown',e=>{doA();e.preventDefault();});
