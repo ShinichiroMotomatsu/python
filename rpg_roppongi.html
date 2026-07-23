@@ -55,7 +55,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 10</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -864,7 +864,7 @@ const FWD={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
 const RGT={up:[1,0],right:[0,1],down:[-1,0],left:[0,-1]};
 const DIRNAME={up:'N',right:'E',down:'S',left:'W'};
 function turn(dd){P.dir=DIRORDER[(DIRORDER.indexOf(P.dir)+dd+4)%4];}
-let fpAnim=null,err3d='';
+let fpAnim=null,err3d='',fcnt=0;
 function safeRender3d(fr){
  try{render3d(ctx,fr);err3d='';}
  catch(e){
@@ -1089,6 +1089,8 @@ function render3d(g,fr,W,F,noHud){fr=fr||0;W=W||W;F=F||W*0.68;
  g.strokeStyle='#5a6472';g.strokeRect(cx2-28,8,56,24);
  g.fillStyle='#ffd77a';g.font='bold 15px monospace';
  g.fillText(DIRNAME[P.dir],cx2-5,25);
+ g.font='10px monospace';g.fillStyle='#c8d0dc';
+ g.fillText((P.hx/2)+','+(P.hy/2)+' f'+(fcnt%1000),cx2+34,25);
  g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=6;g.strokeRect(3,3,W-6,chh-6);
  }
 }
@@ -1125,6 +1127,7 @@ function tick(now){
  requestAnimationFrame(tick);
  if(!baked)return;
  if(view3d){
+  fcnt++;
   if(fpAnim){
    const k=Math.min(1,(now-fpAnim.t0)/fpAnim.dur);
    const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
