@@ -864,7 +864,20 @@ const FWD={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
 const RGT={up:[1,0],right:[0,1],down:[-1,0],left:[0,-1]};
 const DIRNAME={up:'N',right:'E',down:'S',left:'W'};
 function turn(dd){P.dir=DIRORDER[(DIRORDER.indexOf(P.dir)+dd+4)%4];}
-let fpAnim=null;
+let fpAnim=null,err3d='';
+function safeRender3d(fr){
+ try{render3d(ctx,fr);err3d='';}
+ catch(e){
+  err3d=(e&&e.message)?e.message:String(e);
+  // フォールバック: 空+地面+エラー表示 (移動系は止めない)
+  const hor=chh*0.40;
+  ctx.fillStyle='#7ab4e4';ctx.fillRect(0,0,cw,hor);
+  ctx.fillStyle='#8a8880';ctx.fillRect(0,hor,cw,chh-hor);
+  ctx.fillStyle='#fff';ctx.font='12px monospace';
+  ctx.fillText('3D render error:',10,30);
+  ctx.fillText(err3d.slice(0,60),10,46);
+ }
+}
 function fpMove(back){
  if(msgActive||fpAnim)return;
  const[fx,fy]=FWD[P.dir];
@@ -873,19 +886,28 @@ function fpMove(back){
   fpAnim={type:'move',sgn:back?-1:1,tx:P.hx+dx*2,ty:P.hy+dy*2,t0:performance.now(),dur:210};
  }
 }
-function snapWide(ws,f2){
- const c=document.createElement('canvas');c.width=ws;c.height=chh;
+const snapCv=[null,null]; // 再利用(iOSのcanvasメモリ確保失敗対策)
+function snapWide(ws,f2,slot){
+ let c=snapCv[slot];
+ if(!c){c=document.createElement('canvas');snapCv[slot]=c;}
+ if(c.width!==ws||c.height!==chh){c.width=ws;c.height=chh;}
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ g.clearRect(0,0,ws,chh);
  render3d(g,0,ws,f2,true);return c;
 }
 function fpTurn(dd){
  if(msgActive||fpAnim)return;
- const ws=Math.round(cw*1.5);
- const f2=ws/(2*Math.tan(50*Math.PI/180));   // ±50度をカバーする広角スナップ
- const a=snapWide(ws,f2);
- turn(dd);
- const b=snapWide(ws,f2);
- fpAnim={type:'turn',sgn:dd,a,b,ws,f2,t0:performance.now(),dur:260};
+ try{
+  const ws=Math.round(cw*1.5);
+  const f2=ws/(2*Math.tan(50*Math.PI/180));   // ±50度をカバーする広角スナップ
+  const a=snapWide(ws,f2,0);
+  turn(dd);
+  const b=snapWide(ws,f2,1);
+  fpAnim={type:'turn',sgn:dd,a,b,ws,f2,t0:performance.now(),dur:260};
+ }catch(e){ // スナップショット失敗時は即時回転
+  err3d=(e&&e.message)?e.message:String(e);
+  if(fpAnim)fpAnim=null;
+ }
 }
 function floorCol(c,d){
  switch(c){
@@ -1107,9 +1129,10 @@ function tick(now){
    const k=Math.min(1,(now-fpAnim.t0)/fpAnim.dur);
    const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
    if(fpAnim.type==='move'){
-    render3d(ctx,e*fpAnim.sgn);
-    if(k>=1){P.hx=fpAnim.tx;P.hy=fpAnim.ty;fpAnim=null;checkArea();}
+    if(k>=1){P.hx=fpAnim.tx;P.hy=fpAnim.ty;fpAnim=null;checkArea();safeRender3d(0);}
+    else safeRender3d(e*fpAnim.sgn);
    }else{ // 円筒再投影で滑らかに回転
+    try{
     const s=fpAnim.sgn;
     const th=e*(Math.PI/2)*s;
     const F=cw*0.68, hor=chh*0.40, HALF=Math.PI/4;
@@ -1139,9 +1162,10 @@ function tick(now){
     ctx.fillStyle='#ffd77a';ctx.font='bold 15px monospace';
     ctx.fillText(DIRNAME[P.dir],cx2-5,25);
     ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=6;ctx.strokeRect(3,3,cw-6,chh-6);
-    if(k>=1)fpAnim=null;
+    }catch(e){err3d=(e&&e.message)?e.message:String(e);fpAnim=null;safeRender3d(0);}
+    if(k>=1&&fpAnim)fpAnim=null;
    }
-  }else render3d(ctx,0);
+  }else safeRender3d(0);
   return;}
  if(P.moving){
   const m=P.moving,k=Math.min(1,(now-m.t0)/MOVE_MS);
@@ -1169,7 +1193,10 @@ function tick(now){
 requestAnimationFrame(tick);
 checkArea();
 
-window.DEBUG={
+window.addEventListener('error',e=>{
+ try{const el=document.getElementById('banner');
+  el.textContent='ERR: '+(e.message||'').slice(0,70);el.style.opacity=1;}catch(_){}});
+window.DEBUG={err3d:()=>err3d,
  st:()=>({x:P.hx/2,y:P.hy/2,dir:P.dir,area:curArea}),
  warp:(x,y)=>{P.hx=x*2;P.hy=y*2;P.moving=null;checkArea();},
  warpSafe,msgOff:()=>{msgQ=[];msgActive=false;msgEl.classList.remove('show');},
