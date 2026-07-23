@@ -55,7 +55,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 13</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 14</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -509,83 +509,108 @@ const cxOf=b=>((b.x0+b.x1+1)/2)*TS;
 function outline(x,y,w,h,r){mx.strokeStyle='rgba(30,26,24,.9)';mx.lineWidth=1;
  mx.beginPath();mx.roundRect(x+.5,y+.5,w-1,h-1,r);mx.stroke();}
 function drawIcon(px,py,k,h){
- if(k===1){ // 低層: 切妻屋根の家/小店 32x32(+8)
-  const RC=[['#b0604a','#8e4a38'],['#7d8a94','#616c76'],['#9a8a5e','#7a6c46'],['#5f8a72','#48705a']][(h*4)|0];
-  const x=px,y=py-8;
-  mx.fillStyle='#f0e9d8';mx.fillRect(x+2,y+18,28,22);            // 壁
-  const wl=h<.5;
-  mx.fillStyle='#7ab0d8';mx.fillRect(x+(wl?5:19),y+22,8,8);      // 窓
-  mx.fillStyle='#b8d8ec';mx.fillRect(x+(wl?5:19),y+22,8,3);
-  mx.fillStyle='#6a4a34';mx.fillRect(x+(wl?19:5),y+24,8,14);     // 扉
-  mx.fillStyle='#8a6a4c';mx.fillRect(x+(wl?19:5),y+24,8,2);
-  mx.fillStyle=RC[1];mx.fillRect(x,y+12,32,7);                   // 軒
-  mx.fillStyle=RC[0];mx.beginPath();                             // 屋根
-  mx.moveTo(x-1,y+14);mx.lineTo(x+7,y+2);mx.lineTo(x+25,y+2);mx.lineTo(x+33,y+14);mx.closePath();mx.fill();
-  mx.fillStyle='rgba(255,252,240,.35)';mx.fillRect(x+7,y+2,18,2);
-  outline(x,y+2,32,38,3);
- }else if(k===2){ // 中層: 屋上ビュー 32x48 (屋上40px+前面壁8px)
-  const x=px,y=py,v=(h*3)|0;
-  const RC=['#b5b0a6','#a9afb5','#b0a9b3'][v];
-  mx.fillStyle=RC;mx.fillRect(x,y,32,40);
-  mx.fillStyle='rgba(30,26,24,.28)';mx.fillRect(x+2,y+2,28,36);   // パラペット内影
-  mx.fillStyle=RC;mx.fillRect(x+4,y+4,24,32);
-  mx.fillStyle='#d6d2c8';mx.fillRect(x+6,y+6,10,8);               // 屋上小屋
-  mx.fillStyle='#8a867c';mx.fillRect(x+6,y+6,10,3);
-  mx.fillStyle='#3a4048';mx.fillRect(x+9,y+10,3,4);               // 小屋の扉
-  mx.fillStyle='#989488';mx.fillRect(x+19,y+8,7,6);               // 室外機
-  mx.fillStyle='#b2aea2';mx.fillRect(x+19,y+8,7,2);
-  mx.fillStyle='#84807a';mx.beginPath();mx.arc(x+11,y+25,3.4,0,7);mx.fill(); // 換気ファン
-  mx.fillStyle='#a4a09a';mx.beginPath();mx.arc(x+11,y+25,1.4,0,7);mx.fill();
-  if(h<.5){mx.fillStyle='#84807a';mx.beginPath();mx.arc(x+22,y+28,2.6,0,7);mx.fill();}
-  mx.fillStyle=['#3d6db4','#b43d3d','#3d8a6e'][v];mx.fillRect(x,y+40,32,3); // 前面看板帯
-  mx.fillStyle='#6a7076';mx.fillRect(x,y+43,32,5);                // 前面壁
-  mx.fillStyle='#cfe0ec';for(let i=0;i<4;i++)mx.fillRect(x+3+i*8,y+44,5,3); // 前面窓
-  outline(x,y,32,48,2);
- }else if(k===3){ // 高層: 屋上ビュー 48x64 (屋上52px+前面壁12px)
-  const x=px,y=py;
-  const dark=h<.4;
-  const RF=dark?'#9aa0a8':'#adb3bb';
-  mx.fillStyle=RF;mx.fillRect(x,y,48,52);
-  mx.fillStyle='rgba(30,26,24,.28)';mx.fillRect(x+2,y+2,44,48);
-  mx.fillStyle=RF;mx.fillRect(x+4,y+4,40,44);
-  mx.fillStyle='#8e949c';mx.fillRect(x+8,y+8,16,12);              // 空調機
-  mx.fillStyle='#a8aeb6';mx.fillRect(x+8,y+8,16,4);
-  mx.fillStyle='rgba(30,26,24,.3)';mx.fillRect(x+8,y+19,16,2);
-  mx.fillStyle='#d6d2c8';mx.fillRect(x+30,y+8,12,10);             // 屋上小屋
-  mx.fillStyle='#8a867c';mx.fillRect(x+30,y+8,12,3);
-  mx.fillStyle='#3a4048';mx.fillRect(x+34,y+13,4,5);
-  mx.fillStyle='#84807a';mx.beginPath();mx.arc(x+13,y+34,4,0,7);mx.fill(); // ファン x2
-  mx.fillStyle='#a4a09a';mx.beginPath();mx.arc(x+13,y+34,1.6,0,7);mx.fill();
-  mx.fillStyle='#84807a';mx.beginPath();mx.arc(x+24,y+34,4,0,7);mx.fill();
-  mx.fillStyle='#a4a09a';mx.beginPath();mx.arc(x+24,y+34,1.6,0,7);mx.fill();
-  mx.fillStyle='#98948a';mx.fillRect(x+33,y+30,9,12);             // キュービクル
-  mx.fillStyle='#b2aea2';mx.fillRect(x+33,y+30,9,3);
-  mx.fillStyle=dark?'#5a626e':'#78808c';mx.fillRect(x,y+52,48,12); // 前面壁
-  mx.fillStyle='#b6d0e4';for(let i=0;i<5;i++)mx.fillRect(x+3+i*9,y+54,6,4); // 前面窓
-  mx.fillStyle='#223048';mx.fillRect(x+20,y+58,8,6);              // エントランス
-  outline(x,y,48,64,2);
- }else{ // 超高層: ガラス屋上ビュー 64x96 (屋上82px+前面壁14px)
-  const x=px,y=py;
-  const g=mx.createLinearGradient(x,y,x+64,y+82);
-  g.addColorStop(0,'#43506a');g.addColorStop(.5,'#5e7492');g.addColorStop(1,'#3a465e');
-  mx.fillStyle=g;mx.fillRect(x,y,64,82);
-  mx.strokeStyle='rgba(200,214,230,.5)';mx.lineWidth=2;mx.strokeRect(x+2,y+2,60,78); // パラペット
-  mx.fillStyle='rgba(235,245,255,.16)';mx.beginPath();            // 斜め反射
-  mx.moveTo(x+12,y);mx.lineTo(x+26,y);mx.lineTo(x+6,y+82);mx.lineTo(x-2,y+82);mx.closePath();mx.fill();
-  mx.fillStyle='rgba(235,245,255,.10)';mx.beginPath();
-  mx.moveTo(x+38,y);mx.lineTo(x+46,y);mx.lineTo(x+30,y+82);mx.lineTo(x+24,y+82);mx.closePath();mx.fill();
-  mx.fillStyle='#2c3648';mx.fillRect(x+22,y+30,20,16);            // 屋上コア
-  mx.fillStyle='#3e4a5e';mx.fillRect(x+22,y+30,20,5);
-  mx.fillStyle='#8e949c';mx.fillRect(x+10,y+62,10,8);             // 設備
-  mx.fillStyle='#a8aeb6';mx.fillRect(x+10,y+62,10,3);
-  mx.fillStyle='#1c2434';mx.fillRect(x,y+82,64,14);               // 前面壁(ガラス)
-  for(let i=0;i<6;i++){mx.fillStyle=hs(px+i,py,7)<.6?'#cfe0ec':'#5a7290';
-   mx.fillRect(x+3+i*10,y+84,7,5);}
-  mx.fillStyle='#e8f0f8';mx.fillRect(x+27,y+90,10,6);             // エントランス
-  outline(x,y,64,96,2);
+ const v=(h*4)|0, h2=hs(px,py,31), h3=hs(px,py,32);
+ // 共通部品
+ const winRow=(x,y,n,ww,wh,gap,lit)=>{ // 窓列 (litシードでまばらに明るい)
+  for(let i=0;i<n;i++){
+   mx.fillStyle=hs(px+i,py+y,33)<lit?'#cfe0ec':'#7e9cba';
+   mx.fillRect(x+i*(ww+gap),y,ww,wh);
+   mx.fillStyle='rgba(255,255,255,.45)';mx.fillRect(x+i*(ww+gap),y,ww,1);
+  }
+ };
+ const roofKit=(x,y,w,hh,base)=>{ // 屋上設備 (パラペット内)
+  mx.fillStyle='rgba(30,26,24,.25)';mx.fillRect(x+2,y+2,w-4,hh-4);
+  mx.fillStyle=base;mx.fillRect(x+3,y+3,w-6,hh-6);
+  if(h2<.55){mx.fillStyle='#8e949c';mx.fillRect(x+5,y+5,10,7);
+   mx.fillStyle='#a8aeb6';mx.fillRect(x+5,y+5,10,2);}
+  else{mx.fillStyle='#d6d2c8';mx.fillRect(x+5,y+5,9,7);
+   mx.fillStyle='#8a867c';mx.fillRect(x+5,y+5,9,2);}
+  if(w>34){mx.fillStyle='#84807a';mx.beginPath();mx.arc(x+w-11,y+8,3,0,7);mx.fill();
+   mx.fillStyle='#a4a09a';mx.beginPath();mx.arc(x+w-11,y+8,1.2,0,7);mx.fill();}
+  if(hh>16&&h3<.6){mx.fillStyle='#98948a';mx.fillRect(x+w-14,y+hh-9,9,5);}
+ };
+ if(k===1){ // 低層: 2階建ての家/小店 32x32slot -> 32x46 (上に14px)
+  const x=px,y=py-14;
+  const RC=[['#b0604a','#8e4a38'],['#7d8a94','#616c76'],['#9a8a5e','#7a6c46'],['#5f8a72','#48705a']][v];
+  const WC=['#f0e9d8','#e8d8c4','#dcdce4','#e4d4c4'][(h2*4)|0];
+  mx.fillStyle=WC;mx.fillRect(x+2,y+24,28,22);                    // 壁2階分
+  mx.fillStyle='rgba(30,26,24,.12)';mx.fillRect(x+2,y+24,28,2);
+  winRow(x+5,y+27,2,7,6,9,.8);                                    // 2階窓
+  mx.fillStyle='#7ab0d8';mx.fillRect(x+5,y+38,8,6);               // 1階窓
+  mx.fillStyle='rgba(255,255,255,.5)';mx.fillRect(x+5,y+38,8,1);
+  mx.fillStyle='#6a4a34';mx.fillRect(x+19,y+37,8,9);              // 扉
+  mx.fillStyle='#8a6a4c';mx.fillRect(x+19,y+37,8,2);
+  mx.fillStyle=RC[1];mx.fillRect(x,y+18,32,7);                    // 軒
+  mx.fillStyle=RC[0];mx.beginPath();                              // 屋根
+  mx.moveTo(x-1,y+20);mx.lineTo(x+7,y+6);mx.lineTo(x+25,y+6);mx.lineTo(x+33,y+20);mx.closePath();mx.fill();
+  mx.fillStyle='rgba(255,252,240,.35)';mx.fillRect(x+7,y+6,18,2);
+  if(h3<.3){mx.fillStyle='#8a7a6e';mx.fillRect(x+22,y,5,10);mx.fillStyle='#6a5a50';mx.fillRect(x+22,y,5,2);} // 煙突
+  outline(x,y+6,32,40,3);
+ }else if(k===2){ // 中層: 3階建て商店ビル 32x48slot -> 32x66 (上に18px)
+  const x=px,y=py-18;
+  const P=[{w:'#e8e0d0',d:'#c8c0b0',r:'#b5b0a6'},{w:'#d8c0b0',d:'#b8a090',r:'#b0a89c'},
+           {w:'#c8ccd4',d:'#a8acb4',r:'#a9afb5'},{w:'#d8ccb0',d:'#b8ac90',r:'#b4ac9a'}][v];
+  mx.fillStyle=P.r;mx.fillRect(x,y,32,22);                        // 屋上
+  roofKit(x,y,32,22,P.r);
+  mx.fillStyle=['#3d6db4','#b43d3d','#3d8a6e','#8a5aa0'][v];mx.fillRect(x,y+22,32,4); // 看板帯
+  mx.fillStyle=P.w;mx.fillRect(x,y+26,32,40);                     // 正面壁
+  mx.fillStyle='rgba(30,26,24,.15)';mx.fillRect(x,y+26,2,40);mx.fillRect(x+30,y+26,2,40);
+  winRow(x+4,y+29,3,6,7,5,.75);                                   // 3階
+  winRow(x+4,y+41,3,6,7,5,.75);                                   // 2階
+  mx.fillStyle='rgba(30,26,24,.2)';mx.fillRect(x,y+52,32,1);      // スラブ線
+  mx.fillStyle='#cfe0ec';mx.fillRect(x+3,y+55,17,10);             // 店先ガラス
+  mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+3,y+55,17,2);
+  mx.fillStyle='rgba(40,52,74,.35)';mx.fillRect(x+11,y+55,1,10);
+  mx.fillStyle='#223048';mx.fillRect(x+23,y+56,6,10);             // 入口
+  outline(x,y,32,66,2);
+ }else if(k===3){ // 高層: 6階建てオフィス 48x64slot -> 48x86 (上に22px)
+  const x=px,y=py-22;
+  const P=[{w:'#b8bec6',d:'#98a0a8',r:'#adb3bb'},{w:'#b0a89a',d:'#90887a',r:'#a8a094'},
+           {w:'#9aa4b2',d:'#7a8492',r:'#98a2b0'},{w:'#c4c0b6',d:'#a4a096',r:'#b8b4aa'}][v];
+  mx.fillStyle=P.r;mx.fillRect(x,y,48,26);                        // 屋上
+  roofKit(x,y,48,26,P.r);
+  mx.fillStyle=P.w;mx.fillRect(x,y+26,48,60);                     // 正面壁
+  mx.fillStyle=P.d;mx.fillRect(x,y+26,48,3);                      // 屋上縁
+  mx.fillStyle='rgba(30,26,24,.15)';mx.fillRect(x,y+26,2,60);mx.fillRect(x+46,y+26,2,60);
+  for(let f=0;f<4;f++){                                           // 6-4F..2F窓
+   winRow(x+5,y+31+f*11,5,6,6,3,.7);
+   mx.fillStyle='rgba(30,26,24,.16)';mx.fillRect(x+2,y+40+f*11,44,1);
+  }
+  mx.fillStyle='#cfe0ec';mx.fillRect(x+4,y+76,14,9);              // 1Fガラス
+  mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+4,y+76,14,2);
+  mx.fillStyle='#223048';mx.fillRect(x+20,y+75,10,11);            // エントランス
+  mx.fillStyle='rgba(235,245,255,.35)';mx.fillRect(x+20,y+75,10,2);
+  mx.fillStyle='#cfe0ec';mx.fillRect(x+32,y+76,12,9);
+  mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+32,y+76,12,2);
+  outline(x,y,48,86,2);
+ }else{ // 超高層: ガラスタワー 64x96slot -> 64x120 (上に24px)
+  const x=px,y=py-24;
+  const G=[['#43506a','#5e7492','#3a465e'],['#3c5a5e','#5a8288','#324c50'],['#4c5058','#788088','#404448']][(h*3)|0];
+  const g=mx.createLinearGradient(x,y,x+64,y+34);
+  g.addColorStop(0,G[0]);g.addColorStop(.5,G[1]);g.addColorStop(1,G[2]);
+  mx.fillStyle=g;mx.fillRect(x,y,64,34);                          // ガラス屋上
+  mx.strokeStyle='rgba(200,214,230,.5)';mx.lineWidth=2;mx.strokeRect(x+2,y+2,60,30);
+  mx.fillStyle='#2c3648';mx.fillRect(x+24,y+11,18,13);            // 屋上コア
+  mx.fillStyle='#3e4a5e';mx.fillRect(x+24,y+11,18,4);
+  const g2=mx.createLinearGradient(x,0,x+64,0);                   // カーテンウォール壁
+  g2.addColorStop(0,G[2]);g2.addColorStop(.45,G[1]);g2.addColorStop(1,G[0]);
+  mx.fillStyle=g2;mx.fillRect(x,y+34,64,86);
+  mx.fillStyle='rgba(235,245,255,.14)';mx.beginPath();            // 斜め反射
+  mx.moveTo(x+14,y+34);mx.lineTo(x+26,y+34);mx.lineTo(x+6,y+120);mx.lineTo(x-2,y+120);mx.closePath();mx.fill();
+  mx.strokeStyle='rgba(30,40,56,.45)';mx.lineWidth=1;
+  for(let i=1;i<5;i++){mx.beginPath();mx.moveTo(x+i*12.8,y+36);mx.lineTo(x+i*12.8,y+118);mx.stroke();} // マリオン
+  mx.fillStyle='rgba(255,255,255,.22)';
+  for(let f=1;f<8;f++)mx.fillRect(x+2,y+34+f*10,60,1);            // 床ライン
+  for(let f=0;f<7;f++)for(let c2=0;c2<5;c2++){                    // 明かり窓
+   if(hs(px+c2,py+f,34)<.30){mx.fillStyle='rgba(230,240,255,.5)';
+    mx.fillRect(x+3+c2*12.8,y+37+f*10,9,5);}
+  }
+  mx.fillStyle='#1c2434';mx.fillRect(x+18,y+104,28,16);           // 2層吹抜けエントランス
+  mx.fillStyle='rgba(235,245,255,.4)';mx.fillRect(x+18,y+104,28,3);
+  mx.fillStyle='#e8f0f8';mx.fillRect(x+28,y+112,8,8);
+  outline(x,y,64,120,2);
  }
 }
-
 // ---- landmark sprites ----
 function drawTower(bx,by){
  const R='#e8543a',W='#f4f0e6',D='#b03a26',H=190,topY=by-H;
