@@ -55,7 +55,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 17</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 18</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -436,24 +436,28 @@ function bake(){
   if(!same(x-1,y))mx.fillRect(px,py,1,TS);
   if(!same(x+1,y))mx.fillRect(px+TS-1,py,1,TS);
  }
- // ---- pass 3: building icons (y-sorted) ----
- const sorted=BLDG.slice().sort((a,b)=>(a[1]+SZ[a[2]][1])-(b[1]+SZ[b[2]][1]));
- for(const[bx,by,k]of sorted)drawIcon(bx*TS,by*TS,k,hs(bx,by,3));
- // ---- pass 4: trees (y-sorted natural overlap) ----
+ // ---- pass 3+4: 統一スプライトリスト (基部Y順; 前面再描画と共有) ----
+ SPRITES.length=0;
+ let oi=0;
+ for(const[bx,by,k]of BLDG){
+  const[w,hh]=SZ[k];
+  const OVT={1:14,2:18,3:22,4:24}[k];
+  SPRITES.push({bot:(by+hh)*TS,o:oi++,x0:bx*TS,x1:(bx+w)*TS,top:by*TS-OVT,
+   fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
+ }
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x];
-  if(c==='k'){ // 岩
-   const px=x*TS,py=y*TS,h=hs(x,y,6);
-   mx.fillStyle='#7e786c';mx.beginPath();mx.roundRect(px+1,py+3,14,12,4);mx.fill();
-   mx.fillStyle='#98928a';mx.fillRect(px+3,py+4,7,4);
-   mx.fillStyle='#5e584e';mx.fillRect(px+3,py+12,10,2);
-   if(h<.5){mx.fillStyle='#8e887e';mx.fillRect(px+10,py+7,4,3);}
-   mx.strokeStyle='rgba(30,26,24,.7)';mx.lineWidth=1;
-   mx.beginPath();mx.roundRect(px+1.5,py+3.5,13,11,4);mx.stroke();
-   continue;}
-  if(c!=='t'&&c!=='p')continue;
-  drawTreeCell(x,y);
+  if(c==='k')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS,x1:(x+1)*TS,top:y*TS,
+   fn:((X,Y)=>()=>drawRockCell(X,Y))(x,y)});
+  else if(c==='t'||c==='p')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS-8,x1:x*TS+24,top:y*TS-16,
+   fn:((X,Y)=>()=>drawTreeCell(X,Y))(x,y)});
  }
+ for(const s of STATIONS)SPRITES.push({bot:(s.y+1)*TS,o:oi++,x0:s.x*TS,x1:(s.x+1)*TS,top:s.y*TS-6,
+  fn:(S=>()=>drawStation(S.x*TS,S.y*TS,S.l))(s)});
+ for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,
+  fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg)});
+ SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
+ for(const it of SPRITES)it.fn();
  // ---- pass 5: props ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   if(GRID[y][x]!=='g')continue;if(hs(x,y,5)<.02)T('bench',x*TS,y*TS+2);
@@ -469,9 +473,6 @@ function bake(){
  const db=bbox('D');if(db)reg(db,()=>drawMidtown(cxOf(db),(db.y1+1)*TS,(db.x1-db.x0+1)*TS));
  const ab=bbox('A');if(ab)reg(ab,()=>drawAzabudai(cxOf(ab),(ab.y1+1)*TS,(ab.x1-ab.x0+1)*TS));
  const tb=bbox('T');if(tb)reg(tb,()=>drawTower(cxOf(tb),(tb.y1+1)*TS));
- // ---- pass 7: 地下鉄出入口 + 信号 ----
- for(const s of STATIONS)drawStation(s.x*TS,s.y*TS,s.l);
- for(const g of SIGNALS)drawSignal(g[0]*TS,g[1]*TS,g[2]);
 }
 function drawStation(px,py,lines){
  // 出入口の箱: 屋根+階段+路線色サイン
@@ -499,6 +500,16 @@ function drawSignal(px,py,flip){
  mx.fillStyle='#e8c22a';mx.fillRect(hx+5,py+1,3,3);
  mx.fillStyle='#e84a3a';mx.fillRect(hx+9,py+1,3,3);
  mx.fillStyle='#1a1c22';mx.fillRect(hx,py,12,1);                // 庇
+}
+const SPRITES=[];
+function drawRockCell(x,y){
+ const px=x*TS,py=y*TS,h=hs(x,y,6);
+ mx.fillStyle='#7e786c';mx.beginPath();mx.roundRect(px+1,py+3,14,12,4);mx.fill();
+ mx.fillStyle='#98928a';mx.fillRect(px+3,py+4,7,4);
+ mx.fillStyle='#5e584e';mx.fillRect(px+3,py+12,10,2);
+ if(h<.5){mx.fillStyle='#8e887e';mx.fillRect(px+10,py+7,4,3);}
+ mx.strokeStyle='rgba(30,26,24,.7)';mx.lineWidth=1;
+ mx.beginPath();mx.roundRect(px+1.5,py+3.5,13,11,4);mx.stroke();
 }
 function drawTreeCell(x,y){
  const c=GRID[y][x];
@@ -1300,34 +1311,21 @@ function tick(now){
  else ctx.drawImage(hero,fr*16,0,16,24,hx,hy-8*SC,16*SC,24*SC);
  ctx.restore();
  // ---- 手前スプライトの再描画 ----
- // プレイヤーより南に基部があるスプライトを「周辺まとめて」基部Y順に描き直す
- // (1体だけ描き直すと隣接ビル同士の前後関係が逆転するため)
+ // ビューポート内の「基部がプレイヤーより南」のスプライト全部を、
+ // 焼き込みと同一のリスト/順序(基部Y→登録順)で描き直す。部分選択をやめ
+ // ることで隣接ビル連鎖の前後逆転を根絶。ランドマークは焼き込み同様最後。
  const feet=iy+16;
  ctx.save();ctx.scale(SC,SC);ctx.translate(-camx,-camy);
  const saveMx=mx;mx=ctx;
- const OVT={1:14,2:18,3:22,4:24};
- const cand=[];
- for(const[bx,by,k]of BLDG){
-  const[w,hh]=SZ[k];
-  const bot=(by+hh)*TS;
-  if(bot<=feet)continue;
-  const ov=OVT[k];
-  const sx0=bx*TS,sx1=(bx+w)*TS,sy0=by*TS-ov;
-  if(sx1<ix-110||sx0>ix+126||sy0>feet+190)continue;
-  if(bot-((hh*TS)+ov)>iy+24)continue;
-  cand.push({bot,fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
- }
- const pcx=Math.round(ix/TS),pcy=Math.round(iy/TS);
- for(let yy=pcy-1;yy<=pcy+3;yy++)for(let xx=pcx-4;xx<=pcx+4;xx++){
-  const c=at(xx,yy);
-  if((c==='t'||c==='p')&&(yy+1)*TS>feet)
-   cand.push({bot:(yy+1)*TS+0.5,fn:((XX,YY)=>()=>drawTreeCell(XX,YY))(xx,yy)});
+ const vx1=camx+vw,vy1=camy+vh;
+ for(const it of SPRITES){
+  if(it.bot<=feet)continue;
+  if(it.x1<camx-4||it.x0>vx1+4||it.top>vy1+4||it.bot<camy-4)continue;
+  it.fn();
  }
  for(const lm of LMD){
-  if(lm.bot>feet&&Math.abs(lm.cx-ix)<220&&iy>lm.bot-280)cand.push({bot:lm.bot,fn:lm.fn});
+  if(lm.bot>feet&&Math.abs(lm.cx-ix)<340&&iy>lm.bot-320)lm.fn();
  }
- cand.sort((a,b)=>a.bot-b.bot);
- for(const c2 of cand)c2.fn();
  mx=saveMx;ctx.restore();
 }
 requestAnimationFrame(tick);
