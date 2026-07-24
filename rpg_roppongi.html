@@ -55,7 +55,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 16</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 17</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -1299,27 +1299,35 @@ function tick(now){
  if(P.dir==='left'){ctx.translate(hx+16*SC,hy-8*SC);ctx.scale(-1,1);ctx.drawImage(hero,fr*16,0,16,24,0,0,16*SC,24*SC);}
  else ctx.drawImage(hero,fr*16,0,16,24,hx,hy-8*SC,16*SC,24*SC);
  ctx.restore();
- // ---- 手前スプライトの再描画 (プレイヤーより南に基部がある建物/木/ランドマークが覆う) ----
+ // ---- 手前スプライトの再描画 ----
+ // プレイヤーより南に基部があるスプライトを「周辺まとめて」基部Y順に描き直す
+ // (1体だけ描き直すと隣接ビル同士の前後関係が逆転するため)
  const feet=iy+16;
  ctx.save();ctx.scale(SC,SC);ctx.translate(-camx,-camy);
  const saveMx=mx;mx=ctx;
  const OVT={1:14,2:18,3:22,4:24};
+ const cand=[];
  for(const[bx,by,k]of BLDG){
   const[w,hh]=SZ[k];
   const bot=(by+hh)*TS;
   if(bot<=feet)continue;
   const ov=OVT[k];
-  if((bx+w)*TS<ix-20||bx*TS>ix+36||bot<iy-12||by*TS-ov>iy+18)continue;
-  drawIcon(bx*TS,by*TS,k,hs(bx,by,3));
+  const sx0=bx*TS,sx1=(bx+w)*TS,sy0=by*TS-ov;
+  if(sx1<ix-110||sx0>ix+126||sy0>feet+190)continue;
+  if(bot-((hh*TS)+ov)>iy+24)continue;
+  cand.push({bot,fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
  }
  const pcx=Math.round(ix/TS),pcy=Math.round(iy/TS);
- for(let yy=pcy;yy<=pcy+2;yy++)for(let xx=pcx-2;xx<=pcx+2;xx++){
+ for(let yy=pcy-1;yy<=pcy+3;yy++)for(let xx=pcx-4;xx<=pcx+4;xx++){
   const c=at(xx,yy);
-  if((c==='t'||c==='p')&&(yy+1)*TS>feet)drawTreeCell(xx,yy);
+  if((c==='t'||c==='p')&&(yy+1)*TS>feet)
+   cand.push({bot:(yy+1)*TS+0.5,fn:((XX,YY)=>()=>drawTreeCell(XX,YY))(xx,yy)});
  }
  for(const lm of LMD){
-  if(lm.bot>feet&&Math.abs(lm.cx-ix)<200&&iy>lm.bot-260)lm.fn();
+  if(lm.bot>feet&&Math.abs(lm.cx-ix)<220&&iy>lm.bot-280)cand.push({bot:lm.bot,fn:lm.fn});
  }
+ cand.sort((a,b)=>a.bot-b.bot);
+ for(const c2 of cand)c2.fn();
  mx=saveMx;ctx.restore();
 }
 requestAnimationFrame(tick);
