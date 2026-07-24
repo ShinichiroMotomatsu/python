@@ -57,7 +57,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 19</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 20</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -285,7 +285,7 @@ const BANCH=new Int32Array(GW*GH).fill(-1); // セル→建物アンカー(bx*51
 for(const[bx,by,k]of BLDG){const[w,h]=SZ[k];
  for(let yy=by;yy<by+h;yy++)for(let xx=bx;xx<bx+w;xx++){blk[yy*GW+xx]=1;BANCH[yy*GW+xx]=bx*512+by;}}
 for(const s of STATIONS)blk[s.y*GW+s.x]=1;
-const blocked=(x,y)=>(x<0||y<0||x>=GW||y>=GH)?1:blk[y*GW+x];
+const blocked=(x,y)=>(x<0||y<0||x>=GW||y>=GH)?1:(blk[y*GW+x]||(era==='past'?PSEA[y*GW+x]:0));
 // 信号の設置位置 (bake と 3D ビューで共用)
 const SIGNALS=(function(){
  const out=[];
@@ -444,7 +444,7 @@ function bake(){
  for(const[bx,by,k]of BLDG){
   const[w,hh]=SZ[k];
   const OVT={1:14,2:18,3:22,4:24}[k];
-  SPRITES.push({bot:(by+hh)*TS,o:oi++,x0:bx*TS,x1:(bx+w)*TS,top:by*TS-OVT,
+  SPRITES.push({bot:(by+hh)*TS,o:oi++,x0:bx*TS,x1:(bx+w)*TS,top:by*TS-OVT,bld:1,
    fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k),
    fnP:((BX,BY,K)=>()=>drawIconPast(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
  }
@@ -455,9 +455,9 @@ function bake(){
   else if(c==='t'||c==='p')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS-8,x1:x*TS+24,top:y*TS-16,
    fn:((X,Y)=>()=>drawTreeCell(X,Y))(x,y),fnP:((X,Y)=>()=>drawTreePast(X,Y))(x,y)});
  }
- for(const s of STATIONS)SPRITES.push({bot:(s.y+1)*TS,o:oi++,x0:s.x*TS,x1:(s.x+1)*TS,top:s.y*TS-6,
+ for(const s of STATIONS)SPRITES.push({bot:(s.y+1)*TS,o:oi++,x0:s.x*TS,x1:(s.x+1)*TS,top:s.y*TS-6,bld:1,
   fn:(S=>()=>drawStation(S.x*TS,S.y*TS,S.l))(s),fnP:(S=>()=>drawCavePast(S.x*TS,S.y*TS))(s)});
- for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,
+ for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,bld:1,
   fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg),fnP:(G=>()=>drawSignpostPast(G[0]*TS,G[1]*TS))(sg)});
  SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
  for(const it of SPRITES)it.fn();
@@ -754,6 +754,27 @@ const P88={navy:'#141628',blue:'#3050b4',lblue:'#82b4e8',cream:'#e8e2c0',
            dgreen:'#1e6434',green:'#6ab446',brown:'#a06a2c',red:'#cc4632'};
 const mapP=document.createElement('canvas');mapP.width=GW*TS;mapP.height=GH*TS;
 let pastBaked=false;
+// ---- 過去編の海: 本島+小島 (幼少期の行動限界としての海) ----
+const PSEA=new Uint8Array(GW*GH);
+const PISLE=new Uint8Array(GW*GH); // 小島 (未踏の地: 建物は描かない)
+(function(){
+ const LS=[ // [cx,cy,rx,ry] 楕円の和で島影を作る (先頭5つ=本島, 残り=小島)
+  [70,80,58,62],[185,120,72,52],[125,105,45,40],[115,45,40,32],[45,55,34,34],
+  [11,10,13,11],[210,25,16,10],[252,62,9,7],[22,158,14,9]];
+ for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
+  let land=0;
+  for(let s=0;s<LS.length&&!land;s++){
+   const cx=LS[s][0],cy=LS[s][1],rx=LS[s][2],ry=LS[s][3];
+   const dx=x-cx,dy=y-cy;
+   const a=Math.atan2(dy/ry,dx/rx);
+   const w=1+0.10*Math.sin(a*5+s*2.1)+0.06*Math.sin(a*11+s*4.7); // 海岸線の凹凸
+   if((dx*dx)/(rx*rx*w*w)+(dy*dy)/(ry*ry*w*w)<1)land=s<5?1:2;
+  }
+  if(!land)PSEA[y*GW+x]=1;
+  else if(land===2)PISLE[y*GW+x]=1;
+ }
+})();
+const seaAdj=(x,y)=>(x>0&&PSEA[y*GW+x-1])||(x<GW-1&&PSEA[y*GW+x+1])||(y>0&&PSEA[(y-1)*GW+x])||(y<GH-1&&PSEA[(y+1)*GW+x]);
 const PPAT={};
 function ppat(g,a,b,lvl){ // 4x4ディザパターン lvl:1=12.5% 2=25% 3=50%
  const key=a+b+lvl;
@@ -778,6 +799,14 @@ function bakePast(){
  // ---- 地面 ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x],px=x*TS,py=y*TS,h=hs(x,y,41);
+  if(PSEA[y*GW+x]){ // 海 (岸辺は浅瀬)
+   const sh=seaAdj(x,y)?0:1;
+   g.fillStyle=sh?ppat(g,P88.blue,P88.navy,2):ppat(g,P88.blue,P88.lblue,3);
+   g.fillRect(px,py,TS,TS);
+   if(sh&&h<.15){g.fillStyle=P88.lblue;g.fillRect(px+2+((h*67)|0)%9,py+4+((h*43)|0)%9,5,1);}
+   continue;}
+  if(seaAdj(x,y)&&'.gtmpkRDA'.includes(c)){ // 砂浜
+   g.fillStyle=ppat(g,P88.cream,P88.brown,1);g.fillRect(px,py,TS,TS);continue;}
   if(c==='W'){g.fillStyle=ppat(g,P88.blue,P88.lblue,2);g.fillRect(px,py,TS,TS);
    if(h<.3){g.fillStyle=P88.lblue;g.fillRect(px+2+((h*67)|0)%8,py+5+((h*43)|0)%7,6,1);}continue;}
   if(c==='r'){g.fillStyle=ppat(g,P88.brown,P88.cream,2);g.fillRect(px,py,TS,TS);
@@ -806,8 +835,12 @@ function bakePast(){
  if(rb)drawSpringPast(g,rb);   // ヒルズ跡地=ニッカ池の泉
  if(db)drawFortPast(g,db);     // ミッドタウン=檜町の古砦
  if(ab)drawHamletPast(g,ab);   // 麻布台=木造の集落
- // ---- スプライト (現在編と同一順) ----
- for(const it of SPRITES)it.fnP();
+ // ---- スプライト (現在編と同一順 / 海に沈んだものは省く) ----
+ for(const it of SPRITES){
+  const scx=Math.min(GW-1,(((it.x0+it.x1)/2)/TS)|0),scy=Math.min(GH-1,Math.max(0,((it.bot-1)/TS)|0));
+  it.sea=PSEA[scy*GW+scx]===1||(PISLE[scy*GW+scx]===1&&it.bld===1);
+  if(!it.sea)it.fnP();
+ }
  // ---- ランドマーク ----
  LMDP.length=0;
  const regP=(b2,fn)=>{fn();LMDP.push({bot:(b2.y1+1)*TS,cx:((b2.x0+b2.x1+1)/2)*TS,fn});};
@@ -1101,7 +1134,7 @@ function tryMove(d){
 function frontCell(){const[dx,dy]=DIRS[P.dir];
  return[Math.round(P.hx/2+dx),Math.round(P.hy/2+dy)];}
 function warpSafe(x,y){
- for(let r=0;r<10;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+ for(let r=0;r<48;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
   if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;
   const xx=x+dx,yy=y+dy;
   if(!blocked(xx,yy)){P.hx=xx*2;P.hy=yy*2;P.moving=null;checkArea();return true;}
@@ -1127,6 +1160,8 @@ function doA(){
    return;}}
  const c=at(fx,fy);
  if(era==='past'){
+  if(fx<0||fy<0||fx>=GW||fy>=GH||PSEA[fy*GW+fx]){
+   say('',['海だ。波の音だけが聞こえる。','水平線の向こうに、小さな島影。','……この海の向こうへは、','まだ行くことができない。']);return;}
   if(blocked(fx,fy)&&'.'===c)say('',['石積みの壁だ。','扉は固く閉ざされている。']);
   else if(c==='W')say('',['澄んだ水が、ゆっくり流れている。']);
   else if(c==='t')say('',['深い木立が、風にざわめいている。']);
@@ -1155,6 +1190,7 @@ function toggleMini(){
   if(era==='past'){
    lb('赤の古塔',356,248);lb('大神殿',424,258);lb('霧の集落',290,188);
    lb('六の辻',86,150);lb('檜の砦',96,68);lb('泉の祠',40,236);lb('十番の里',210,300);
+   lb('墓所の島',4,34);
   }else{
    lb('東京タワー',356,248);lb('増上寺',424,258);lb('麻布台ヒルズ',290,188);
    lb('六本木交差点',86,150);lb('ミッドタウン',96,68);lb('六本木ヒルズ',40,236);lb('麻布十番',210,300);
@@ -1648,7 +1684,7 @@ function tick(now){
  for(const it of SPRITES){
   if(it.bot<=feet)continue;
   if(it.x1<camx-4||it.x0>vx1+4||it.top>vy1+4||it.bot<camy-4)continue;
-  if(past)it.fnP();else it.fn();
+  if(past){if(!it.sea)it.fnP();}else it.fn();
  }
  for(const lm of (past?LMDP:LMD)){
   if(lm.bot>feet&&Math.abs(lm.cx-ix)<340&&iy>lm.bot-320)lm.fn();
@@ -1681,6 +1717,9 @@ function tick(now){
   eraFx--;
   if(eraFx===13){
    era=era==='now'?'past':'now';
+   if(era==='past'){ // 立ち位置が過去の海なら最寄りの陸へ
+    const rcx=Math.round(P.hx/2),rcy=Math.round(P.hy/2);
+    if(PSEA[rcy*GW+rcx])warpSafe(rcx,rcy);}
    curArea='';checkArea();
    document.getElementById('btnV').style.opacity=era==='past'?.35:1;
    document.getElementById('btnE').textContent=era==='past'?'現代':'時代';
@@ -1707,6 +1746,7 @@ window.DEBUG={err3d:()=>err3d,
  warpSafe,msgOff:()=>{msgQ=[];msgActive=false;msgEl.classList.remove('show');},
  line:()=>curLine,baked:()=>baked,mini:toggleMini,view:toggleView,setDir:d=>{P.dir=d;},is3d:()=>view3d,
  era:()=>era,toggleEra,eraFx:()=>eraFx,pastB:()=>pastBaked,fog:()=>FOGZ.length,
+ sea:(x,y)=>PSEA[y*GW+x],
 };
 </script>
 </body>
