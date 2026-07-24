@@ -57,7 +57,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 20</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 21</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -567,7 +567,6 @@ function drawIcon(px,py,k,h){
   mx.moveTo(x-1,y+20);mx.lineTo(x+7,y+6);mx.lineTo(x+25,y+6);mx.lineTo(x+33,y+20);mx.closePath();mx.fill();
   mx.fillStyle='rgba(255,252,240,.35)';mx.fillRect(x+7,y+6,18,2);
   if(h3<.3){mx.fillStyle='#8a7a6e';mx.fillRect(x+22,y,5,10);mx.fillStyle='#6a5a50';mx.fillRect(x+22,y,5,2);} // 煙突
-  outline(x,y+6,32,40,3);
  }else if(k===2){ // 中層: 3階建て商店ビル 32x48slot -> 32x66 (上に18px)
   const x=px,y=py-18;
   const P=[{w:'#e8e0d0',d:'#c8c0b0',r:'#b5b0a6'},{w:'#d8c0b0',d:'#b8a090',r:'#b0a89c'},
@@ -584,7 +583,7 @@ function drawIcon(px,py,k,h){
   mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+3,y+55,17,2);
   mx.fillStyle='rgba(40,52,74,.35)';mx.fillRect(x+11,y+55,1,10);
   mx.fillStyle='#223048';mx.fillRect(x+23,y+56,6,10);             // 入口
-  outline(x,y,32,66,2);
+  mx.fillStyle='rgba(30,26,24,.35)';mx.fillRect(x,y+65,32,1);
  }else if(k===3){ // 高層: 6階建てオフィス 48x64slot -> 48x86 (上に22px)
   const x=px,y=py-22;
   const P=[{w:'#b8bec6',d:'#98a0a8',r:'#adb3bb'},{w:'#b0a89a',d:'#90887a',r:'#a8a094'},
@@ -604,7 +603,7 @@ function drawIcon(px,py,k,h){
   mx.fillStyle='rgba(235,245,255,.35)';mx.fillRect(x+20,y+75,10,2);
   mx.fillStyle='#cfe0ec';mx.fillRect(x+32,y+76,12,9);
   mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+32,y+76,12,2);
-  outline(x,y,48,86,2);
+  mx.fillStyle='rgba(30,26,24,.35)';mx.fillRect(x,y+85,48,1);
  }else{ // 超高層: ガラスタワー 64x96slot -> 64x120 (上に24px)
   const x=px,y=py-24;
   const G=[['#43506a','#5e7492','#3a465e'],['#3c5a5e','#5a8288','#324c50'],['#4c5058','#788088','#404448']][(h*3)|0];
@@ -630,7 +629,7 @@ function drawIcon(px,py,k,h){
   mx.fillStyle='#1c2434';mx.fillRect(x+18,y+104,28,16);           // 2層吹抜けエントランス
   mx.fillStyle='rgba(235,245,255,.4)';mx.fillRect(x+18,y+104,28,3);
   mx.fillStyle='#e8f0f8';mx.fillRect(x+28,y+112,8,8);
-  outline(x,y,64,120,2);
+  mx.fillStyle='rgba(30,26,24,.35)';mx.fillRect(x,y+119,64,1);
  }
 }
 // ---- landmark sprites ----
@@ -903,7 +902,6 @@ function drawIconPast(px,py,k,h){
   mx.fillStyle=ppat(mx,P88.brown,P88.cream,2);          // 藁屋根
   mx.beginPath();mx.moveTo(x-1,y+26);mx.lineTo(x+9,y+6);mx.lineTo(x+23,y+6);mx.lineTo(x+33,y+26);mx.closePath();mx.fill();
   mx.fillStyle=P88.navy;mx.fillRect(x+9,y+6,14,1);
-  pout(x,y+6,32,40);
  }else if(k===2){ // 木造の家 32x66
   const x=px,y=py-18;
   mx.fillStyle=ppat(mx,[P88.red,P88.brown,P88.blue,P88.brown][v],P88.navy,1); // 屋根(上面)
@@ -916,7 +914,7 @@ function drawIconPast(px,py,k,h){
   mx.fillRect(x+5,y+47,7,7);
   mx.fillStyle=P88.navy;mx.fillRect(x+19,y+50,8,16);
   mx.fillStyle=P88.brown;mx.fillRect(x+19,y+50,8,2);
-  pout(x,y,32,66);
+  mx.fillStyle=P88.navy;mx.fillRect(x,y+65,32,1);
  }else if(k===3){ // 石の館 48x86
   const x=px,y=py-22;
   mx.fillStyle=ppat(mx,P88.cream,P88.navy,1);mx.fillRect(x,y,48,26);   // 屋上
@@ -930,7 +928,7 @@ function drawIconPast(px,py,k,h){
   mx.fillStyle=P88.navy;
   mx.beginPath();mx.arc(x+24,y+74,7,Math.PI,2*Math.PI);mx.fill();mx.fillRect(x+17,y+74,14,12);
   mx.fillStyle=P88.red;mx.fillRect(x+22,y+46,4,14);                    // 旗
-  pout(x,y,48,86);
+  mx.fillStyle=P88.navy;mx.fillRect(x,y+85,48,1);
  }else{ // 見張りの塔 64x120
   const x=px,y=py-24;
   for(let i=0;i<9;i++){
@@ -943,7 +941,7 @@ function drawIconPast(px,py,k,h){
   for(let i=1;i<9;i+=2)mx.fillRect(x+28,y+18+i*11,8,7);
   mx.fillStyle=P88.navy;
   mx.beginPath();mx.arc(x+32,y+106,8,Math.PI,2*Math.PI);mx.fill();mx.fillRect(x+24,y+106,16,14);
-  pout(x+8,y+14,48,106);
+  mx.fillStyle=P88.navy;mx.fillRect(x+8,y+119,48,1);
  }
 }
 function drawSpringPast(g,b){ // 泉と祠 (ニッカ池の面影)
