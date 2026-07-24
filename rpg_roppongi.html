@@ -38,6 +38,8 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
  border:2px solid #e0a0a0;color:#fff;font-size:15px;font-weight:700}
 #btnB{position:absolute;left:0;top:66px;width:48px;height:48px;border-radius:50%;background:rgba(50,80,140,.82);
  border:2px solid #90a8d8;color:#fff;font-size:12px}
+#btnE{position:absolute;right:4px;top:78px;width:46px;height:40px;border-radius:12px;background:rgba(120,70,160,.85);
+ border:2px solid rgba(255,255,255,.5);color:#fff;font-size:13px;font-weight:bold;touch-action:none}
 #btnV{position:absolute;left:6px;top:6px;width:44px;height:44px;border-radius:50%;background:rgba(60,110,70,.85);
  border:2px solid #90d8a0;color:#fff;font-size:12px;font-weight:700}
 #mini{position:absolute;inset:0;background:rgba(6,8,12,.94);display:none;z-index:20;flex-direction:column;
@@ -55,12 +57,12 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 18</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 19</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
-<div id="mini"><div class="cap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
+<div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
 <div class="ctl" id="dpad"><button id="dU">▲</button><button id="dL">◀</button><button id="dR">▶</button><button id="dD">▼</button></div>
-<div class="ctl" id="btns"><button id="btnA">A</button><button id="btnB">MAP</button><button id="btnV">3D</button></div>
+<div class="ctl" id="btns"><button id="btnA">A</button><button id="btnB">MAP</button><button id="btnV">3D</button><button id="btnE">時代</button></div>
 </div>
 <script>
 'use strict';
@@ -443,19 +445,20 @@ function bake(){
   const[w,hh]=SZ[k];
   const OVT={1:14,2:18,3:22,4:24}[k];
   SPRITES.push({bot:(by+hh)*TS,o:oi++,x0:bx*TS,x1:(bx+w)*TS,top:by*TS-OVT,
-   fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
+   fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k),
+   fnP:((BX,BY,K)=>()=>drawIconPast(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
  }
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x];
   if(c==='k')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS,x1:(x+1)*TS,top:y*TS,
-   fn:((X,Y)=>()=>drawRockCell(X,Y))(x,y)});
+   fn:((X,Y)=>()=>drawRockCell(X,Y))(x,y),fnP:((X,Y)=>()=>drawRockPast(X,Y))(x,y)});
   else if(c==='t'||c==='p')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS-8,x1:x*TS+24,top:y*TS-16,
-   fn:((X,Y)=>()=>drawTreeCell(X,Y))(x,y)});
+   fn:((X,Y)=>()=>drawTreeCell(X,Y))(x,y),fnP:((X,Y)=>()=>drawTreePast(X,Y))(x,y)});
  }
  for(const s of STATIONS)SPRITES.push({bot:(s.y+1)*TS,o:oi++,x0:s.x*TS,x1:(s.x+1)*TS,top:s.y*TS-6,
-  fn:(S=>()=>drawStation(S.x*TS,S.y*TS,S.l))(s)});
+  fn:(S=>()=>drawStation(S.x*TS,S.y*TS,S.l))(s),fnP:(S=>()=>drawCavePast(S.x*TS,S.y*TS))(s)});
  for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,
-  fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg)});
+  fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg),fnP:(G=>()=>drawSignpostPast(G[0]*TS,G[1]*TS))(sg)});
  SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
  for(const it of SPRITES)it.fn();
  // ---- pass 5: props ----
@@ -746,6 +749,253 @@ function drawAzabudai(cx,by,zw){
  mx.moveTo(x,by);mx.lineTo(x+3,y+34);mx.quadraticCurveTo(cx,y-10,x+W2-3,y+34);mx.lineTo(x+W2,by);mx.stroke();
 }
 
+// ============ 過去編 (PC-88風 8色+ディザ) ============
+const P88={navy:'#141628',blue:'#3050b4',lblue:'#82b4e8',cream:'#e8e2c0',
+           dgreen:'#1e6434',green:'#6ab446',brown:'#a06a2c',red:'#cc4632'};
+const mapP=document.createElement('canvas');mapP.width=GW*TS;mapP.height=GH*TS;
+let pastBaked=false;
+const PPAT={};
+function ppat(g,a,b,lvl){ // 4x4ディザパターン lvl:1=12.5% 2=25% 3=50%
+ const key=a+b+lvl;
+ if(PPAT[key])return PPAT[key];
+ const c=document.createElement('canvas');c.width=4;c.height=4;
+ const gg=c.getContext('2d');gg.fillStyle=a;gg.fillRect(0,0,4,4);gg.fillStyle=b;
+ const M=lvl===1?[[1,1]]:lvl===2?[[0,0],[2,2]]:[[0,0],[2,0],[1,1],[3,1],[0,2],[2,2],[1,3],[3,3]];
+ for(const[qx,qy]of M)gg.fillRect(qx,qy,1,1);
+ const p=g.createPattern(c,'repeat');PPAT[key]=p;return p;
+}
+const LMDP=[]; // 過去編ランドマーク再描画
+const FOGZ=[]; // 霧ゾーン(px矩形)
+function mergedBBox(chars){
+ let x0=1e9,y0=1e9,x1=-1,y1=-1;
+ for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if(chars.includes(GRID[y][x])){
+  x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+ return x1<0?null:{x0,y0,x1,y1};
+}
+function bakePast(){
+ const g=mapP.getContext('2d');g.imageSmoothingEnabled=false;
+ const sv=mx;mx=g;
+ // ---- 地面 ----
+ for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
+  const c=GRID[y][x],px=x*TS,py=y*TS,h=hs(x,y,41);
+  if(c==='W'){g.fillStyle=ppat(g,P88.blue,P88.lblue,2);g.fillRect(px,py,TS,TS);
+   if(h<.3){g.fillStyle=P88.lblue;g.fillRect(px+2+((h*67)|0)%8,py+5+((h*43)|0)%7,6,1);}continue;}
+  if(c==='r'){g.fillStyle=ppat(g,P88.brown,P88.cream,2);g.fillRect(px,py,TS,TS);
+   const U=isRoad(at(x,y-1)),D=isRoad(at(x,y+1)),L=isRoad(at(x-1,y)),R=isRoad(at(x+1,y));
+   g.fillStyle=P88.navy;
+   if(!U)g.fillRect(px,py,TS,1);if(!D)g.fillRect(px,py+TS-1,TS,1);
+   if(!L)g.fillRect(px,py,1,TS);if(!R)g.fillRect(px+TS-1,py,1,TS);
+   continue;}
+  if(c==='n'){g.fillStyle=ppat(g,P88.brown,P88.green,3);g.fillRect(px,py,TS,TS);continue;}
+  if(c==='m'||c==='p'||c==='k'){g.fillStyle=ppat(g,P88.dgreen,P88.green,2);g.fillRect(px,py,TS,TS);continue;}
+  if(c==='c'){g.fillStyle=ppat(g,P88.green,P88.dgreen,2);g.fillRect(px,py,TS,TS);
+   if(h<.5){g.fillStyle=P88.cream;g.fillRect(px+5,py+5,5,8);g.fillStyle=P88.navy;g.fillRect(px+5,py+12,5,1);}continue;}
+  if(c==='Z'||c==='i'||c==='T'){g.fillStyle=ppat(g,P88.cream,P88.brown,1);g.fillRect(px,py,TS,TS);continue;}
+  if(c==='Q'||c==='E'||c==='B'||c==='F'){ // 過去は畑
+   g.fillStyle=ppat(g,P88.brown,P88.green,2);g.fillRect(px,py,TS,TS);
+   g.fillStyle=P88.cream;for(let ly=2;ly<TS;ly+=5)g.fillRect(px,py+ly,TS,1);
+   continue;}
+  if(c==='R'||c==='D'||c==='A'){g.fillStyle=ppat(g,P88.green,P88.dgreen,2);g.fillRect(px,py,TS,TS);continue;}
+  // 草原 ('.','g','t' ほか)
+  g.fillStyle=ppat(g,P88.green,P88.dgreen,2);g.fillRect(px,py,TS,TS);
+  if(h<.06){g.fillStyle=P88.cream;g.fillRect(px+((h*97)|0)%13,py+((h*53)|0)%13,2,2);}
+  else if(h<.1){g.fillStyle=P88.red;g.fillRect(px+((h*89)|0)%13,py+((h*47)|0)%13,2,2);}
+ }
+ // ---- 再開発前の面影 ----
+ const rb=bbox('R'),db=bbox('D'),ab=bbox('A');
+ if(rb)drawSpringPast(g,rb);   // ヒルズ跡地=ニッカ池の泉
+ if(db)drawFortPast(g,db);     // ミッドタウン=檜町の古砦
+ if(ab)drawHamletPast(g,ab);   // 麻布台=木造の集落
+ // ---- スプライト (現在編と同一順) ----
+ for(const it of SPRITES)it.fnP();
+ // ---- ランドマーク ----
+ LMDP.length=0;
+ const regP=(b2,fn)=>{fn();LMDP.push({bot:(b2.y1+1)*TS,cx:((b2.x0+b2.x1+1)/2)*TS,fn});};
+ const zb=bbox('Z');if(zb)regP(zb,()=>drawTemplePast(((zb.x0+zb.x1+1)/2)*TS,(zb.y1+1)*TS));
+ const ib=bbox('i');if(ib)regP(ib,()=>drawGatePast(((ib.x0+ib.x1+1)/2)*TS,(ib.y1+1)*TS));
+ const tb=bbox('T');if(tb)regP(tb,()=>drawTowerPast(((tb.x0+tb.x1+1)/2)*TS,(tb.y1+1)*TS));
+ // ---- 霧ゾーン ----
+ FOGZ.length=0;
+ const fz1=mergedBBox('RQ'),fz2=mergedBBox('DE'),fz3=mergedBBox('AB');
+ for(const z of[fz1,fz2,fz3])if(z)FOGZ.push({x:(z.x0-3)*TS,y:(z.y0-3)*TS,
+  w:(z.x1-z.x0+7)*TS,h:(z.y1-z.y0+7)*TS});
+ mx=sv;
+ pastBaked=true;
+}
+// ---- 過去編スプライト描画 ----
+function pout(x,y,w,h){mx.strokeStyle=P88.navy;mx.lineWidth=1;mx.strokeRect(x+.5,y+.5,w-1,h-1);}
+function drawTreePast(x,y){
+ const c=GRID[y][x],px=x*TS,py=y*TS,h=hs(x,y,42);
+ if(c==='p'||h<.3){ // 針葉樹
+  mx.fillStyle=P88.dgreen;
+  mx.beginPath();mx.moveTo(px+8,py-12);mx.lineTo(px-2,py+14);mx.lineTo(px+18,py+14);mx.closePath();mx.fill();
+  mx.fillStyle=ppat(mx,P88.dgreen,P88.green,2);
+  mx.beginPath();mx.moveTo(px+8,py-8);mx.lineTo(px+1,py+10);mx.lineTo(px+15,py+10);mx.closePath();mx.fill();
+  mx.fillStyle=P88.brown;mx.fillRect(px+6,py+14,4,2);
+ }else{ // 広葉樹
+  mx.fillStyle=P88.dgreen;
+  mx.beginPath();mx.arc(px+8,py+2,9,0,7);mx.fill();
+  mx.fillStyle=ppat(mx,P88.dgreen,P88.green,3);
+  mx.beginPath();mx.arc(px+6,py,6,0,7);mx.fill();
+  mx.fillStyle=P88.brown;mx.fillRect(px+6,py+10,4,6);
+ }
+}
+function drawRockPast(x,y){
+ const px=x*TS,py=y*TS;
+ mx.fillStyle=P88.brown;mx.beginPath();mx.arc(px+8,py+9,6,Math.PI,2*Math.PI);mx.fill();
+ mx.fillRect(px+2,py+9,12,5);
+ mx.fillStyle=ppat(mx,P88.brown,P88.cream,2);mx.fillRect(px+3,py+5,6,4);
+ mx.fillStyle=P88.navy;mx.fillRect(px+2,py+13,12,1);
+}
+function drawCavePast(px,py){ // 地下鉄駅→洞穴
+ mx.fillStyle=P88.dgreen;mx.beginPath();mx.arc(px+8,py+9,8,Math.PI,2*Math.PI);mx.fill();
+ mx.fillStyle=P88.navy;mx.beginPath();mx.arc(px+8,py+11,5,Math.PI,2*Math.PI);mx.fill();
+ mx.fillRect(px+3,py+11,10,4);
+ mx.fillStyle=P88.cream;mx.fillRect(px+2,py+15,12,1);
+}
+function drawSignpostPast(px,py){ // 信号→道標
+ mx.fillStyle=P88.brown;mx.fillRect(px+7,py+2,3,13);
+ mx.fillStyle=P88.cream;mx.fillRect(px+2,py+3,13,5);
+ mx.fillStyle=P88.navy;mx.fillRect(px+4,py+5,9,1);
+}
+function drawIconPast(px,py,k,h){
+ const v=(h*4)|0;
+ if(k===1){ // 藁葺きの小屋 32x46
+  const x=px,y=py-14;
+  mx.fillStyle=P88.cream;mx.fillRect(x+2,y+24,28,22);
+  mx.fillStyle=P88.brown;mx.fillRect(x+2,y+24,2,22);mx.fillRect(x+28,y+24,2,22);
+  mx.fillRect(x+2,y+34,28,2);
+  mx.fillStyle=P88.blue;mx.fillRect(x+6,y+28,6,5);
+  mx.fillStyle=P88.navy;mx.fillRect(x+19,y+36,7,10);
+  mx.fillStyle=ppat(mx,P88.brown,P88.cream,2);          // 藁屋根
+  mx.beginPath();mx.moveTo(x-1,y+26);mx.lineTo(x+9,y+6);mx.lineTo(x+23,y+6);mx.lineTo(x+33,y+26);mx.closePath();mx.fill();
+  mx.fillStyle=P88.navy;mx.fillRect(x+9,y+6,14,1);
+  pout(x,y+6,32,40);
+ }else if(k===2){ // 木造の家 32x66
+  const x=px,y=py-18;
+  mx.fillStyle=ppat(mx,[P88.red,P88.brown,P88.blue,P88.brown][v],P88.navy,1); // 屋根(上面)
+  mx.fillRect(x,y,32,22);
+  mx.fillStyle=P88.navy;mx.fillRect(x,y+20,32,2);
+  mx.fillStyle=P88.cream;mx.fillRect(x,y+22,32,44);
+  mx.fillStyle=P88.brown;mx.fillRect(x,y+22,2,44);mx.fillRect(x+30,y+22,2,44);
+  mx.fillRect(x,y+42,32,2);
+  mx.fillStyle=P88.blue;mx.fillRect(x+5,y+27,7,7);mx.fillRect(x+20,y+27,7,7);
+  mx.fillRect(x+5,y+47,7,7);
+  mx.fillStyle=P88.navy;mx.fillRect(x+19,y+50,8,16);
+  mx.fillStyle=P88.brown;mx.fillRect(x+19,y+50,8,2);
+  pout(x,y,32,66);
+ }else if(k===3){ // 石の館 48x86
+  const x=px,y=py-22;
+  mx.fillStyle=ppat(mx,P88.cream,P88.navy,1);mx.fillRect(x,y,48,26);   // 屋上
+  mx.fillStyle=P88.navy;
+  for(let i=0;i<6;i++)mx.fillRect(x+i*8,y,5,4);                        // 銃眼
+  mx.fillStyle=ppat(mx,P88.cream,P88.brown,2);mx.fillRect(x,y+26,48,60); // 石壁
+  mx.fillStyle=P88.navy;mx.fillRect(x,y+26,48,2);
+  mx.fillStyle=P88.blue;
+  mx.fillRect(x+6,y+34,8,9);mx.fillRect(x+20,y+34,8,9);mx.fillRect(x+34,y+34,8,9);
+  mx.fillRect(x+6,y+54,8,9);mx.fillRect(x+34,y+54,8,9);
+  mx.fillStyle=P88.navy;
+  mx.beginPath();mx.arc(x+24,y+74,7,Math.PI,2*Math.PI);mx.fill();mx.fillRect(x+17,y+74,14,12);
+  mx.fillStyle=P88.red;mx.fillRect(x+22,y+46,4,14);                    // 旗
+  pout(x,y,48,86);
+ }else{ // 見張りの塔 64x120
+  const x=px,y=py-24;
+  for(let i=0;i<9;i++){
+   mx.fillStyle=i%2?ppat(mx,P88.cream,P88.brown,1):ppat(mx,P88.red,P88.navy,1);
+   mx.fillRect(x+8,y+16+i*11,48,11);
+  }
+  mx.fillStyle=P88.navy;                                              // 屋根(円錐)
+  mx.beginPath();mx.moveTo(x+4,y+18);mx.lineTo(x+32,y);mx.lineTo(x+60,y+18);mx.closePath();mx.fill();
+  mx.fillStyle=P88.blue;
+  for(let i=1;i<9;i+=2)mx.fillRect(x+28,y+18+i*11,8,7);
+  mx.fillStyle=P88.navy;
+  mx.beginPath();mx.arc(x+32,y+106,8,Math.PI,2*Math.PI);mx.fill();mx.fillRect(x+24,y+106,16,14);
+  pout(x+8,y+14,48,106);
+ }
+}
+function drawSpringPast(g,b){ // 泉と祠 (ニッカ池の面影)
+ const cx=((b.x0+b.x1+1)/2)*TS, cy=((b.y0+b.y1+1)/2)*TS;
+ g.fillStyle=P88.cream;g.beginPath();g.ellipse(cx,cy+6,40,24,0,0,7);g.fill();
+ g.fillStyle=ppat(g,P88.blue,P88.lblue,3);g.beginPath();g.ellipse(cx,cy+6,34,19,0,0,7);g.fill();
+ g.fillStyle=P88.lblue;g.fillRect(cx-16,cy,12,1);g.fillRect(cx+4,cy+10,14,1);
+ // 祠
+ g.fillStyle=P88.cream;g.fillRect(cx-8,cy-30,16,14);
+ g.fillStyle=P88.red;g.beginPath();g.moveTo(cx-12,cy-30);g.lineTo(cx,cy-40);g.lineTo(cx+12,cy-30);g.closePath();g.fill();
+ g.fillStyle=P88.navy;g.fillRect(cx-3,cy-24,6,8);
+}
+function drawFortPast(g,b){ // 古い砦 (檜町駐屯地の面影)
+ const x0=b.x0*TS-8,y0=b.y0*TS-8,x1=(b.x1+1)*TS+8,y1=(b.y1+1)*TS+8;
+ const wall=ppat(g,P88.cream,P88.navy,2);
+ g.fillStyle=wall;
+ g.fillRect(x0,y0,x1-x0,10);g.fillRect(x0,y1-10,x1-x0,10);
+ g.fillRect(x0,y0,10,y1-y0);g.fillRect(x1-10,y0,10,y1-y0);
+ g.fillStyle=P88.navy;
+ for(let x=x0;x<x1;x+=8){g.fillRect(x,y0,4,3);g.fillRect(x,y1-3,4,3);}
+ for(let y=y0;y<y1;y+=8){g.fillRect(x0,y,3,4);g.fillRect(x1-3,y,3,4);}
+ // 南門
+ const gx=(x0+x1)/2;
+ g.fillStyle=ppat(g,P88.green,P88.dgreen,2);g.fillRect(gx-10,y1-10,20,10);
+ g.fillStyle=P88.brown;g.fillRect(gx-10,y1-10,3,10);g.fillRect(gx+7,y1-10,3,10);
+ // 中央の櫓
+ const cx=(x0+x1)/2,cy=(y0+y1)/2;
+ g.fillStyle=wall;g.fillRect(cx-14,cy-20,28,34);
+ g.fillStyle=P88.navy;for(let i=0;i<4;i++)g.fillRect(cx-14+i*8,cy-20,5,4);
+ g.fillStyle=P88.blue;g.fillRect(cx-8,cy-10,6,7);g.fillRect(cx+2,cy-10,6,7);
+ g.fillStyle=P88.navy;g.fillRect(cx-4,cy+4,8,10);
+ g.fillStyle=P88.red;g.fillRect(cx-1,cy-32,2,12);g.fillRect(cx+1,cy-32,8,5);
+}
+function drawHamletPast(g,b){ // 木造の集落 (再開発前の麻布台)
+ const sv=mx;mx=g;
+ const cx=((b.x0+b.x1+1)/2)*TS, cy=((b.y0+b.y1+1)/2)*TS;
+ drawIconPast(cx-40,cy-24,1,0.1);
+ drawIconPast(cx+8,cy-30,1,0.6);
+ drawIconPast(cx-14,cy+10,1,0.9);
+ g.fillStyle=ppat(g,P88.brown,P88.cream,2);
+ g.fillRect(cx-6,cy-24,10,48); // 集落の小道
+ mx=sv;
+}
+function drawTowerPast(cx,by){ // 東京タワー→赤の古塔
+ const g=mx;
+ const H=200,topY=by-H;
+ for(let i=0;i<12;i++){
+  const w2=34-i*1.6, y=by-14-i*13;
+  g.fillStyle=i%2?ppat(g,P88.red,P88.navy,1):ppat(g,P88.cream,P88.brown,1);
+  g.fillRect(cx-w2,y-13,w2*2,13);
+ }
+ g.fillStyle=P88.navy;g.beginPath();
+ g.moveTo(cx-18,topY+34);g.lineTo(cx,topY+8);g.lineTo(cx+18,topY+34);g.closePath();g.fill();
+ g.fillStyle=P88.red;g.fillRect(cx-2,topY,4,12);
+ g.fillStyle=P88.cream;g.fillRect(cx-1,topY-3,2,3);
+ g.fillStyle=P88.blue;
+ for(let i=1;i<11;i+=2)g.fillRect(cx-4,by-14-i*13+3,8,7);
+ g.fillStyle=P88.navy;
+ g.beginPath();g.arc(cx,by-2,10,Math.PI,2*Math.PI);g.fill();g.fillRect(cx-10,by-2,20,2);
+ g.strokeStyle=P88.navy;g.lineWidth=1;g.strokeRect(cx-34.5,by-170.5,69,170);
+}
+function drawTemplePast(cx,by){ // 増上寺→大神殿
+ const g=mx,W2=118,x=cx-W2/2;
+ g.fillStyle=P88.cream;g.fillRect(cx-32,by-6,64,6);
+ g.fillStyle=ppat(g,P88.cream,P88.brown,1);g.fillRect(x+14,by-42,90,36);
+ g.fillStyle=P88.red;for(let i=0;i<6;i++)g.fillRect(x+17+i*16,by-42,4,36);
+ g.fillStyle=P88.navy;g.fillRect(cx-11,by-30,22,24);
+ g.fillStyle=P88.blue;g.fillRect(x+20,by-36,8,8);g.fillRect(x+88,by-36,8,8);
+ g.fillStyle=ppat(g,P88.navy,P88.blue,1);g.beginPath();     // 下層屋根
+ g.moveTo(x,by-44);g.lineTo(x+20,by-62);g.lineTo(x+W2-20,by-62);g.lineTo(x+W2,by-44);g.closePath();g.fill();
+ g.fillStyle=P88.cream;g.fillRect(x+26,by-76,66,14);
+ g.fillStyle=P88.red;for(let i=0;i<4;i++)g.fillRect(x+30+i*18,by-76,4,14);
+ g.fillStyle=ppat(g,P88.navy,P88.blue,1);g.beginPath();     // 上層屋根
+ g.moveTo(x+18,by-76);g.lineTo(x+38,by-92);g.lineTo(x+W2-38,by-92);g.lineTo(x+W2-18,by-76);g.closePath();g.fill();
+ g.fillStyle=P88.red;g.fillRect(x+36,by-95,6,4);g.fillRect(x+W2-42,by-95,6,4);
+}
+function drawGatePast(cx,by){ // 三解脱門→朱の門
+ const g=mx;
+ g.fillStyle=P88.red;
+ g.fillRect(cx-26,by-38,7,38);g.fillRect(cx+19,by-38,7,38);g.fillRect(cx-3,by-38,6,38);
+ g.fillStyle=P88.cream;g.fillRect(cx-28,by-42,56,5);
+ g.fillStyle=P88.red;g.fillRect(cx-30,by-48,60,7);
+ g.fillStyle=ppat(g,P88.navy,P88.blue,1);g.fillRect(cx-34,by-56,68,9);
+ g.fillStyle=P88.cream;g.fillRect(cx-5,by-47,10,4);
+}
 // ============ areas / spots ============
 const AREAS=[
  {x0:36,y0:30,x1:80,y1:56,n:'東京ミッドタウン'},
@@ -789,12 +1039,43 @@ const SPOTS=[
  {x:118,y:170,w:30,h:8,n:'古川',t:['暗渠から顔を出した古川。','この下を、昔の水がいまも流れている。']},
 ];
 const JUMPS=[
- ['六本木交差点',66,81],['ミッドタウン',65,51],['六本木ヒルズ',47,112],
- ['麻布台ヒルズ',164,112],['東京タワー',191,131],['増上寺',216,146],['麻布十番',123,140],
+ ['六本木交差点',66,81,'六の辻'],['ミッドタウン',65,51,'檜の砦'],['六本木ヒルズ',47,112,'泉の祠'],
+ ['麻布台ヒルズ',164,112,'霧の集落'],['東京タワー',191,131,'赤の古塔'],['増上寺',216,146,'大神殿'],['麻布十番',123,140,'十番の里'],
 ];
+// ---- 過去編の呼び名とテキスト ----
+const PAREA={'東京ミッドタウン':'檜の砦','六本木ヒルズ':'泉の谷','麻布台ヒルズ':'霧の集落',
+ '芝公園・東京タワー':'赤の古塔と南の山林','麻布台・飯倉':'飯倉の丘','神谷町':'神谷の谷',
+ '麻布十番':'十番の里','西麻布':'西の原','乃木坂・青山':'北の墓所','六本木':'六の郷','赤坂・虎ノ門':'赤坂の野'};
+const PSPOT={
+ '六本木交差点':['六の辻',['六本の古木が囲む、石畳の辻。','旅人と行商人が行き交っている。','……辻の真ん中で、空気が一瞬だけ','薄い硝子のように震えた。']],
+ '東京ミッドタウン':['檜の砦',['霧の奥に、砦の櫓がぼんやり見える。','門は固く閉ざされているようだ。']],
+ 'ミッドタウン・ガレリア':['砦の市',['霧の切れ間に、小さな市が見える。','物売りの声が、くぐもって届く。']],
+ '檜町公園':['檜の砦の池',['砦の裏手に、静かな池。','六百年後もここに水があるという。']],
+ '六本木ヒルズ':['泉の祠',['霧の中、泉の水音だけが聞こえる。','祠の灯が、ちらちらと揺れている。']],
+ '毛利庭園':['ニッカの泉',['澄みきった泉。','水底で、何かが金色に光っている。']],
+ '麻布台ヒルズ':['霧の集落',['藁葺きの屋根が霧に浮かんでいる。','竈の煙の匂い。','……ここが、いつか「家」になる場所だ。']],
+ '東京タワー':['赤の古塔',['天を衝く、赤い石の古塔。','人ならざる者が積んだと伝えられる。','……見上げると、鉄骨の塔と','二重写しに見えた気がした。']],
+ '増上寺':['大神殿',['三笠山の大神殿。','六百年後もここに在り続けるという。','祭壇の火は、絶えたことがない。']],
+ '三解脱門':['朱の門',['朱塗りの大門。','くぐる者の迷いを祓うという。']],
+ '東京タワー フットタウン':['塔守の畑',['古塔の麓に広がる畑。','塔守たちが麦を育てている。']],
+ '麻布十番':['十番の里',['川沿いの小さな里。','麦を焼く、甘い匂いがする。']],
+ '芝公園':['南の山林',['鬱蒼とした山林。獣道が続く。','都会の音は、まだ存在しない。']],
+ '芝丸山古墳':['竜の塚',['里人が「竜の塚」と呼ぶ小山。','頂の岩が、かすかに脈打っている。']],
+ '青山霊園':['古き墓所',['苔むした石碑が並んでいる。','名を読める碑は、もうほとんどない。']],
+ '乃木神社':['森の祠',['小さな祠。供え物の花が新しい。']],
+ '古川':['古川',['豊かな流れ。','子どもらが川辺で遊んでいる。']],
+ '六本木駅':['六の洞穴',['暗い洞穴が地の底へ続いている。','冷たい風が吹き上げてくる。','……地下四十二丈、と誰かが囁いた。']],
+ '神谷町駅':['神谷の洞穴',['岩の裂け目から水が滴っている。']],
+ '乃木坂駅':['北の洞穴',['暗い洞穴が口を開けている。']],
+ '赤羽橋駅':['橋の洞穴',['洞穴の奥から、川の音がする。']],
+ '御成門駅':['御成の洞穴',['神殿へ参る者が使ったという洞穴。']],
+ '六本木一丁目駅':['一の洞穴',['洞穴の入口に、古い道標がある。']],
+};
+const PSPOT_FOG=['霧',['霧が深くて、何も見えない……','奥から、低いうなり声が聞こえる。']];
 
 // ============ state ============
 const P={hx:66*2,hy:81*2,dir:'down',moving:null,step:0};
+let era='now',eraFx=0;
 let held=null,msgQ=[],msgActive=false,curLine='',curName='';
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 let cw=0,chh=0;
@@ -812,7 +1093,7 @@ function canGo(hx,hy){
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const MOVE_MS=85;
 function tryMove(d){
- if(P.moving||msgActive)return;
+ if(P.moving||msgActive||eraFx>0)return;
  P.dir=d;const[dx,dy]=DIRS[d];
  const nx=P.hx+dx,ny=P.hy+dy;
  if(!canGo(nx,ny))return;
@@ -840,8 +1121,17 @@ function doA(){
  for(const s of SPOTS){
   const hitF=fx>=s.x&&fx<s.x+s.w&&fy>=s.y&&fy<s.y+s.h;
   const hitP=px2>=s.x-.5&&px2<s.x+s.w+.5&&py2>=s.y-.5&&py2<s.y+s.h+.5;
-  if(hitF||hitP){say(s.n,s.t);return;}}
+  if(hitF||hitP){
+   if(era==='past'){const o=PSPOT[s.n]||PSPOT_FOG;say(o[0],o[1]);}
+   else say(s.n,s.t);
+   return;}}
  const c=at(fx,fy);
+ if(era==='past'){
+  if(blocked(fx,fy)&&'.'===c)say('',['石積みの壁だ。','扉は固く閉ざされている。']);
+  else if(c==='W')say('',['澄んだ水が、ゆっくり流れている。']);
+  else if(c==='t')say('',['深い木立が、風にざわめいている。']);
+  else say('',['ここは、まだ名を持たぬ時代の郷。','どこかに「ほころび」への鍵がある。']);
+  return;}
  if(blocked(fx,fy)&&'.'===c)say('',['ビルの入口だ。','ガラス扉に空が映っている。']);
  else if(c==='W')say('',['水面が光っている。']);
  else if(c==='t')say('',['木々が風に揺れている。']);
@@ -855,20 +1145,27 @@ function toggleMini(){
  if(miniOn){
   mmc.width=GW*2;mmc.height=GH*2;
   const g=mmc.getContext('2d');g.imageSmoothingEnabled=false;
-  g.drawImage(map,0,0,GW*2,GH*2);
+  g.drawImage(era==='past'?mapP:map,0,0,GW*2,GH*2);
+  if(era==='past'){g.fillStyle='rgba(226,226,210,.38)';
+   for(const z of FOGZ)g.fillRect(z.x/8,z.y/8,z.w/8,z.h/8);}
   g.fillStyle='#ff3040';g.fillRect(P.hx-4,P.hy-4,9,9);
   g.strokeStyle='#fff';g.lineWidth=1;g.strokeRect(P.hx-4,P.hy-4,9,9);
   g.font='bold 11px sans-serif';
   const lb=(t,x,y)=>{g.fillStyle='rgba(0,0,0,.65)';g.fillText(t,x+1,y+1);g.fillStyle='#fff';g.fillText(t,x,y);};
-  lb('東京タワー',356,248);lb('増上寺',424,258);lb('麻布台ヒルズ',290,188);
-  lb('六本木交差点',86,150);lb('ミッドタウン',96,68);lb('六本木ヒルズ',40,236);lb('麻布十番',210,300);
+  if(era==='past'){
+   lb('赤の古塔',356,248);lb('大神殿',424,258);lb('霧の集落',290,188);
+   lb('六の辻',86,150);lb('檜の砦',96,68);lb('泉の祠',40,236);lb('十番の里',210,300);
+  }else{
+   lb('東京タワー',356,248);lb('増上寺',424,258);lb('麻布台ヒルズ',290,188);
+   lb('六本木交差点',86,150);lb('ミッドタウン',96,68);lb('六本木ヒルズ',40,236);lb('麻布十番',210,300);
+  }
   mmc.style.width=Math.min(cw*0.94,GW*2)+'px';
  }}
-const jl=document.getElementById('jumps');
+const jl=document.getElementById('jumps'),jbtns=[];
 for(const[n,jx,jy]of JUMPS){
  const b=document.createElement('button');b.textContent=n;
  b.addEventListener('pointerdown',e=>{e.preventDefault();warpSafe(jx,jy);toggleMini();});
- jl.appendChild(b);}
+ jl.appendChild(b);jbtns.push(b);}
 
 // ============ area banner ============
 const bannerEl=document.getElementById('banner');
@@ -877,7 +1174,8 @@ function checkArea(){
  const x=P.hx/2,y=P.hy/2;
  for(const a of AREAS){
   if(x>=a.x0&&x<a.x1&&y>=a.y0&&y<a.y1){
-   if(a.n!==curArea){curArea=a.n;bannerEl.textContent='- '+a.n+' -';bannerEl.style.opacity=1;clearTimeout(bT);bT=setTimeout(()=>bannerEl.style.opacity=0,2200);}
+   const nm=era==='past'?(PAREA[a.n]||a.n):a.n;
+   if(nm!==curArea){curArea=nm;bannerEl.textContent='- '+nm+' -';bannerEl.style.opacity=1;clearTimeout(bT);bT=setTimeout(()=>bannerEl.style.opacity=0,2200);}
    return;}}}
 
 // ============ hero ============
@@ -895,6 +1193,22 @@ const hero=document.createElement('canvas');hero.width=16*4;hero.height=24;
   if(f===3){R(4,21,3,3,'#2a2622');R(9,20,3,3,'#2a2622');}
   else{R(4,21,3,3,'#2a2622');R(9,21,3,3,'#2a2622');}
  }})();
+// 過去編ヒーロー (PC-88配色 / 赤髪の冒険者)
+const heroP=document.createElement('canvas');heroP.width=16*4;heroP.height=24;
+(function(){
+ const g=heroP.getContext('2d');
+ for(let f=0;f<4;f++){
+  const ox=f*16;
+  const R=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(ox+x,y,w,h);};
+  R(4,2,8,7,'#cc4632');R(4,6,8,3,'#e8e2c0');
+  if(f===0){R(5,6,2,2,'#141628');R(9,6,2,2,'#141628');}
+  if(f>=2){R(8,6,3,2,'#141628');}
+  R(3,9,10,7,'#3050b4');R(3,10,2,5,'#3050b4');R(11,10,2,5,'#3050b4');
+  R(5,9,6,2,'#82b4e8');
+  R(4,16,8,5,'#141628');
+  if(f===3){R(4,21,3,3,'#a06a2c');R(9,20,3,3,'#a06a2c');}
+  else{R(4,21,3,3,'#a06a2c');R(9,21,3,3,'#a06a2c');}
+ }})();
 
 // ============ input ============
 const KEY={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
@@ -908,7 +1222,8 @@ window.addEventListener('keydown',e=>{
   e.preventDefault();}
  if(e.code==='KeyZ'||e.code==='Enter'||e.code==='Space'){doA();e.preventDefault();}
  if(e.code==='KeyX'||e.code==='KeyM'){toggleMini();e.preventDefault();}
- if(e.code==='KeyV'){toggleView();e.preventDefault();}});
+ if(e.code==='KeyV'){toggleView();e.preventDefault();}
+ if(e.code==='KeyE'){toggleEra();e.preventDefault();}});
 window.addEventListener('keyup',e=>{if(KEY[e.code]&&held===KEY[e.code])held=null;});
 for(const[id,d]of[['dU','up'],['dD','down'],['dL','left'],['dR','right']]){
  const b=document.getElementById(id);
@@ -920,11 +1235,21 @@ for(const[id,d]of[['dU','up'],['dD','down'],['dL','left'],['dR','right']]){
   e.preventDefault();});
  b.addEventListener('pointerup',()=>{if(held===d)held=null;});
  b.addEventListener('pointerleave',()=>{if(held===d)held=null;});}
-function toggleView(){view3d=!view3d;held=null;P.moving=null;fpAnim=null;
+function toggleView(){
+ if((era==='past'||eraFx>0)&&!view3d)return; // 過去編は2Dのみ
+ view3d=!view3d;held=null;P.moving=null;fpAnim=null;
  if(view3d){ // 3Dはセル単位: 半歩位置ならスナップ(またがり両セルは歩行可なのでどちらも安全)
   P.hx=Math.round(P.hx/2)*2;P.hy=Math.round(P.hy/2)*2;}
  document.getElementById('btnV').textContent=view3d?'2D':'3D';}
+function toggleEra(){
+ if(eraFx>0||msgActive)return;
+ if(view3d)toggleView();
+ held=null;P.moving=null;
+ if(!pastBaked)bakePast();
+ eraFx=26; // 砂嵐演出: 中間フレームで時代を入れ替え
+}
 document.getElementById('btnV').addEventListener('pointerdown',e=>{toggleView();e.preventDefault();});
+document.getElementById('btnE').addEventListener('pointerdown',e=>{toggleEra();e.preventDefault();});
 document.getElementById('btnA').addEventListener('pointerdown',e=>{doA();e.preventDefault();});
 document.getElementById('btnB').addEventListener('pointerdown',e=>{toggleMini();e.preventDefault();});
 msgEl.addEventListener('pointerdown',e=>{nextMsg();e.preventDefault();});
@@ -1301,14 +1626,16 @@ function tick(now){
  let camx=ix+8-vw/2,camy=iy+12-vh/2;
  camx=Math.max(0,Math.min(GW*TS-vw,camx));
  camy=Math.max(0,Math.min(GH*TS-vh,camy));
+ const past=era==='past';
  ctx.fillStyle='#0d0f14';ctx.fillRect(0,0,cw,chh);
- ctx.drawImage(map,camx,camy,vw,vh,0,0,cw,chh);
+ ctx.drawImage(past?mapP:map,camx,camy,vw,vh,0,0,cw,chh);
  const hx=(ix-camx)*SC,hy=(iy-camy)*SC;
+ const hcv=past?heroP:hero;
  let fr=0;
  if(P.dir==='down')fr=0;else if(P.dir==='up')fr=1;else fr=2+(P.moving?P.step:0);
  ctx.save();
- if(P.dir==='left'){ctx.translate(hx+16*SC,hy-8*SC);ctx.scale(-1,1);ctx.drawImage(hero,fr*16,0,16,24,0,0,16*SC,24*SC);}
- else ctx.drawImage(hero,fr*16,0,16,24,hx,hy-8*SC,16*SC,24*SC);
+ if(P.dir==='left'){ctx.translate(hx+16*SC,hy-8*SC);ctx.scale(-1,1);ctx.drawImage(hcv,fr*16,0,16,24,0,0,16*SC,24*SC);}
+ else ctx.drawImage(hcv,fr*16,0,16,24,hx,hy-8*SC,16*SC,24*SC);
  ctx.restore();
  // ---- 手前スプライトの再描画 ----
  // ビューポート内の「基部がプレイヤーより南」のスプライト全部を、
@@ -1321,12 +1648,52 @@ function tick(now){
  for(const it of SPRITES){
   if(it.bot<=feet)continue;
   if(it.x1<camx-4||it.x0>vx1+4||it.top>vy1+4||it.bot<camy-4)continue;
-  it.fn();
+  if(past)it.fnP();else it.fn();
  }
- for(const lm of LMD){
+ for(const lm of (past?LMDP:LMD)){
   if(lm.bot>feet&&Math.abs(lm.cx-ix)<340&&iy>lm.bot-320)lm.fn();
  }
+ // ---- 霧の演出 (過去編: 8pxブロックのドット霧が漂う) ----
+ if(past){
+  const t=now*0.001;
+  for(const z of FOGZ){
+   const fx0=Math.max(z.x,camx-8),fx1=Math.min(z.x+z.w,vx1+8);
+   const fy0=Math.max(z.y,camy-8),fy1=Math.min(z.y+z.h,vy1+8);
+   if(fx0>=fx1||fy0>=fy1)continue;
+   const gx0=Math.floor(fx0/8)*8,gy0=Math.floor(fy0/8)*8;
+   for(let yy=gy0;yy<fy1;yy+=8)for(let xx=gx0;xx<fx1;xx+=8){
+    // 縁ほど薄く (3ブロックでフェード)
+    const f=Math.max(0,Math.min(1,(xx-z.x)/24,(z.x+z.w-8-xx)/24,(yy-z.y)/24,(z.y+z.h-8-yy)/24));
+    if(f<=0)continue;
+    const v=0.55+0.30*Math.sin(xx*0.031+t*0.9+Math.sin(yy*0.043+t*0.4))
+                +0.30*Math.sin(yy*0.037-t*0.55+Math.sin(xx*0.021+t*0.3));
+    const w=v*f;
+    if(w>0.72){ctx.globalAlpha=.6;ctx.fillStyle=P88.cream;ctx.fillRect(xx,yy,8,8);}
+    else if(w>0.55){ctx.globalAlpha=.45;ctx.fillStyle=P88.lblue;ctx.fillRect(xx,yy,8,8);}
+    else if(w>0.42){ctx.globalAlpha=.25;ctx.fillStyle=P88.lblue;ctx.fillRect(xx,yy,8,8);}
+   }
+   ctx.globalAlpha=1;
+  }
+ }
  mx=saveMx;ctx.restore();
+ // ---- 時代切替の砂嵐 ----
+ if(eraFx>0){
+  eraFx--;
+  if(eraFx===13){
+   era=era==='now'?'past':'now';
+   curArea='';checkArea();
+   document.getElementById('btnV').style.opacity=era==='past'?.35:1;
+   document.getElementById('btnE').textContent=era==='past'?'現代':'時代';
+   document.getElementById('mcap').textContent=era==='past'?'— 過去編・六の郷 全図 —':'— 現在編・六本木エリア全図 —';
+   for(let i=0;i<JUMPS.length;i++)jbtns[i].textContent=era==='past'?JUMPS[i][3]:JUMPS[i][0];
+  }
+  const inten=1-Math.abs(eraFx-13)/13;
+  const nN=(inten*1500)|0;
+  for(let i=0;i<nN;i++){
+   ctx.fillStyle=Math.random()<.5?'#0a0a12':(Math.random()<.5?'#c8c8c8':'#505a6e');
+   ctx.fillRect(Math.random()*cw,Math.random()*chh,3+Math.random()*4,3);
+  }
+ }
 }
 requestAnimationFrame(tick);
 checkArea();
@@ -1339,6 +1706,7 @@ window.DEBUG={err3d:()=>err3d,
  warp:(x,y)=>{P.hx=x*2;P.hy=y*2;P.moving=null;checkArea();},
  warpSafe,msgOff:()=>{msgQ=[];msgActive=false;msgEl.classList.remove('show');},
  line:()=>curLine,baked:()=>baked,mini:toggleMini,view:toggleView,setDir:d=>{P.dir=d;},is3d:()=>view3d,
+ era:()=>era,toggleEra,eraFx:()=>eraFx,pastB:()=>pastBaked,fog:()=>FOGZ.length,
 };
 </script>
 </body>
