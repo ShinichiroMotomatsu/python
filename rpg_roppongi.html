@@ -57,7 +57,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 26</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 27</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -287,7 +287,9 @@ const BANCH=new Int32Array(GW*GH).fill(-1); // セル→建物アンカー(bx*51
 for(const[bx,by,k]of BLDG){const[w,h]=SZ[k];
  for(let yy=by;yy<by+h;yy++)for(let xx=bx;xx<bx+w;xx++){blk[yy*GW+xx]=1;BANCH[yy*GW+xx]=bx*512+by;}}
 for(const s of STATIONS)blk[s.y*GW+s.x]=1;
-const blocked=(x,y)=>(x<0||y<0||x>=GW||y>=GH)?1:(blk[y*GW+x]||(era==='past'?PSEA[y*GW+x]:0));
+const MBLK=new Uint8Array(GW*GH); // 現在編のみの障害物 (噴水など)
+for(let yy=49;yy<=51;yy++)for(let xx=64;xx<=66;xx++)MBLK[yy*GW+xx]=1; // ミッドタウン噴水
+const blocked=(x,y)=>(x<0||y<0||x>=GW||y>=GH)?1:(blk[y*GW+x]||(era==='past'?PSEA[y*GW+x]:MBLK[y*GW+x]));
 // 信号の設置位置 (bake と 3D ビューで共用)
 const SIGNALS=(function(){
  const out=[];
@@ -532,7 +534,6 @@ function paintPropsM(cx0,cy0,cx1,cy1){
  for(let y=cy0;y<=cy1;y++)for(let x=cx0;x<=cx1;x++){
   if(GRID[y][x]!=='g')continue;if(hs(x,y,5)<.02)T('bench',x*TS,y*TS+2);
  }
- if(64>=cx0-3&&64<=cx1+3&&49>=cy0-3&&49<=cy1+3)T('fountain',64*TS,49*TS,48,48);
 }
 function paintShadowM(it){
  if(it.t==='b'){mx.fillStyle='rgba(22,26,40,.17)';
@@ -577,6 +578,10 @@ function bake(){
   SPRITES.push({bot:sy+5,o:oi++,x0:sx-26,x1:sx+26,top:sy-40,
    fn:()=>drawSpider(sx,sy),fnP:()=>{}});
  }}
+ {const fx3=64*TS+24,fy3=49*TS+38; // ミッドタウン噴水
+  SPRITES.push({bot:fy3+8,o:oi++,x0:fx3-26,x1:fx3+26,top:fy3-38,
+   fn:()=>drawFountain(fx3,fy3),fnP:()=>{}});
+ }
  SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
  for(const it of SPRITES)paintShadowM(it);
  for(const it of SPRITES)it.fn();
@@ -591,6 +596,32 @@ function bake(){
  const db=bbox('D');if(db)reg(db,()=>drawMidtown(cxOf(db),(db.y1+1)*TS,(db.x1-db.x0+1)*TS));
  const ab=bbox('A');if(ab)reg(ab,()=>drawAzabudai(cxOf(ab),(ab.y1+1)*TS,(ab.x1-ab.x0+1)*TS));
  const tb=bbox('T');if(tb)reg(tb,()=>drawTower(cxOf(tb),(tb.y1+1)*TS));
+}
+function drawFountain(cx,by){ // ミッドタウン芝生の噴水 (HD手続き描画)
+ mx.fillStyle='rgba(22,26,40,.15)';mx.beginPath();mx.ellipse(cx+2,by+1,24,6,0,0,7);mx.fill();
+ mx.fillStyle='#8e8a7e';mx.beginPath();mx.ellipse(cx,by-6,22,14,0,0,7);mx.fill();   // 外壁側面
+ mx.fillStyle='#c8c4b8';mx.beginPath();mx.ellipse(cx,by-9,22,14,0,0,7);mx.fill();   // 縁の天面
+ mx.fillStyle='rgba(255,255,255,.4)';mx.beginPath();mx.ellipse(cx,by-9.5,21,13,0,Math.PI,2*Math.PI);mx.fill();
+ mx.fillStyle='#3f86c8';mx.beginPath();mx.ellipse(cx,by-9,17.5,10.5,0,0,7);mx.fill(); // 水面
+ mx.fillStyle='#5ea2dc';mx.beginPath();mx.ellipse(cx,by-10,15.5,9,0,0,7);mx.fill();
+ mx.strokeStyle='rgba(220,240,255,.5)';mx.lineWidth=0.75;                             // 波紋
+ mx.beginPath();mx.ellipse(cx,by-10,11,6,0,0,7);mx.stroke();
+ mx.beginPath();mx.ellipse(cx,by-10,6.5,3.5,0,0,7);mx.stroke();
+ mx.fillStyle='#8e8a7e';mx.fillRect(cx-3,by-22,6,12);                                 // 中央柱
+ mx.fillStyle='#b0aca0';mx.fillRect(cx-3,by-22,2.5,12);
+ mx.fillStyle='#8e8a7e';mx.beginPath();mx.ellipse(cx,by-23,9,4,0,0,7);mx.fill();      // 上段鉢
+ mx.fillStyle='#c8c4b8';mx.beginPath();mx.ellipse(cx,by-24.5,9,4,0,0,7);mx.fill();
+ mx.fillStyle='#6fb0e8';mx.beginPath();mx.ellipse(cx,by-24.5,7,2.8,0,0,7);mx.fill();
+ mx.fillStyle='rgba(240,250,255,.9)';mx.fillRect(cx-0.7,by-34,1.4,9);                 // 噴き上げ
+ mx.strokeStyle='rgba(240,250,255,.65)';mx.lineWidth=1;
+ mx.beginPath();mx.moveTo(cx,by-33);mx.quadraticCurveTo(cx-6,by-31,cx-7.5,by-25);mx.stroke();
+ mx.beginPath();mx.moveTo(cx,by-33);mx.quadraticCurveTo(cx+6,by-31,cx+7.5,by-25);mx.stroke();
+ mx.fillStyle='rgba(240,250,255,.85)';
+ mx.beginPath();mx.arc(cx-4.5,by-29,0.8,0,7);mx.fill();
+ mx.beginPath();mx.arc(cx+5,by-28,0.8,0,7);mx.fill();
+ mx.beginPath();mx.arc(cx-2,by-35,0.7,0,7);mx.fill();
+ mx.fillStyle='rgba(255,255,255,.55)';                                                // 水面のきらめき
+ mx.fillRect(cx-9,by-12,4,0.8);mx.fillRect(cx+5,by-7.5,5,0.8);mx.fillRect(cx-3,by-5.5,3,0.8);
 }
 function drawSpider(cx,by){ // 66プラザのクモのモニュメント (ママン風ブロンズ)
  mx.fillStyle='rgba(22,26,40,.2)';mx.beginPath();mx.ellipse(cx+2,by+2,20,4.5,0,0,7);mx.fill();
