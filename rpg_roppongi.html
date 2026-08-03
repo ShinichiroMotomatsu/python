@@ -57,7 +57,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 21</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 22</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -327,6 +327,15 @@ const LM3D=[
 ];
 
 const LMD=[]; // 前面再描画用ランドマーク
+const WCELLS=[]; // 水セル (実行時きらめき用)
+// 雲影 (現在編の環境演出)
+const cloudCv=document.createElement('canvas');cloudCv.width=280;cloudCv.height=180;
+(function(){const g=cloudCv.getContext('2d');
+ for(const b of[[90,80,70],[160,70,60],[210,110,65],[120,120,55]]){
+  const gr=g.createRadialGradient(b[0],b[1],b[2]*0.2,b[0],b[1],b[2]);
+  gr.addColorStop(0,'rgba(20,26,40,.32)');gr.addColorStop(1,'rgba(20,26,40,0)');
+  g.fillStyle=gr;g.beginPath();g.arc(b[0],b[1],b[2],0,7);g.fill();}
+})();
 // ============ bake ============
 const map=document.createElement('canvas');map.width=GW*TS;map.height=GH*TS;
 let mx=map.getContext('2d');mx.imageSmoothingEnabled=false;
@@ -339,30 +348,42 @@ function bake(){
  // ---- pass 1: ground (everything gets a base) ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x],px=x*TS,py=y*TS,h=hs(x,y,1);
+  const h2=hs(x,y,21),hp=hs(x>>1,y>>1,23); // 細部/2セル周期の大きな明暗パッチ
   if(c==='g'||c==='t'){
-   mx.fillStyle='#5aa856';mx.fillRect(px,py,TS,TS);
-   mx.fillStyle='#529c4e';mx.fillRect(px+((h*73)|0)%12,py+((h*37)|0)%12,3,2);
-   if(h<.4){mx.fillStyle='#68b464';mx.fillRect(px+((h*97)|0)%13,py+((h*53)|0)%13,2,2);}
+   mx.fillStyle=hp<.33?'#55a251':hp<.66?'#5aa856':'#60ae5c';mx.fillRect(px,py,TS,TS);
+   mx.fillStyle='#4e9a4a';mx.fillRect(px+((h*73)|0)%12,py+((h*37)|0)%12,3,2);
+   if(h<.4){mx.fillStyle='#6cba68';mx.fillRect(px+((h*97)|0)%13,py+((h*53)|0)%13,2,2);}
+   mx.fillStyle='#478f44';mx.fillRect(px+((h2*89)|0)%14,py+((h2*47)|0)%12,1,3); // 草の穂
+   if(h2<.05){const fx2=px+((h2*173)|0)%12+1,fy2=py+((h2*111)|0)%12+1;          // 花
+    mx.fillStyle=['#f2f0e6','#f0c8d8','#f5e6a8'][((h2*60)|0)%3];mx.fillRect(fx2,fy2,2,2);
+    mx.fillStyle='#e8a838';mx.fillRect(fx2,fy2,1,1);}
    continue;}
   if(c==='m'||c==='p'||c==='k'){ // 山林の地面
-   mx.fillStyle='#4d8a4e';mx.fillRect(px,py,TS,TS);
+   mx.fillStyle=hp<.4?'#48854a':'#4d8a4e';mx.fillRect(px,py,TS,TS);
    mx.fillStyle='#417a44';mx.fillRect(px+((h*73)|0)%12,py+((h*37)|0)%12,4,3);
    if(h<.35){mx.fillStyle='#5d975a';mx.fillRect(px+((h*97)|0)%13,py+((h*53)|0)%13,2,2);}
    if(h<.15){mx.fillStyle='#8a8478';mx.fillRect(px+((h*61)|0)%11,py+((h*29)|0)%11,3,2);}
+   mx.fillStyle='#3d7340';mx.fillRect(px+((h2*89)|0)%14,py+((h2*47)|0)%12,1,3);
    continue;}
   if(c==='c'){
-   mx.fillStyle='#cbc7ba';mx.fillRect(px,py,TS,TS);
-   if(h<.5){mx.fillStyle='#9aa0a2';mx.fillRect(px+4,py+5,5,8);mx.fillStyle='#b8bec0';mx.fillRect(px+4,py+5,5,2);}
+   mx.fillStyle=hp<.5?'#c8c4b6':'#cbc7ba';mx.fillRect(px,py,TS,TS);
+   if(h<.5){mx.fillStyle='#9aa0a2';mx.fillRect(px+4,py+5,5,8);mx.fillStyle='#b8bec0';mx.fillRect(px+4,py+5,5,2);
+    mx.fillStyle='rgba(22,26,40,.18)';mx.fillRect(px+5,py+13,5,2);}
    continue;}
-  if(c==='W'){mx.fillStyle='#3d7dc8';mx.fillRect(px,py,TS,TS);
-   if(h<.35){mx.fillStyle='#6aa4e0';mx.fillRect(px+3+((h*97)|0)%6,py+4+((h*53)|0)%7,6,1);}continue;}
+  if(c==='W'){mx.fillStyle=hp<.5?'#3a77c2':'#3d7dc8';mx.fillRect(px,py,TS,TS);
+   if(h<.35){mx.fillStyle='#6aa4e0';mx.fillRect(px+3+((h*97)|0)%6,py+4+((h*53)|0)%7,6,1);}
+   WCELLS.push([x,y]);continue;}
   if(c==='Z'||c==='i'){
    mx.fillStyle='#ddd4be';mx.fillRect(px,py,TS,TS);
    if(h<.4){mx.fillStyle='#d0c7b0';mx.fillRect(px+((h*73)|0)%11,py+((h*37)|0)%11,4,3);}
    continue;}
   // urban ground (also under roads/icons/landmarks)
-  mx.fillStyle='#d3cfc4';mx.fillRect(px,py,TS,TS);
+  mx.fillStyle=hp<.33?'#d0ccc0':hp<.66?'#d3cfc4':'#d6d2c7';mx.fillRect(px,py,TS,TS);
   if(h<.3){mx.fillStyle='#c7c3b7';mx.fillRect(px+((h*73)|0)%12,py+((h*37)|0)%12,3,3);}
+  mx.fillStyle='rgba(120,116,104,.14)';                       // 舗装目地 (2セルごと)
+  if(!(x&1))mx.fillRect(px,py,1,TS);
+  if(!(y&1))mx.fillRect(px,py,TS,1);
+  if(h>.96){mx.fillStyle='rgba(96,92,82,.13)';mx.beginPath();mx.arc(px+8,py+8,5,0,7);mx.fill();} // 染み
  }
  // ---- pass 1.5: sidewalk edging around road network ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
@@ -370,9 +391,9 @@ function bake(){
   let adj=false;
   for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(isRoad(at(x+dx,y+dy))){adj=true;break;}
   if(adj){const px=x*TS,py=y*TS;
-   mx.fillStyle='#e0dccd';mx.fillRect(px,py,TS,TS);
-   mx.fillStyle='rgba(150,146,134,.5)';
-   if(hs(x,y,7)<.5)mx.fillRect(px+7,py+7,2,2);
+   mx.fillStyle='#e3dfd0';mx.fillRect(px,py,TS,TS);
+   mx.fillStyle='rgba(150,146,134,.35)';mx.fillRect(px,py,1,TS);mx.fillRect(px,py,TS,1); // タイル目地
+   if(hs(x,y,7)<.5){mx.fillStyle='rgba(150,146,134,.5)';mx.fillRect(px+7,py+7,2,2);}
   }
  }
  // ---- pass 2: roads with rounded corners + curb edging ----
@@ -387,6 +408,13 @@ function bake(){
   // asphalt texture
   const h=hs(x,y,2);
   if(h<.14){mx.fillStyle='rgba(255,255,255,.05)';mx.fillRect(px+((h*89)|0)%10,py+((h*41)|0)%12,5,4);}
+  // 轍 (走行方向に沿う暗帯)
+  mx.fillStyle='rgba(0,0,0,.05)';
+  if(U&&D&&!(L&&R)){mx.fillRect(px+3,py,3,TS);mx.fillRect(px+10,py,3,TS);}
+  else if(L&&R&&!(U&&D)){mx.fillRect(px,py+3,TS,3);mx.fillRect(px,py+10,TS,3);}
+  // マンホール
+  if(h>.965&&U&&D&&L&&R){mx.fillStyle='#63646a';mx.beginPath();mx.arc(px+8,py+8,3.5,0,7);mx.fill();
+   mx.strokeStyle='rgba(20,20,24,.4)';mx.lineWidth=1;mx.stroke();}
   // 中央線 (内側セルのみ)
   if(U&&D&&L&&R&&(x+y)%2===0){mx.fillStyle='rgba(240,238,225,.30)';
    mx.fillRect(px+6,py+7,5,2);}
@@ -406,6 +434,17 @@ function bake(){
   if(bl)mx.arc(px+bl,py+TS-bl,bl-1,.5*Math.PI,Math.PI);
   mx.stroke();
  }
+ // ---- pass 2.2: 横断歩道 (信号のそばの道路セル) ----
+ {const done=new Set();
+ for(const sg of SIGNALS)for(const dd of[[1,0],[-1,0],[0,1],[0,-1]]){
+  const rx2=sg[0]+dd[0],ry2=sg[1]+dd[1],key=ry2*512+rx2;
+  if(done.has(key)||!isRoad(at(rx2,ry2)))continue;done.add(key);
+  const px=rx2*TS,py=ry2*TS;
+  const vert=isRoad(at(rx2,ry2-1))&&isRoad(at(rx2,ry2+1));
+  mx.fillStyle='rgba(242,240,232,.7)';
+  if(vert)for(let i=0;i<4;i++)mx.fillRect(px+2,py+2+i*4,TS-4,2);
+  else for(let i=0;i<4;i++)mx.fillRect(px+2+i*4,py+2,2,TS-4);
+ }}
  // ---- pass 2.5: 商業モール帯 (六本木ヒルズ/ミッドタウン・ガレリア) ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x];if(c!=='Q'&&c!=='E'&&c!=='B'&&c!=='F')continue;
@@ -437,6 +476,10 @@ function bake(){
   if(!same(x,y+1))mx.fillRect(px,py+TS-1,TS,1);
   if(!same(x-1,y))mx.fillRect(px,py,1,TS);
   if(!same(x+1,y))mx.fillRect(px+TS-1,py,1,TS);
+  // 落ち影 (南・東の外側)
+  mx.fillStyle='rgba(22,26,40,.15)';
+  if(!same(x,y+1))mx.fillRect(px+3,py+TS,TS-1,5);
+  if(!same(x+1,y))mx.fillRect(px+TS,py+3,4,TS-1);
  }
  // ---- pass 3+4: 統一スプライトリスト (基部Y順; 前面再描画と共有) ----
  SPRITES.length=0;
@@ -445,14 +488,15 @@ function bake(){
   const[w,hh]=SZ[k];
   const OVT={1:14,2:18,3:22,4:24}[k];
   SPRITES.push({bot:(by+hh)*TS,o:oi++,x0:bx*TS,x1:(bx+w)*TS,top:by*TS-OVT,bld:1,
+   t:'b',ft:by*TS,sd:{1:4,2:5,3:6,4:8}[k],
    fn:((BX,BY,K)=>()=>drawIcon(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k),
    fnP:((BX,BY,K)=>()=>drawIconPast(BX*TS,BY*TS,K,hs(BX,BY,3)))(bx,by,k)});
  }
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
   const c=GRID[y][x];
-  if(c==='k')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS,x1:(x+1)*TS,top:y*TS,
+  if(c==='k')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS,x1:(x+1)*TS,top:y*TS,t:'r',
    fn:((X,Y)=>()=>drawRockCell(X,Y))(x,y),fnP:((X,Y)=>()=>drawRockPast(X,Y))(x,y)});
-  else if(c==='t'||c==='p')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS-8,x1:x*TS+24,top:y*TS-16,
+  else if(c==='t'||c==='p')SPRITES.push({bot:(y+1)*TS,o:oi++,x0:x*TS-8,x1:x*TS+24,top:y*TS-16,t:'t',
    fn:((X,Y)=>()=>drawTreeCell(X,Y))(x,y),fnP:((X,Y)=>()=>drawTreePast(X,Y))(x,y)});
  }
  for(const s of STATIONS)SPRITES.push({bot:(s.y+1)*TS,o:oi++,x0:s.x*TS,x1:(s.x+1)*TS,top:s.y*TS-6,bld:1,
@@ -460,6 +504,15 @@ function bake(){
  for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,bld:1,
   fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg),fnP:(G=>()=>drawSignpostPast(G[0]*TS,G[1]*TS))(sg)});
  SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
+ // ---- pass 3.5: ソフトシャドウ (北西光源; 影を全部落としてからスプライト) ----
+ for(const it of SPRITES){
+  if(it.t==='b'){mx.fillStyle='rgba(22,26,40,.17)';
+   mx.beginPath();mx.roundRect(it.x0+it.sd,it.ft+it.sd+1,it.x1-it.x0,it.bot-it.ft,5);mx.fill();}
+  else if(it.t==='t'){mx.fillStyle='rgba(22,26,40,.15)';
+   mx.beginPath();mx.ellipse((it.x0+it.x1)/2+3,it.bot-2,11,4.5,0,0,7);mx.fill();}
+  else if(it.t==='r'){mx.fillStyle='rgba(22,26,40,.15)';
+   mx.beginPath();mx.ellipse((it.x0+it.x1)/2+2,it.bot-3,8,3.5,0,0,7);mx.fill();}
+ }
  for(const it of SPRITES)it.fn();
  // ---- pass 5: props ----
  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
@@ -567,6 +620,7 @@ function drawIcon(px,py,k,h){
   mx.moveTo(x-1,y+20);mx.lineTo(x+7,y+6);mx.lineTo(x+25,y+6);mx.lineTo(x+33,y+20);mx.closePath();mx.fill();
   mx.fillStyle='rgba(255,252,240,.35)';mx.fillRect(x+7,y+6,18,2);
   if(h3<.3){mx.fillStyle='#8a7a6e';mx.fillRect(x+22,y,5,10);mx.fillStyle='#6a5a50';mx.fillRect(x+22,y,5,2);} // 煙突
+  mx.fillStyle='rgba(30,26,24,.07)';mx.fillRect(x+2,y+41,28,5);   // 足元の陰影
  }else if(k===2){ // 中層: 3階建て商店ビル 32x48slot -> 32x66 (上に18px)
   const x=px,y=py-18;
   const P=[{w:'#e8e0d0',d:'#c8c0b0',r:'#b5b0a6'},{w:'#d8c0b0',d:'#b8a090',r:'#b0a89c'},
@@ -583,6 +637,7 @@ function drawIcon(px,py,k,h){
   mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+3,y+55,17,2);
   mx.fillStyle='rgba(40,52,74,.35)';mx.fillRect(x+11,y+55,1,10);
   mx.fillStyle='#223048';mx.fillRect(x+23,y+56,6,10);             // 入口
+  mx.fillStyle='rgba(30,26,24,.06)';mx.fillRect(x,y+58,32,7);     // 足元の陰影
   mx.fillStyle='rgba(30,26,24,.35)';mx.fillRect(x,y+65,32,1);
  }else if(k===3){ // 高層: 6階建てオフィス 48x64slot -> 48x86 (上に22px)
   const x=px,y=py-22;
@@ -603,6 +658,7 @@ function drawIcon(px,py,k,h){
   mx.fillStyle='rgba(235,245,255,.35)';mx.fillRect(x+20,y+75,10,2);
   mx.fillStyle='#cfe0ec';mx.fillRect(x+32,y+76,12,9);
   mx.fillStyle='rgba(255,255,255,.4)';mx.fillRect(x+32,y+76,12,2);
+  mx.fillStyle='rgba(30,26,24,.06)';mx.fillRect(x,y+78,48,7);     // 足元の陰影
   mx.fillStyle='rgba(30,26,24,.35)';mx.fillRect(x,y+85,48,1);
  }else{ // 超高層: ガラスタワー 64x96slot -> 64x120 (上に24px)
   const x=px,y=py-24;
@@ -1109,9 +1165,16 @@ const P={hx:66*2,hy:81*2,dir:'down',moving:null,step:0};
 let era='now',eraFx=0;
 let held=null,msgQ=[],msgActive=false,curLine='',curName='';
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-let cw=0,chh=0;
+let cw=0,chh=0,vig=null;
+function buildVig(){ // ビネット (現在編ポスト処理)
+ vig=document.createElement('canvas');vig.width=cw;vig.height=chh;
+ const g=vig.getContext('2d');
+ const r=Math.hypot(cw,chh)/2;
+ const gr=g.createRadialGradient(cw/2,chh*0.46,r*0.55,cw/2,chh*0.5,r*1.02);
+ gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(14,18,32,.28)');
+ g.fillStyle=gr;g.fillRect(0,0,cw,chh);}
 function resize(){const w=document.getElementById('wrap');cw=w.clientWidth;chh=w.clientHeight;
- cv.width=cw;cv.height=chh;ctx.imageSmoothingEnabled=false;}
+ cv.width=cw;cv.height=chh;ctx.imageSmoothingEnabled=false;buildVig();}
 window.addEventListener('resize',resize);resize();
 
 function cellsAt(hx,hy){
@@ -1663,10 +1726,26 @@ function tick(now){
  const past=era==='past';
  ctx.fillStyle='#0d0f14';ctx.fillRect(0,0,cw,chh);
  ctx.drawImage(past?mapP:map,camx,camy,vw,vh,0,0,cw,chh);
+ if(!past){ // 水面のきらめき
+  ctx.save();ctx.scale(SC,SC);ctx.translate(-camx,-camy);
+  const t=now*0.001,wx1=camx+vw,wy1=camy+vh;
+  for(const wc of WCELLS){
+   const px=wc[0]*TS,py=wc[1]*TS;
+   if(px>wx1||px+TS<camx||py>wy1||py+TS<camy)continue;
+   const ph=hs(wc[0],wc[1],9)*6.283;
+   const a=0.14+0.26*Math.sin(t*1.7+ph);
+   if(a>0.16){ctx.globalAlpha=a;ctx.fillStyle='#d4e8ff';
+    ctx.fillRect(px+2+((ph*13)|0)%8,py+3+((ph*7)|0)%9,5,1);
+    ctx.fillRect(px+10-((ph*11)|0)%7,py+11-((ph*5)|0)%7,3,1);}
+  }
+  ctx.globalAlpha=1;ctx.restore();
+ }
  const hx=(ix-camx)*SC,hy=(iy-camy)*SC;
  const hcv=past?heroP:hero;
  let fr=0;
  if(P.dir==='down')fr=0;else if(P.dir==='up')fr=1;else fr=2+(P.moving?P.step:0);
+ if(!past){ctx.fillStyle='rgba(22,26,40,.25)'; // 主人公の接地影
+  ctx.beginPath();ctx.ellipse(hx+8*SC,hy+15.5*SC,6.5*SC,2.4*SC,0,0,7);ctx.fill();}
  ctx.save();
  if(P.dir==='left'){ctx.translate(hx+16*SC,hy-8*SC);ctx.scale(-1,1);ctx.drawImage(hcv,fr*16,0,16,24,0,0,16*SC,24*SC);}
  else ctx.drawImage(hcv,fr*16,0,16,24,hx,hy-8*SC,16*SC,24*SC);
@@ -1686,6 +1765,17 @@ function tick(now){
  }
  for(const lm of (past?LMDP:LMD)){
   if(lm.bot>feet&&Math.abs(lm.cx-ix)<340&&iy>lm.bot-320)lm.fn();
+ }
+ // ---- 雲影 (現在編: ゆっくり流れる) ----
+ if(!past){
+  const t=now*0.001,cwd=640,chd=420;
+  for(let ci=0;ci<3;ci++){
+   const spanX=GW*TS+cwd;
+   const sx=((ci*1487+t*[6.5,4.2,8.1][ci])%spanX)-cwd;
+   const sy=(ci*997)%(GH*TS-chd)+Math.sin(t*0.04+ci*2)*36;
+   if(sx>vx1||sx+cwd<camx||sy>vy1||sy+chd<camy)continue;
+   ctx.globalAlpha=.34;ctx.drawImage(cloudCv,sx,sy,cwd,chd);ctx.globalAlpha=1;
+  }
  }
  // ---- 霧の演出 (過去編: 8pxブロックのドット霧が漂う) ----
  if(past){
@@ -1710,6 +1800,13 @@ function tick(now){
   }
  }
  mx=saveMx;ctx.restore();
+ // ---- ポスト処理 (現在編: ビネット+暖色グレーディング) ----
+ if(!past){
+  if(vig)ctx.drawImage(vig,0,0);
+  ctx.globalCompositeOperation='overlay';
+  ctx.fillStyle='rgba(255,216,176,.09)';ctx.fillRect(0,0,cw,chh);
+  ctx.globalCompositeOperation='source-over';
+ }
  // ---- 時代切替の砂嵐 ----
  if(eraFx>0){
   eraFx--;
