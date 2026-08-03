@@ -57,7 +57,7 @@ body{display:flex;justify-content:center;font-family:'Hiragino Kaku Gothic ProN'
 <div id="wrap">
 <canvas id="cv"></canvas>
 <div id="banner"></div>
-<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 25</div>
+<div id="credit">MAP: PLATEAU実データ<br>TILES: Tuxemon (CC BY-SA)<br>build 26</div>
 <div id="msg"><div class="nm" id="msgNm"></div><div id="msgTx"></div><div class="cont">▼</div></div>
 <div id="mini"><div class="cap" id="mcap">— 現在編・六本木エリア全図 —</div><canvas id="mmc"></canvas>
 <div class="cap">ランドマークへジャンプ</div><div id="jumps"></div><div class="cap">Bで閉じる</div></div>
@@ -392,6 +392,47 @@ function zpath(z){mx.beginPath();const p=z.p;mx.moveTo(p[0][0]*TS,p[0][1]*TS);
 const ZBASE={g:'#5aa856',m:'#4d8a4e',c:'#cbc7ba',z:'#ddd4be',w:'#3d7dc8'};
 const ZCELL={g:gCell,m:mCell,c:cCell,z:zCellG,w:wCell};
 const KAC2={Q:'#5a7ab4',E:'#b49a5a',B:'#4a9a6e',F:'#c05a48'};
+function prerenderHW(z){ // 麻布台ヒルズ低層棟: ヘザウィック風の起伏する白格子屋根 (2倍解像度)
+ const bb=z.bb,wpx=(bb.x1-bb.x0+1)*TS,hpx=(bb.y1-bb.y0+1)*TS;
+ const cvh=document.createElement('canvas');cvh.width=wpx*2;cvh.height=hpx*2;
+ const g=cvh.getContext('2d');
+ const sv=mx;mx=g;
+ g.scale(2,2);g.translate(-bb.x0*TS,-bb.y0*TS);
+ zpath(z);g.clip();
+ const X0=bb.x0*TS,Y0=bb.y0*TS,X1=(bb.x1+1)*TS,Y1=(bb.y1+1)*TS;
+ for(let cy=bb.y0;cy<=bb.y1;cy++)for(let cx2=bb.x0;cx2<=bb.x1;cx2++){
+  const px=cx2*TS,py=cy*TS,h=hs(cx2,cy,8);
+  g.fillStyle=h<.5?'#b6c2ae':'#adb9a4';g.fillRect(px,py,TS,TS); // 緑がかったガラス
+  if(h<.3){ // 有機的な屋上庭園
+   g.fillStyle='#6aa060';g.beginPath();g.arc(px+8,py+8,5.5,0,7);g.fill();
+   g.fillStyle='#82b478';g.beginPath();g.arc(px+6.5,py+6.5,2.5,0,7);g.fill();
+   g.fillStyle='#588a50';g.beginPath();g.arc(px+10.5,py+10,1.8,0,7);g.fill();
+  }else if(h>.86){ // 丸天窓
+   g.fillStyle='#d6e2dc';g.beginPath();g.arc(px+8,py+8,5,0,7);g.fill();
+   g.fillStyle='rgba(255,255,255,.55)';g.beginPath();g.arc(px+6.5,py+6.5,2,0,7);g.fill();
+  }
+ }
+ g.strokeStyle='rgba(246,242,230,.92)';g.lineWidth=1.6;g.lineJoin='round'; // うねる主リブ
+ for(let ry=Y0-10;ry<Y1+10;ry+=6.5){
+  g.beginPath();
+  for(let sx2=X0-8;sx2<=X1+8;sx2+=5){
+   const yy=ry+Math.sin(sx2*0.055+ry*0.4)*4.5+Math.sin(sx2*0.017+ry*0.13)*3;
+   if(sx2<=X0-8)g.moveTo(sx2,yy);else g.lineTo(sx2,yy);
+  }
+  g.stroke();
+ }
+ g.strokeStyle='rgba(246,242,230,.45)';g.lineWidth=0.7;                    // 交差する細リブ
+ for(let rx2=X0-10;rx2<X1+10;rx2+=6.5){
+  g.beginPath();
+  for(let sy2=Y0-8;sy2<=Y1+8;sy2+=5){
+   const xx=rx2+Math.sin(sy2*0.05+rx2*0.23)*3.5;
+   if(sy2<=Y0-8)g.moveTo(xx,sy2);else g.lineTo(xx,sy2);
+  }
+  g.stroke();
+ }
+ mx=sv;
+ z.hw=cvh;
+}
 function paintZonesM(cx0,cy0,cx1,cy1){
  mx.lineJoin='round';
  for(const z of ZONES){
@@ -419,6 +460,19 @@ function paintZonesM(cx0,cy0,cx1,cy1){
  for(const z of ZONES)if(z.k==='q'){ // 商業モール棟
   if(z.bb.x1<cx0||z.bb.x0>cx1||z.bb.y1<cy0||z.bb.y0>cy1)continue;
   mx.save();mx.translate(3,5);zpath(z);mx.fillStyle='rgba(22,26,40,.15)';mx.fill();mx.restore(); // 落ち影
+  if(z.a==='B'){ // 麻布台ヒルズ低層棟: ヘザウィック風造形
+   if(!z.hw)prerenderHW(z);
+   const wpx=(z.bb.x1-z.bb.x0+1)*TS,hpx=(z.bb.y1-z.bb.y0+1)*TS;
+   const smv=mx.imageSmoothingEnabled;mx.imageSmoothingEnabled=true;
+   mx.drawImage(z.hw,z.bb.x0*TS,z.bb.y0*TS,wpx,hpx);
+   mx.imageSmoothingEnabled=smv;
+   zpath(z);mx.save();mx.clip();
+   zpath(z);mx.strokeStyle='#ece6d6';mx.lineWidth=9;mx.stroke();           // 白い縁
+   zpath(z);mx.setLineDash([4,4]);mx.strokeStyle='#5a8a50';mx.lineWidth=4;mx.stroke();mx.setLineDash([]); // 縁の植栽
+   mx.restore();
+   zpath(z);mx.strokeStyle='rgba(30,26,24,.7)';mx.lineWidth=0.75;mx.stroke();
+   continue;
+  }
   zpath(z);mx.save();mx.clip();
   const bx0=Math.max(z.bb.x0,cx0),by0=Math.max(z.bb.y0,cy0),bx1=Math.min(z.bb.x1,cx1),by1=Math.min(z.bb.y1,cy1);
   for(let cy=by0;cy<=by1;cy++)for(let cx2=bx0;cx2<=bx1;cx2++){
@@ -518,6 +572,11 @@ function bake(){
   fn:(S=>()=>drawStation(S.x*TS,S.y*TS,S.l))(s),fnP:(S=>()=>drawCavePast(S.x*TS,S.y*TS))(s)});
  for(const sg of SIGNALS)SPRITES.push({bot:(sg[1]+1)*TS,o:oi++,x0:sg[0]*TS,x1:(sg[0]+1)*TS,top:sg[1]*TS-2,bld:1,
   fn:(G=>()=>drawSignal(G[0]*TS,G[1]*TS,G[2]))(sg),fnP:(G=>()=>drawSignpostPast(G[0]*TS,G[1]*TS))(sg)});
+ {const rb=bbox('R');if(rb){ // クモのモニュメント (森タワー北の66プラザ)
+  const sx=(rb.x1+4)*TS+10,sy=rb.y0*TS+8;
+  SPRITES.push({bot:sy+5,o:oi++,x0:sx-26,x1:sx+26,top:sy-40,
+   fn:()=>drawSpider(sx,sy),fnP:()=>{}});
+ }}
  SPRITES.sort((a,b)=>a.bot-b.bot||a.o-b.o);
  for(const it of SPRITES)paintShadowM(it);
  for(const it of SPRITES)it.fn();
@@ -532,6 +591,33 @@ function bake(){
  const db=bbox('D');if(db)reg(db,()=>drawMidtown(cxOf(db),(db.y1+1)*TS,(db.x1-db.x0+1)*TS));
  const ab=bbox('A');if(ab)reg(ab,()=>drawAzabudai(cxOf(ab),(ab.y1+1)*TS,(ab.x1-ab.x0+1)*TS));
  const tb=bbox('T');if(tb)reg(tb,()=>drawTower(cxOf(tb),(tb.y1+1)*TS));
+}
+function drawSpider(cx,by){ // 66プラザのクモのモニュメント (ママン風ブロンズ)
+ mx.fillStyle='rgba(22,26,40,.2)';mx.beginPath();mx.ellipse(cx+2,by+2,20,4.5,0,0,7);mx.fill();
+ const B='#332e2a',H='#6a6054';
+ mx.lineCap='round';mx.lineJoin='round';
+ const leg=(hx2,hy2,kx,ky,fx,fy)=>{ // 付根→膝→接地 (2段で先細り)
+  mx.strokeStyle=B;mx.lineWidth=1.8;
+  mx.beginPath();mx.moveTo(hx2,hy2);mx.quadraticCurveTo(kx,ky-5,kx,ky);mx.stroke();
+  mx.lineWidth=1.1;
+  mx.beginPath();mx.moveTo(kx,ky);mx.quadraticCurveTo((kx+fx)/2-1,(ky+fy)/2+2,fx,fy);mx.stroke();
+ };
+ leg(cx-3,by-24,cx-15,by-35,cx-21,by+2);
+ leg(cx-3,by-23,cx-10,by-37,cx-13,by+3);
+ leg(cx-2,by-23,cx-6,by-35,cx-7,by+2);
+ leg(cx-4,by-24,cx-18,by-30,cx-25,by-1);
+ leg(cx+3,by-24,cx+15,by-35,cx+21,by+2);
+ leg(cx+3,by-23,cx+10,by-37,cx+13,by+3);
+ leg(cx+2,by-23,cx+6,by-35,cx+7,by+2);
+ leg(cx+4,by-24,cx+18,by-30,cx+25,by-1);
+ mx.fillStyle=B;mx.beginPath();mx.ellipse(cx,by-31,5.5,7,0,0,7);mx.fill();  // 腹部
+ mx.fillStyle=H;mx.beginPath();mx.ellipse(cx-1.8,by-33.5,2,3,-.4,0,7);mx.fill(); // 光沢
+ mx.fillStyle='#cfc8b8';mx.beginPath();mx.arc(cx,by-25.5,2.6,0,7);mx.fill(); // 卵嚢
+ mx.strokeStyle='rgba(60,54,46,.6)';mx.lineWidth=0.5;
+ mx.beginPath();mx.arc(cx,by-25.5,2.6,0,7);mx.moveTo(cx-2.6,by-25.5);mx.lineTo(cx+2.6,by-25.5);
+ mx.moveTo(cx,by-28.1);mx.lineTo(cx,by-22.9);mx.stroke();
+ mx.fillStyle=B;mx.beginPath();mx.arc(cx,by-22,3,0,7);mx.fill();            // 頭胸部
+ mx.fillStyle='#8a8074';mx.fillRect(cx-1.6,by-22.5,1,1);mx.fillRect(cx+0.6,by-22.5,1,1); // 眼
 }
 function drawStation(px,py,lines){
  // 出入口の箱: 屋根+階段+路線色サイン
@@ -1158,6 +1244,7 @@ const SPOTS=[
  {x:44,y:40,w:14,h:12,n:'ミッドタウン・ガレリア',t:['外苑東通り沿いに続くガラスのモール。','吹き抜けに木の香り。','ショップの灯りが通りまでこぼれている。']},
  {x:58,y:34,w:16,h:16,n:'東京ミッドタウン',t:['ミッドタウン・タワー。高さ248m。','ガラスの壁面を雲が流れていく。','——映り込みの中に、一瞬だけ','石造りの塔が見えた気がした。']},
  {x:66,y:42,w:10,h:10,n:'檜町公園',t:['江戸のころは毛利家下屋敷の庭園だった。','池の水面が、ときどき','古い絵の具のような色に揺れる。']},
+ {x:54,y:99,w:7,h:6,n:'クモのモニュメント',t:['巨大なクモのブロンズ像《ママン》。','世界に数体ある鋳造のひとつ。','8本の脚の間から見上げると、','森タワーが空を塞いでいた。']},
  {x:40,y:98,w:16,h:14,n:'六本木ヒルズ',t:['森タワー。屋上のヘリポートは','この街の「頂上」のひとつ。','30年前、ここは細い路地の迷路だった。']},
  {x:44,y:88,w:20,h:8,n:'六本木ヒルズ メトロハット',t:['六本木通りに面したガラスの円筒。','エスカレーターが地下へ吸い込まれていく。','ショーウインドウに新作の広告。']},
  {x:48,y:96,w:8,h:8,n:'毛利庭園',t:['ビルの谷間に残された庭園。','池の鯉が、こちらを見ている。']},
