@@ -108,6 +108,12 @@ function TFan(color, x, ybottom, dir) { return { kind: 'fan', color, x, y: ybott
 // ふつうの ころがり(vx≈3.4)なら 96px いたの 1回の つうかは 約585ms → 1回目は もつが 2回目の とちゅうで われる
 const CRUMBLE_MS = 800;
 function Crumble(x, top, w) { return { x, y: top, w: w || 96 }; }
+// たおれる はし: 立て板(下端が (x, yfloor))。ボールが たおすと みぞを またいで はしに なる(物理)
+const PLANK_W = 12, PLANK_H = 128;
+function Plank(x, yfloor) { return { x, y: yfloor }; }
+// エレベーター: 同色トリガーONで y1(車体中心)から y2 へ うごき、ついたら 出口がわの かべ(ドア)が あく。
+// 車内の ゆかは 出口がわに かたむいており、ドアが あくと ボールが ころがりでる。dir=出口の むき(1=みぎ)
+function Lift(color, x, y1, y2, dir) { return { kind: 'lift', color, x, y1, y2, dir: dir || 1 }; }
 // ワープ: いりぐち(ax,ay)に はいると でぐち(bx,by)へ / ほし: あつめてから ゴール
 function Warp(ax, ay, bx, by) { return { ax, ay, bx, by }; }
 function Star(x, y) { return { x, y }; }
@@ -966,6 +972,198 @@ const ADV_LEVELS = [
     gadgets: { belt: 1, pendulum: 1, spring: 1, bumper: 1 },
     hints: [Hn('belt', 288, 192, false), Hn('pendulum', 704, 320, false)], hintText: ['うえの だんの あなは ベルトで', 'とんだ さきの くぼみに ふりこを', 'バットで もどって ほし→ゴール'],
     limit: 32 }
+,
+
+// A31 (玉突き両側) あかに さか、あおに ジャンプだい: 突かれた あおが あなを とぶ
+  { name: 'ついて とばせ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 656, y: 394 },
+    statics: [B(0, 416, 480, 480), B(512, 416, 800, 480)],
+    area: R(0, 224, 512, 224),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 448, 416, false)], hintText: ['あかで あおを ついて、あおは あなを とぶ', 'ジャンプだいは あおの みちに おく', 'ふたりぶんの じゅんびが ひつよう'],
+    limit: 30 },
+
+  // A32 (玉突き両側) あおは ベルトで とおくまで
+  { name: 'ついて はこべ', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 752, y: 394 },
+    statics: [F(0, 800)],
+    stars: [Star(624, 404)],
+    area: R(0, 224, 608, 224),
+    gadgets: { ramp: 1, belt: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('belt', 480, 416, false)], hintText: ['つかれた たまは すぐ とまっちゃう', 'ベルトで いきおいを たしてあげよう', 'ほしも わすれずに'],
+    limit: 30 },
+
+  // A33 (玉突き両側) あおを たいほうで しまへ
+  { name: 'ついて うちあげろ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 720, y: 394 },
+    statics: [B(0, 416, 512, 480), B(624, 416, 800, 480), B(784, 320, 800, 416)],
+    area: R(0, 224, 512, 224),
+    gadgets: { ramp: 1, cannon: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 448, 416, false)], hintText: ['あおを たいほうまで ころがして', 'そのまま しまへ ひとっとび', 'たいほうの ばしょが かぎ'],
+    limit: 32 },
+
+  // A34 (玉突き両側) つかれた あおが ワープして そらの ゴールへ
+  { name: 'ついて ワープ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 320, y: 300 },
+    statics: [F(0, 800)],
+    warps: [Warp(496, 404, 256, 144)],
+    area: R(0, 224, 448, 224),
+    gadgets: { ramp: 1, spring: 1, bumper: 1, belt: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 288, 416, false)], hintText: ['つかれた あおが ワープに すいこまれる', 'でてきた ところに ジャンプだいを', 'そらの ゴールに とびこめ'],
+    limit: 32 },
+
+  // A35 (玉突き3+ベルト) まんなかの たまを ベルトが はこぶ
+  { name: '3つの たまおくり', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }, { x: 592, y: 380 }], goalBall: 2, goal: { x: 752, y: 394 },
+    statics: [F(0, 800)],
+    area: R(0, 224, 544, 224),
+    gadgets: { ramp: 1, belt: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('belt', 448, 416, false)], hintText: ['あか→あお→みどりの リレー', 'とちゅうで いきおいが きれないように', 'ベルトの ばしょを かんがえて'],
+    limit: 32 },
+
+  // A36 (長手数リレー) つきおとし→ベルト→ほし→ボタン→とびら
+  { name: 'つきおとしから フルコース', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }], goalBall: 1, goal: { x: 768, y: 394 },
+    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320)],
+    fixed: [Hn('ramp', 128, 320, false), { type: 'switch_blue', x: 672, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(624, 404)],
+    triggers: [Door('blue', 736, 336, 80)],
+    area: R(160, 224, 448, 224),
+    gadgets: { domino: 3, belt: 1, spring: 1 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false), Hn('belt', 512, 416, false)], hintText: ['つきおとされた たまは ゆっくり', 'ベルトで はこんで ほし→ボタン→とびら', 'ながい たびの はじまり'],
+    limit: 36 },
+
+  // A37 (長手数) バット→ワープ→ほし→ボタン→とびら→ゴール
+  { name: 'バットから とびらまで', ball: { x: 96, y: 64 }, goal: { x: 96, y: 394 },
+    statics: [B(0, 192, 576, 216), B(0, 416, 688, 480), B(688, 420, 720, 480), B(720, 416, 800, 480), B(788, 320, 800, 416)],
+    fixed: [Hn('ramp', 96, 192, false), { type: 'switch_yellow', x: 288, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(352, 404)],
+    triggers: [Door('yellow', 192, 336, 80)],
+    area: R(128, 96, 672, 352),
+    gadgets: { pendulum: 1, spring: 1, belt: 1 },
+    hints: [Hn('pendulum', 704, 320, false)], hintText: ['バットで うちかえして ほしを ひろう', 'ボタンを ふんで とびらを あける', 'つかう どうぐは 1つだけ'],
+    limit: 34 },
+
+  // A38 (長手数+玉突き) あかは たいほうで だんの ボタンへ、あおは とびらの まえで まつ
+  { name: 'とんで ふんで あけて', balls: [{ x: 64, y: 240 }, { x: 512, y: 380 }], goalBall: 1, goal: { x: 608, y: 394 },
+    statics: [F(0, 800), B(608, 352, 800, 480)],
+    fixed: [{ type: 'switch_red', x: 688, y: 352, flip: false, fixedSwitch: true }],
+    triggers: [Door('red', 544, 336, 80)],
+    area: R(0, 224, 512, 224),
+    gadgets: { ramp: 1, cannon: 1, spring: 1, belt: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 352, 416, false)], hintText: ['あかを たいほうで だんの うえへ', 'ボタンの ちからで とびらが あく', 'まっている あおが うごきだす'],
+    limit: 36 },
+
+  // A39 (だんだん+玉突き両側) おとして ぶつけて ベルトで はこぶ
+  { name: 'おとして ついて のせて', balls: [{ x: 128, y: 64 }, { x: 560, y: 252 }], goalBall: 1, goal: { x: 736, y: 362 },
+    statics: [B(96, 192, 320, 216), B(288, 288, 608, 312), F(0, 800), B(704, 384, 768, 416)],
+    area: R(64, 96, 640, 352),
+    gadgets: { ramp: 1, spring: 1, belt: 1 },
+    hints: [Hn('ramp', 128, 192, false), Hn('spring', 672, 416, false)], hintText: ['だんから おちた あかが あおを つく', 'ゴールは だいの うえ', 'のぼれない なら はねればいい'],
+    limit: 32 },
+
+  // A40 (長手数+玉突き) ベルトで わたって ぶつけて、ゴールを とおりすぎて ワープ
+  { name: 'ついて はこんで ワープ', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 416, y: 394 },
+    statics: [F(0, 800)],
+    stars: [Star(608, 404)],
+    warps: [Warp(672, 404, 320, 224)],
+    area: R(0, 224, 608, 224),
+    gadgets: { ramp: 1, belt: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('belt', 512, 416, false)], hintText: ['ゴールの うえを とおりすぎて ほしへ', 'あおを ワープまで はこぶには？', 'もどってきたら ゴールイン'],
+    limit: 34 },
+
+// A41 (玉突き+長手数) つかれた あおが とんで ボタンを ふむ
+  { name: 'ついて とんで ふんで', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 688, y: 394 },
+    statics: [B(0, 416, 480, 480), B(512, 416, 800, 480)],
+    fixed: [{ type: 'switch_blue', x: 608, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Door('blue', 656, 336, 80)],
+    area: R(0, 224, 512, 224),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 448, 416, false)], hintText: ['あおが あなを とんで ボタンを ふむ', 'とびらの むこうまで ころがれ', 'ぜんぶ つながると きもちいい'],
+    limit: 34 },
+
+  // A42 (玉突き+ドミノ+かぜ) つかれた あおが ドミノを たおして かぜで もどる
+  { name: 'ついて たおして もどる', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 160, y: 394 },
+    statics: [F(0, 800)],
+    fixed: [{ type: 'switch_yellow', x: 608, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(224, 404)],
+    triggers: [TFan('yellow', 592, 416, -1)],
+    area: R(0, 224, 576, 224),
+    gadgets: { ramp: 1, domino: 3, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('domino', 480, 416, false), Hn('domino', 512, 416, false), Hn('domino', 544, 416, false)], hintText: ['つかれた あおが ドミノを たおす', 'ボタンON→かぜが ふきもどす', 'ほしを ひろって ゴールへ'],
+    limit: 36 },
+
+  // A43 (長手数) しまわたり 2れんぱつ→ボタン→とびら
+  { name: 'しまわたり スペシャル', ball: { x: 64, y: 240 }, goal: { x: 752, y: 394 },
+    statics: [B(0, 416, 224, 480), B(352, 416, 512, 480), B(672, 416, 800, 480), B(784, 320, 800, 416)],
+    fixed: [Hn('ramp', 64, 416, false)],
+    stars: [Star(586, 300)],
+    area: R(96, 256, 416, 192),
+    gadgets: { cannon: 2, spring: 1 },
+    hints: [Hn('cannon', 128, 416, false), Hn('cannon', 448, 416, false)], hintText: ['たいほう 2れんぱつで しまを こえろ', '2はつめは そらの ほしを つらぬく', 'かべに あたって おちた さきは…'],
+    limit: 36 },
+
+  // A44 (バット+ボタン+かぜ) バットが とびらを あけ、かぜが あおを はこぶ
+  { name: 'バットと かぜの リレー', balls: [{ x: 96, y: 64 }, { x: 432, y: 380 }], goalBall: 1, goal: { x: 96, y: 394 },
+    statics: [B(0, 192, 576, 216), B(0, 416, 688, 480),
+              B(688, 420, 720, 480), B(720, 416, 800, 480), B(788, 320, 800, 416)],
+    fixed: [Hn('ramp', 96, 192, false), { type: 'switch_yellow', x: 544, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(192, 404)],
+    triggers: [Door('yellow', 400, 336, 80)],
+    area: R(128, 96, 672, 352),
+    gadgets: { pendulum: 1, fan: 1, spring: 1 },
+    hints: [Hn('pendulum', 704, 320, false), Hn('fan', 496, 416, true)], hintText: ['バットが ボタンを ふみぬける', 'とびらが あいたら かぜの でばん', 'せんぷうきは どこに おく？'],
+    limit: 36 },
+
+  // A45 (長手数) ほし3つの フルコース
+  { name: 'ほし3つの フルコース', ball: { x: 64, y: 240 }, goal: { x: 736, y: 394 },
+    statics: [F(0, 800), B(784, 224, 800, 416)],
+    stars: [Star(224, 404), Star(428, 308), Star(714, 300)],
+    area: R(0, 224, 704, 224),
+    gadgets: { ramp: 1, spring: 1, cannon: 1, bumper: 1 },
+    hints: [Hn('ramp', 96, 416, false), Hn('spring', 320, 416, false), Hn('cannon', 576, 416, false)], hintText: ['ころがって 1つ、はねて 1つ、とんで 1つ', '3つの どうぐを じゅんばんに', 'さいごは かべに あたって ゴール'],
+    limit: 38 },
+
+  // A46 (2だんうち+玉突き) とばして ぶつけて はねて しまへ
+  { name: 'とばして ついて はねて', balls: [{ x: 64, y: 240 }, { x: 560, y: 380 }], goalBall: 1, goal: { x: 752, y: 394 },
+    statics: [B(0, 416, 256, 480), B(320, 416, 640, 480), B(704, 416, 800, 480)],
+    area: R(0, 224, 704, 224),
+    gadgets: { ramp: 1, cannon: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 128, 416, false), Hn('spring', 608, 416, false)], hintText: ['とんだ あかが あおを つく', 'あおは ジャンプだいで しまへ', '3だんがまえの しかけ'],
+    limit: 38 },
+
+  // A47 (つきおとし→玉突き 3球) おちた あおが みどりを つく
+  { name: 'つきおとし たまつき', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }, { x: 640, y: 380 }], goalBall: 2, goal: { x: 752, y: 394 },
+    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320), B(784, 320, 800, 416)],
+    fixed: [Hn('ramp', 128, 320, false), { type: 'belt', x: 544, y: 416, flip: false }],
+    area: R(160, 224, 288, 96),
+    gadgets: { domino: 3, spring: 1, belt: 1 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false)], hintText: ['おちた あおが かそくして みどりを つく', 'みどりの さきに ゴールが まつ', 'ドミノは 1マスおきに'],
+    limit: 36 },
+
+  // A48 (3球+ベルト+がけ) はこばれた あおが みどりを がけへ
+  { name: 'リレーから がけおとし', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }, { x: 608, y: 380 }], goalBall: 2, goal: { x: 752, y: 442 },
+    statics: [B(0, 416, 704, 480), B(704, 464, 800, 480), B(96, 320, 448, 344), B(416, 296, 448, 320)],
+    fixed: [Hn('ramp', 128, 320, false)],
+    area: R(160, 224, 448, 224),
+    gadgets: { domino: 3, belt: 1, spring: 1 },
+    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false), Hn('belt', 512, 416, false)], hintText: ['つきおとし→はこぶ→たまつき→がけ', 'みどりが おちた さきが ゴール', 'ながれを そうぞうしてから おこう'],
+    limit: 38 },
+
+  // A49 (玉突き→ワープ→たいほう) つかれて とんで うちあがって
+  { name: 'ついて ワープして うちあげて', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 720, y: 394 },
+    statics: [F(0, 800), B(192, 288, 384, 312), B(784, 320, 800, 416)],
+    stars: [Star(458, 172)],
+    warps: [Warp(496, 404, 256, 224)],
+    area: R(0, 160, 448, 288),
+    gadgets: { ramp: 1, cannon: 1, spring: 1, belt: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 320, 288, false)], hintText: ['あおは ワープで たなの うえへ', 'たなの うえで まちうけるのは？', 'そらの ほしを つらぬいて ゴールへ'],
+    limit: 36 },
+
+  // A50 (フィナーレ) はしって ぶつけて はこんで ワープして おおジャンプ
+  { name: 'ぜんぶのせ ファイナル', balls: [{ x: 32, y: 32 }, { x: 592, y: 380 }], goalBall: 1, goal: { x: 416, y: 308 },
+    statics: [B(0, 96, 384, 120), F(0, 800)],
+    fixed: [Hn('ramp', 32, 96, false)],
+    stars: [Star(256, 84), Star(736, 404)],
+    warps: [Warp(752, 404, 224, 144)],
+    area: R(0, 128, 736, 320),
+    gadgets: { belt: 1, spring: 1, bumper: 1, cannon: 1 },
+    hints: [Hn('belt', 672, 416, false), Hn('spring', 304, 416, false)], hintText: ['はしって ついて はこんで ワープして', 'さいごは おおジャンプで そらの ゴール', 'これが とけたら でんせつの パズルはかせ！'],
+    limit: 40 }
 ];
 for (const lv of ADV_LEVELS) LEVELS.push(lv);
 const ADV_COUNT = ADV_LEVELS.length;
@@ -1035,15 +1233,16 @@ const EXP_LEVELS = [
     hints: [Hn('ramp', 64, 416, false)], hintText: ['あおい たまは じぶんでは うごけない', 'あかい たまを ぶつけて あげよう', 'まっすぐ ころがせば とどく'],
     limit: 24 },
 
-  // E7 とびらを しめて とめる (E2の ぎゃく: ふむのが せいかい)
-  { name: 'とびらで うけとめて', ball: { x: 64, y: 240 }, goal: { x: 536, y: 394 },
-    statics: [B(0, 416, 608, 480), B(672, 416, 800, 480)],
-    fixed: [{ type: 'switch_purple', x: 352, y: 416, flip: false, fixedSwitch: true }],
-    triggers: [Door('purple', 560, 336, 80, true)],
-    area: R(0, 288, 320, 160),
+  // E7 とびらで うけとめて (v12修正: とびらで とめた ボールの したの ゆかが われる)
+  { name: 'とびらで うけとめて', ball: { x: 64, y: 176 }, goal: { x: 560, y: 458 },
+    statics: [B(0, 352, 512, 416), B(608, 352, 800, 416), B(496, 416, 512, 480), B(608, 416, 624, 480), B(512, 480, 608, 496), B(784, 272, 800, 352)],
+    crumbles: [Crumble(560, 352, 96)],
+    fixed: [{ type: 'switch_purple', x: 352, y: 352, flip: false, fixedSwitch: true }],
+    triggers: [Door('purple', 608, 272, 80, true)],
+    area: R(0, 224, 320, 160),
     gadgets: { ramp: 1, spring: 1 },
-    hints: [Hn('ramp', 64, 416, false)], hintText: ['ひらいてる とびらは しまることも ある', 'ボタンを ふむと どうなる？', 'とまった ばしょが だいじ'],
-    limit: 24 },
+    hints: [Hn('ramp', 64, 352, false)], hintText: ['ひらいてる とびらは しまることも ある', 'とびらの まえで とまって いると…', 'ゆかの ひびに ちゅうもく'],
+    limit: 26 },
 
   // E8 かぞえて わたる: ボタン2つで もとどおり
   { name: '2かい きりかえ', ball: { x: 64, y: 240 }, goal: { x: 752, y: 394 },
@@ -1289,195 +1488,225 @@ const EXP_LEVELS = [
     limit: 36 }
 ,
 
-// E31 (玉突き両側) あかに さか、あおに ジャンプだい: 突かれた あおが あなを とぶ
-  { name: 'ついて とばせ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 656, y: 394 },
-    statics: [B(0, 416, 480, 480), B(512, 416, 800, 480)],
-    area: R(0, 224, 512, 224),
+  // E31 はし入門: あかが たおして あおが うえから のる
+  { name: 'たおして わたる はし', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalBall: 1, goal: { x: 704, y: 346 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 800, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('ramp', 64, 128, false)], hintText: ['たて板は おすと たおれて はしに なる', 'あかが たおして、あおが うえから のる', 'ふたりの じゅんばんが だいじ'],
+    limit: 32 },
+
+  // E32 エレベーター入門(coop)
+  { name: 'エレベーターで うえへ', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 480, y: 274 },
+    statics: [B(0, 416, 320, 480), B(384, 296, 800, 480)],
+    fixed: [{ type: 'switch_yellow', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('yellow', 352, 464, 272, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['あかは エレベーターに のって まつ', 'あおが ボタンを おすと うごきだす', 'ついたら ドアが あいて ころがりでる'],
+    limit: 28 },
+
+  // E33 ふたりとも むこうがわへ (plank + goalAll + かぜ)
+  { name: 'ふたりとも むこうがわへ', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalAll: true, goal: { x: 704, y: 346 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 800, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    fixed: [{ type: 'switch_yellow', x: 560, y: 368, flip: false, fixedSwitch: true }],
+    triggers: [TFan('yellow', 240, 352, 1)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('ramp', 64, 128, false)], hintText: ['はしを わたるのは ひとりじゃない', 'あおが ボタンを ふむと かぜが ふく', 'かぜが あかを おいかけさせる'],
+    limit: 34 },
+
+  // E34 エレベーターと ほし
+  { name: 'エレベーターと ほし', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 464, y: 322 },
+    statics: [B(0, 416, 320, 480), B(384, 344, 800, 480)],
+    fixed: [{ type: 'switch_blue', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(416, 332)],
+    triggers: [Lift('blue', 352, 464, 320, 1)],
+    area: R(0, 288, 320, 160),
     gadgets: { ramp: 1, spring: 1, bumper: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('spring', 448, 416, false)], hintText: ['あかで あおを ついて、あおは あなを とぶ', 'どうぐは ふたりぶん ひつよう', 'あおの みちに なにを おく？'],
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['のぼった さきに ほしが まっている', 'おりたら ころがって ゴールへ', 'ボタンは あおの しごと'],
     limit: 30 },
 
-  // E32 (玉突き両側) あおは ベルトで とおくまで
-  { name: 'ついて はこべ', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 752, y: 394 },
-    statics: [F(0, 800)],
-    stars: [Star(624, 404)],
-    area: R(0, 224, 608, 224),
-    gadgets: { ramp: 1, belt: 1, bumper: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('belt', 480, 416, false)], hintText: ['つかれた たまは すぐ とまっちゃう', 'いきおいを たす どうぐは？', 'ほしも わすれずに'],
+  // E35 はしまで とどけ: ベルトで あなを こえて 板を たおす
+  { name: 'はしまで とどけ', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalBall: 1, goal: { x: 704, y: 346 },
+    statics: [B(0, 352, 192, 480), B(256, 352, 384, 480), B(480, 368, 800, 480), B(192, 464, 256, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, belt: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('belt', 224, 352, false), Hn('ramp', 64, 128, false)], hintText: ['あなを こえないと 板に とどかない', 'ベルトで はこんで たおそう', 'わたるのは うえから おちてくる あお'],
+    limit: 36 },
+
+  // E36 エレベーターの さきの わなゆか
+  { name: 'エレベーターの さきの わなゆか', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 480, y: 458 },
+    statics: [B(0, 416, 320, 480), B(384, 344, 432, 416), B(528, 344, 800, 416), B(416, 416, 432, 480), B(528, 416, 544, 480), B(432, 480, 528, 496)],
+    crumbles: [Crumble(480, 344, 96)],
+    fixed: [{ type: 'switch_yellow', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('yellow', 352, 464, 320, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['おりた さきの ゆかは ひびだらけ', 'とまって いると われて おちる', 'おちた さきが ゴール'],
     limit: 30 },
 
-  // E33 (玉突き両側) あおを たいほうで しまへ
-  { name: 'ついて うちあげろ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 720, y: 394 },
-    statics: [B(0, 416, 512, 480), B(624, 416, 800, 480), B(784, 320, 800, 416)],
-    area: R(0, 224, 512, 224),
-    gadgets: { ramp: 1, cannon: 1, spring: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 448, 416, false)], hintText: ['あおを ころがした さきに…', 'しまへ わたる ほうほうを かんがえて', 'おく ばしょが かぎ'],
-    limit: 32 },
-
-  // E34 (玉突き両側) つかれた あおが ワープして そらの ゴールへ
-  { name: 'ついて ワープ', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 320, y: 300 },
-    statics: [F(0, 800)],
-    warps: [Warp(496, 404, 256, 144)],
-    area: R(0, 224, 448, 224),
-    gadgets: { ramp: 1, spring: 1, bumper: 1, belt: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('spring', 288, 416, false)], hintText: ['つかれた あおは ワープに すいこまれる', 'でてくる ばしょを よく みて', 'そらの ゴールに とどくのは？'],
-    limit: 32 },
-
-  // E35 (玉突き3+ベルト) まんなかの たまを ベルトが はこぶ
-  { name: '3つの たまおくり', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }, { x: 592, y: 380 }], goalBall: 2, goal: { x: 752, y: 394 },
-    statics: [F(0, 800)],
-    area: R(0, 224, 544, 224),
-    gadgets: { ramp: 1, belt: 1, spring: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('belt', 448, 416, false)], hintText: ['あか→あお→みどりの リレー', 'とちゅうで いきおいが きれる…', 'たりない ちからを どう おぎなう？'],
-    limit: 32 },
-
-  // E36 (長手数リレー) つきおとし→ベルト→ほし→ボタン→とびら
-  { name: 'つきおとしから フルコース', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }], goalBall: 1, goal: { x: 768, y: 394 },
-    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320)],
-    fixed: [Hn('ramp', 128, 320, false), { type: 'switch_blue', x: 672, y: 416, flip: false, fixedSwitch: true }],
-    stars: [Star(624, 404)],
-    triggers: [Door('blue', 736, 336, 80)],
-    area: R(160, 224, 448, 224),
-    gadgets: { domino: 3, belt: 1, spring: 1 },
-    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false), Hn('belt', 512, 416, false)], hintText: ['つきおとされた たまは ゆっくり', 'はこんで ほし→ボタン→とびら', 'ながい たびの じゅんびを しよう'],
-    limit: 36 },
-
-  // E37 (長手数) バット→ワープ→ほし→ボタン→とびら→ゴール
-  { name: 'バットから とびらまで', ball: { x: 96, y: 64 }, goal: { x: 96, y: 394 },
-    statics: [B(0, 192, 576, 216), B(0, 416, 688, 480), B(688, 420, 720, 480), B(720, 416, 800, 480), B(788, 320, 800, 416)],
-    fixed: [Hn('ramp', 96, 192, false), { type: 'switch_yellow', x: 288, y: 416, flip: false, fixedSwitch: true }],
-    stars: [Star(352, 404)],
-    triggers: [Door('yellow', 192, 336, 80)],
-    area: R(128, 96, 672, 352),
-    gadgets: { pendulum: 1, spring: 1, belt: 1 },
-    hints: [Hn('pendulum', 704, 320, false)], hintText: ['バットで うちかえして ほしを ひろう', 'ボタンを ふめば とびらが あく', 'つかう どうぐは 1つだけ'],
+  // E37 たまつきで たおす はし
+  { name: 'たまつきで たおす はし', balls: [{ x: 64, y: 240 }, { x: 336, y: 316 }, { x: 64, y: 32 }], goalBall: 2, goal: { x: 704, y: 346 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 800, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    fixed: [Hn('ramp', 64, 128, false)],
+    area: R(0, 224, 384, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false)], hintText: ['あかが あおを つき、あおが 板を たおす', 'みどりは うえから はしに のる', '3つの たまの リレー'],
     limit: 34 },
 
-  // E38 (長手数+玉突き) あかは たいほうで だんの ボタンへ、あおは とびらの まえで まつ
-  { name: 'とんで ふんで あけて', balls: [{ x: 64, y: 240 }, { x: 512, y: 380 }], goalBall: 1, goal: { x: 608, y: 394 },
-    statics: [F(0, 800), B(608, 352, 800, 480)],
-    fixed: [{ type: 'switch_red', x: 688, y: 352, flip: false, fixedSwitch: true }],
-    triggers: [Door('red', 544, 336, 80)],
-    area: R(0, 224, 512, 224),
-    gadgets: { ramp: 1, cannon: 1, spring: 1, belt: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 352, 416, false)], hintText: ['あかを だんの うえへ とばしたい', 'ボタンの ちからで とびらが あく', 'まっている あおが うごきだす'],
-    limit: 36 },
-
-  // E39 (だんだん+玉突き両側) おとして ぶつけて ベルトで はこぶ
-  { name: 'おとして ついて のせて', balls: [{ x: 128, y: 64 }, { x: 560, y: 252 }], goalBall: 1, goal: { x: 736, y: 362 },
-    statics: [B(96, 192, 320, 216), B(288, 288, 608, 312), F(0, 800), B(704, 384, 768, 416)],
-    area: R(64, 96, 640, 352),
-    gadgets: { ramp: 1, spring: 1, belt: 1 },
-    hints: [Hn('ramp', 128, 192, false), Hn('spring', 672, 416, false)], hintText: ['だんから おちた あかが あおを つく', 'ゴールは だいの うえ', 'のぼれない なら はねればいい'],
-    limit: 32 },
-
-  // E40 (長手数+玉突き) ベルトで わたって ぶつけて、ゴールを とおりすぎて ワープ
-  { name: 'ついて はこんで ワープ', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 416, y: 394 },
-    statics: [F(0, 800)],
-    stars: [Star(608, 404)],
-    warps: [Warp(672, 404, 320, 224)],
-    area: R(0, 224, 608, 224),
-    gadgets: { ramp: 1, belt: 1, spring: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('belt', 512, 416, false)], hintText: ['ゴールの うえを とおりすぎて ほしへ', 'あおを ワープまで はこぶには？', 'もどってきたら ゴールイン'],
-    limit: 34 },
-
-// E41 (玉突き+長手数) つかれた あおが とんで ボタンを ふむ
-  { name: 'ついて とんで ふんで', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 688, y: 394 },
-    statics: [B(0, 416, 480, 480), B(512, 416, 800, 480)],
-    fixed: [{ type: 'switch_blue', x: 608, y: 416, flip: false, fixedSwitch: true }],
-    triggers: [Door('blue', 656, 336, 80)],
-    area: R(0, 224, 512, 224),
+  // E38 きりかえボタンと エレベーター: 2かい ふむと とちゅうで とまる
+  { name: 'きりかえボタンと エレベーター', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 480, y: 274 },
+    statics: [B(0, 416, 320, 480), B(384, 296, 800, 480)],
+    fixed: [{ type: 'switch_purple', x: 160, y: 416, flip: false, fixedSwitch: true },
+            { type: 'switch_purple', x: 256, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('purple', 352, 464, 272, 1)],
+    area: R(0, 288, 320, 160),
     gadgets: { ramp: 1, spring: 1, bumper: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('spring', 448, 416, false)], hintText: ['あおが あなを とんで ボタンを ふむ', 'とびらの むこうまで ころがれ', 'ぜんぶ つながると きもちいい'],
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 208, 416, false)], hintText: ['ボタンを 2かい ふむと もとどおり', 'エレベーターは とちゅうで とまっちゃう', '2つめの ボタンは とびこえよう'],
+    limit: 32 },
+
+  // E39 はしを わたって われるゆか: かべで とまって いると…
+  { name: 'はしを わたって われるゆか', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalBall: 1, goal: { x: 624, y: 458 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 576, 480), B(672, 368, 800, 480), B(384, 464, 480, 480),
+              B(576, 416, 592, 480), B(656, 416, 672, 480), B(592, 480, 656, 496), B(0, 128, 352, 152), B(656, 288, 672, 368)],
+    planks: [Plank(368, 352)],
+    crumbles: [Crumble(624, 368, 96)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('ramp', 64, 128, false)], hintText: ['はしの さきに もうひとつ わな', 'かべに あたって とまって いると…', 'おちた さきが ゴール'],
+    limit: 36 },
+
+  // E40 したへ おりる エレベーター
+  { name: 'したへ おりる エレベーター', balls: [{ x: 240, y: 224 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 416, y: 442 },
+    statics: [B(0, 416, 320, 480), B(192, 272, 320, 296), B(384, 464, 800, 480)],
+    fixed: [Hn('ramp', 240, 272, false), { type: 'switch_red', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(376, 380)],
+    triggers: [Lift('red', 352, 320, 440, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['エレベーターは したにも いける', 'おりる とちゅうで ほしを ひろう', 'ちかの ゴールへ'],
+    limit: 30 },
+
+// E41 ぜんいんで うえの ゴールへ: あかは エレベーター、あおは ジャンプだい
+  { name: 'ぜんいんで うえの ゴールへ', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalAll: true, goal: { x: 464, y: 322 },
+    statics: [B(0, 416, 320, 480), B(384, 344, 800, 480)],
+    fixed: [{ type: 'switch_yellow', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('yellow', 352, 464, 320, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 256, 416, false)], hintText: ['あかは エレベーター、あおは ジャンプだい', 'ふたりとも おなじ ゴールに はいる', 'あおは だいに とびのれるかな'],
     limit: 34 },
 
-  // E42 (玉突き+ドミノ+かぜ) つかれた あおが ドミノを たおして かぜで もどる
-  { name: 'ついて たおして もどる', balls: [{ x: 64, y: 240 }, { x: 352, y: 380 }], goalBall: 1, goal: { x: 160, y: 394 },
-    statics: [F(0, 800)],
-    fixed: [{ type: 'switch_yellow', x: 608, y: 416, flip: false, fixedSwitch: true }],
-    stars: [Star(224, 404)],
-    triggers: [TFan('yellow', 592, 416, -1)],
-    area: R(0, 224, 576, 224),
-    gadgets: { ramp: 1, domino: 3, spring: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('domino', 480, 416, false), Hn('domino', 512, 416, false), Hn('domino', 544, 416, false)], hintText: ['つかれた あおが ドミノを たおす', 'ボタンON→かぜが ふきもどす', 'ほしを ひろって ゴールへ'],
+  // E42 はしを 2かい わたる: ほし→ワープ→もういちど
+  { name: 'はしを 2かい わたる', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalBall: 1, goal: { x: 576, y: 346 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 800, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    stars: [Star(656, 356)],
+    warps: [Warp(720, 356, 64, 64)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('ramp', 64, 128, false)], hintText: ['1しゅうめは ほしを とりに', 'ワープで もどって もういちど', 'ゴールは 2しゅうめに あく'],
     limit: 36 },
 
-  // E43 (長手数) しまわたり 2れんぱつ→ボタン→とびら
-  { name: 'しまわたり スペシャル', ball: { x: 64, y: 240 }, goal: { x: 752, y: 394 },
-    statics: [B(0, 416, 224, 480), B(352, 416, 512, 480), B(672, 416, 800, 480), B(784, 320, 800, 416)],
-    fixed: [Hn('ramp', 64, 416, false)],
-    stars: [Star(586, 300)],
-    area: R(96, 256, 416, 192),
-    gadgets: { cannon: 2, spring: 1 },
-    hints: [Hn('cannon', 128, 416, false), Hn('cannon', 448, 416, false)], hintText: ['たいほう 2れんぱつで しまを こえろ', '2はつめは そらの ほしを つらぬく', 'かべに あたって おちた さきは…'],
+  // E43 かぞえて のって わなゆか: きりかえ2つ+エレベーター+われるゆか
+  { name: 'かぞえて のって わなゆか', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 480, y: 458 },
+    statics: [B(0, 416, 320, 480), B(384, 296, 432, 480), B(528, 296, 800, 480), B(432, 464, 528, 480)],
+    crumbles: [Crumble(480, 296, 96)],
+    fixed: [{ type: 'switch_purple', x: 160, y: 416, flip: false, fixedSwitch: true },
+            { type: 'switch_purple', x: 256, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('purple', 352, 464, 272, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 208, 416, false)], hintText: ['きりかえボタンは 1かいだけ', 'のぼった さきの ゆかは われる', 'とまるのが せいかい'],
+    limit: 34 },
+
+  // E44 たまつきで たおす はしと ほし
+  { name: 'たまつきで たおす はしと ほし', balls: [{ x: 64, y: 240 }, { x: 336, y: 316 }, { x: 64, y: 32 }], goalBall: 2, goal: { x: 704, y: 346 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 800, 480), B(384, 464, 480, 480), B(0, 128, 352, 152)],
+    planks: [Plank(368, 352)],
+    fixed: [Hn('ramp', 64, 128, false)],
+    stars: [Star(576, 356)],
+    area: R(0, 224, 384, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false)], hintText: ['3つの たまと 1まいの 板', 'ほしは はしの さきに おちてる', 'じゅんばんを そうぞうしよう'],
+    limit: 34 },
+
+  // E45 おりて かぜの ちかどう
+  { name: 'おりて かぜの ちかどう', balls: [{ x: 240, y: 224 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 704, y: 442 },
+    statics: [B(0, 416, 320, 480), B(192, 272, 320, 296), B(384, 464, 800, 480)],
+    fixed: [Hn('ramp', 240, 272, false), { type: 'switch_red', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(560, 452)],
+    triggers: [Lift('red', 352, 320, 440, 1), TFan('red', 400, 464, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['おりた さきは かぜの とおりみち', 'ほしを ひろって おくの ゴールへ', 'ボタンは あおに おまかせ'],
+    limit: 32 },
+
+  // E46 ぶつけて おいかけて ほし
+  { name: 'ぶつけて おいかけて ほし', balls: [{ x: 64, y: 240 }, { x: 448, y: 380 }], goalAll: true, goal: { x: 688, y: 394 },
+    statics: [F(0, 800), B(784, 320, 800, 416)],
+    fixed: [{ type: 'switch_yellow', x: 560, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(368, 404)],
+    triggers: [TFan('yellow', 432, 416, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['ふたりとも ゴールしたい', 'あおが ボタン、かぜが あかを おす', 'ほしも わすれずに'],
+    limit: 30 },
+
+  // E47 ふんで とんで のぼって: きりかえは 1かいだけ
+  { name: 'ふんで とんで のぼって', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalAll: true, goal: { x: 464, y: 322 },
+    statics: [B(0, 416, 320, 480), B(384, 344, 800, 480)],
+    fixed: [{ type: 'switch_purple', x: 160, y: 416, flip: false, fixedSwitch: true },
+            { type: 'switch_purple', x: 256, y: 416, flip: false, fixedSwitch: true }],
+    triggers: [Lift('purple', 352, 464, 320, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false), Hn('spring', 208, 416, false)], hintText: ['きりかえボタンは 1かいだけ ふむ', '2つめは ジャンプで とびこえて だいへ', 'ひとつの ジャンプだいに ふたつの やくめ'],
     limit: 36 },
 
-  // E44 (バット+ボタン+かぜ) バットが とびらを あけ、かぜが あおを はこぶ
-  { name: 'バットと かぜの リレー', balls: [{ x: 96, y: 64 }, { x: 432, y: 380 }], goalBall: 1, goal: { x: 96, y: 394 },
-    statics: [B(0, 192, 576, 216), B(0, 416, 688, 480),
-              B(688, 420, 720, 480), B(720, 416, 800, 480), B(788, 320, 800, 416)],
-    fixed: [Hn('ramp', 96, 192, false), { type: 'switch_yellow', x: 544, y: 416, flip: false, fixedSwitch: true }],
-    stars: [Star(192, 404)],
-    triggers: [Door('yellow', 400, 336, 80)],
-    area: R(128, 96, 672, 352),
-    gadgets: { pendulum: 1, fan: 1, spring: 1 },
-    hints: [Hn('pendulum', 704, 320, false), Hn('fan', 496, 416, true)], hintText: ['バットが ボタンを ふみぬける', 'とびらが あいたら かぜの でばん', 'せんぷうきは どこに おく？'],
-    limit: 36 },
-
-  // E45 (長手数) ほし3つの フルコース
-  { name: 'ほし3つの フルコース', ball: { x: 64, y: 240 }, goal: { x: 736, y: 394 },
-    statics: [F(0, 800), B(784, 224, 800, 416)],
-    stars: [Star(224, 404), Star(428, 308), Star(714, 300)],
-    area: R(0, 224, 704, 224),
-    gadgets: { ramp: 1, spring: 1, cannon: 1, bumper: 1 },
-    hints: [Hn('ramp', 96, 416, false), Hn('spring', 320, 416, false), Hn('cannon', 576, 416, false)], hintText: ['ころがって 1つ、はねて 1つ、とんで 1つ', '3つの どうぐを じゅんばんに', 'さいごは かべに あたって ゴール'],
+  // E48 のぼって ほしを ひろって とびおりる: とまってると ゆかが われる
+  { name: 'のぼって ひろって とびおりる', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 528, y: 458 },
+    statics: [B(0, 416, 318, 480), B(384, 144, 432, 168),
+              B(386, 416, 448, 480), B(544, 416, 800, 480), B(448, 480, 544, 496)],
+    crumbles: [Crumble(496, 416, 96)],
+    fixed: [{ type: 'switch_yellow', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(416, 132)],
+    triggers: [Lift('yellow', 352, 464, 120, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['エレベーターで ほしを とりに いく', 'とびおりた さきの ゆかは われる', 'おちた さきが ゴール'],
     limit: 38 },
 
-  // E46 (2だんうち+玉突き) とばして ぶつけて はねて しまへ
-  { name: 'とばして ついて はねて', balls: [{ x: 64, y: 240 }, { x: 560, y: 380 }], goalBall: 1, goal: { x: 752, y: 394 },
-    statics: [B(0, 416, 256, 480), B(320, 416, 640, 480), B(704, 416, 800, 480)],
-    area: R(0, 224, 704, 224),
-    gadgets: { ramp: 1, cannon: 1, spring: 1, bumper: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 128, 416, false), Hn('spring', 608, 416, false)], hintText: ['とんだ あかが あおを つく', 'あおは どうやって しまへ わたる？', '3だんがまえの しかけ'],
+  // E49 ぜんいん ちかへ: はし→われるゆか→みんなで おちる
+  { name: 'ぜんいん ちかへ', balls: [{ x: 64, y: 240 }, { x: 64, y: 32 }], goalAll: true, goal: { x: 624, y: 458 },
+    statics: [B(0, 352, 384, 480), B(480, 368, 576, 480), B(672, 368, 800, 480), B(384, 464, 480, 480),
+              B(576, 416, 592, 480), B(656, 416, 672, 480), B(592, 480, 656, 496), B(0, 128, 352, 152), B(656, 288, 672, 368)],
+    planks: [Plank(368, 352)],
+    crumbles: [Crumble(624, 368, 96)],
+    fixed: [{ type: 'switch_yellow', x: 528, y: 368, flip: false, fixedSwitch: true }],
+    triggers: [TFan('yellow', 240, 352, 1)],
+    area: R(0, 32, 384, 352),
+    gadgets: { ramp: 2, spring: 1 },
+    hints: [Hn('ramp', 64, 352, false), Hn('ramp', 64, 128, false)], hintText: ['はしを わたった さきの われるゆか', 'あおが あなを あけて さきに おちる', 'あかも おなじ あなから おちてくる'],
     limit: 38 },
 
-  // E47 (つきおとし→玉突き 3球) おちた あおが みどりを つく
-  { name: 'つきおとし たまつき', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }, { x: 640, y: 380 }], goalBall: 2, goal: { x: 752, y: 394 },
-    statics: [F(0, 800), B(96, 320, 448, 344), B(416, 296, 448, 320), B(784, 320, 800, 416)],
-    fixed: [Hn('ramp', 128, 320, false), { type: 'belt', x: 544, y: 416, flip: false }],
-    area: R(160, 224, 288, 96),
-    gadgets: { domino: 3, spring: 1, belt: 1 },
-    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false)], hintText: ['おちた あおが かそくして みどりを つく', 'みどりの さきに ゴールが まつ', 'ドミノは 1マスおきに'],
-    limit: 36 },
-
-  // E48 (3球+ベルト+がけ) はこばれた あおが みどりを がけへ
-  { name: 'リレーから がけおとし', balls: [{ x: 128, y: 240 }, { x: 432, y: 284 }, { x: 608, y: 380 }], goalBall: 2, goal: { x: 752, y: 442 },
-    statics: [B(0, 416, 704, 480), B(704, 464, 800, 480), B(96, 320, 448, 344), B(416, 296, 448, 320)],
-    fixed: [Hn('ramp', 128, 320, false)],
-    area: R(160, 224, 448, 224),
-    gadgets: { domino: 3, belt: 1, spring: 1 },
-    hints: [Hn('domino', 320, 320, false), Hn('domino', 352, 320, false), Hn('domino', 384, 320, false), Hn('belt', 512, 416, false)], hintText: ['つきおとし→はこぶ→たまつき→がけ', 'みどりが おちた さきが ゴール', 'ながれを そうぞうしてから おこう'],
-    limit: 38 },
-
-  // E49 (玉突き→ワープ→たいほう) つかれて とんで うちあがって
-  { name: 'ついて ワープして うちあげて', balls: [{ x: 64, y: 240 }, { x: 384, y: 380 }], goalBall: 1, goal: { x: 720, y: 394 },
-    statics: [F(0, 800), B(192, 288, 384, 312), B(784, 320, 800, 416)],
-    stars: [Star(458, 172)],
-    warps: [Warp(496, 404, 256, 224)],
-    area: R(0, 160, 448, 288),
-    gadgets: { ramp: 1, cannon: 1, spring: 1, belt: 1 },
-    hints: [Hn('ramp', 64, 416, false), Hn('cannon', 320, 288, false)], hintText: ['あおは ワープで たなの うえへ', 'たなの うえで まちうけるのは？', 'そらの ほしを つらぬいて ゴールへ'],
-    limit: 36 },
-
-  // E50 (フィナーレ) はしって ぶつけて はこんで ワープして おおジャンプ
-  { name: 'ぜんぶのせ ファイナル', balls: [{ x: 32, y: 32 }, { x: 592, y: 380 }], goalBall: 1, goal: { x: 416, y: 308 },
-    statics: [B(0, 96, 384, 120), F(0, 800)],
-    fixed: [Hn('ramp', 32, 96, false)],
-    stars: [Star(256, 84), Star(736, 404)],
-    warps: [Warp(752, 404, 224, 144)],
-    area: R(0, 128, 736, 320),
-    gadgets: { belt: 1, spring: 1, bumper: 1, cannon: 1 },
-    hints: [Hn('belt', 672, 416, false), Hn('spring', 304, 416, false)], hintText: ['はしって ついて はこんで ワープして', 'さいごは おおジャンプで そらの ゴール', 'これが とけたら でんせつの パズルはかせ！'],
+  // E50 だいフィナーレ: のぼって ほし→とびおり→さか→2かい わたると われる→ちかワープ→そらの ゴール
+  { name: 'だいフィナーレ', balls: [{ x: 352, y: 240 }, { x: 64, y: 240 }], goalBall: 0, goal: { x: 256, y: 300 },
+    statics: [B(0, 416, 318, 480), B(384, 144, 432, 168),
+              B(386, 416, 544, 480), B(640, 416, 800, 480), B(544, 480, 640, 496)],
+    crumbles: [Crumble(592, 416, 96)],
+    fixed: [Hn('ramp', 480, 416, false), Hn('bumper', 752, 416, true), { type: 'switch_yellow', x: 192, y: 416, flip: false, fixedSwitch: true }],
+    stars: [Star(416, 132)],
+    warps: [Warp(560, 484, 256, 224)],
+    triggers: [Lift('yellow', 352, 464, 120, 1)],
+    area: R(0, 288, 320, 160),
+    gadgets: { ramp: 1, spring: 1, bumper: 1 },
+    hints: [Hn('ramp', 64, 416, false)], hintText: ['のぼって ひろって とびおりて', 'さかで はしって 2かい わたると…', 'ちかの ワープが そらの ゴールへ みちびく'],
     limit: 40 }
 ];
 for (const lv of EXP_LEVELS) { lv.noGhost = true; LEVELS.push(lv); }
@@ -1528,6 +1757,13 @@ fitCanvas();
 const SAVE_KEY = 'korokoro_v2';
 let progress = { stars: {} };
 try { progress = Object.assign(progress, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); } catch (e) {}
+// v12: アドバンスド 30→50面 拡張で エキスパートの 通し番号が +20 ずれたため、古いセーブを 引っ越す
+if (!progress.adv50) {
+  const ns = {};
+  for (const k in progress.stars) { const n = +k; ns[n > 85 ? n + 20 : n] = progress.stars[k]; }
+  progress.stars = ns; progress.adv50 = true;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch (e) {}
+}
 function saveProgress() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch (e) {} }
 function unlockedCount() {                 // スタンダード帯の直列アンロック数
   let n = 1;
@@ -1628,6 +1864,8 @@ let beltList = [];             // {body, dir, place}             ベルト
 let warpList = [];
 let dominoList = [];           // {body, place}  ドミノ
 let crumbleList = [];          // {obj, body, wearMs, broken, brokenT}  こわれる ゆか
+let plankList = [];            // {obj, body}  たおれる はし
+let liftList = [];             // {obj, fl, back, door, y, state, doorOpen}  エレベーター
 let lastEventT = 0;            // 停止タイマーを リセットする できごとの 時刻             // {obj, coolT}                   ワープ
 let starList = [];             // {obj, got}                     あつめる ほし
 
@@ -1648,7 +1886,7 @@ function stopRun() {
   trail = []; springAnims = {}; runT = 0; contactMs = 0; stallMs = 0;
   seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = [];
   moverList = []; pendList = []; cannonList = []; beltList = []; warpList = []; starList = []; dominoList = [];
-  crumbleList = [];
+  crumbleList = []; plankList = []; liftList = [];
   lastEventT = 0;
   triggerStates = {};
   for (const p of placements) { delete p._angle; delete p._cx; delete p._ang; }
@@ -1732,6 +1970,18 @@ function canPlace(type, x, y, ignoreIndex) {
   for (const c of (level.crumbles || [])) {
     const cr = { x: c.x - c.w / 2, y: c.y, w: c.w, h: 12 };
     if (overlapDepth(bb, cr) > 0 || rectsOverlap(bb, cr, 4)) return false;
+  }
+  // たおれる はしの まわり・エレベーターの のりば には おけない
+  for (const pk of (level.planks || [])) {
+    const pr = { x: pk.x - PLANK_W / 2 - 4, y: pk.y - PLANK_H, w: PLANK_W + 8, h: PLANK_H };
+    if (rectsOverlap(bb, pr, 4)) return false;
+  }
+  for (const t of (level.triggers || [])) {
+    if (t.kind !== 'lift') continue;
+    for (const sy of [t.y1, t.y2]) {
+      const lr = { x: t.x - 44, y: sy - 34, w: 88, h: 68 };
+      if (rectsOverlap(bb, lr, 2)) return false;
+    }
   }
   // 作動対象(とびら・はし)とも かさならない
   for (const t of (level.triggers || [])) {
@@ -1841,6 +2091,7 @@ function buildWorld() {
   }
   // 作動対象(とびら・はし・せんぷうき)を したく
   seesawList = []; switchList = []; doorList = []; bridgeList = []; fanTrigList = []; crumbleList = [];
+  plankList = []; liftList = [];
   triggerStates = {};
   for (const t of (level.triggers || [])) {
     triggerStates[t.color] = false;
@@ -1852,6 +2103,24 @@ function buildWorld() {
     }
     else if (t.kind === 'bridge') { bridgeList.push({ obj: t, body: bridgeBodyOf(t), shown: false, showT: 0 }); } // でるまで world に いれない
     else if (t.kind === 'fan') { fanTrigList.push({ obj: t }); }
+    else if (t.kind === 'lift') {
+      const d = t.dir;
+      const fl = Bodies.rectangle(t.x, t.y1 + 24, 70, 10, { isStatic: true, friction: 0.9, restitution: 0.02, angle: d * 0.12 });
+      const back = Bodies.rectangle(t.x - d * 34, t.y1, 10, 58, { isStatic: true, friction: 0.04 });
+      const door = Bodies.rectangle(t.x + d * 34, t.y1 - 4, 10, 50, { isStatic: true, friction: 0.04 });
+      fl.plugin = back.plugin = door.plugin = { kind: 'lift' };
+      liftList.push({ obj: t, fl, back, door, y: t.y1, state: 0, doorOpen: false });
+      bodies.push(fl, back, door);
+    }
+  }
+  // たおれる はし(立て板)
+  for (const pk of (level.planks || [])) {
+    const b = Bodies.rectangle(pk.x, pk.y - PLANK_H / 2, PLANK_W, PLANK_H, {
+      friction: 0.8, frictionAir: 0.001, restitution: 0.05, density: 0.0001, chamfer: { radius: 3 },
+    });
+    b.plugin = { kind: 'plank' };
+    plankList.push({ obj: pk, body: b });
+    bodies.push(b);
   }
   // こわれる ゆか
   for (const c of (level.crumbles || [])) {
@@ -2064,6 +2333,24 @@ function stepPhysics(dtMs) {
       } else if (over) { sw.pressMs += RUN_SUBSTEP; if (sw.pressMs >= 100) activateTrigger(sw.color); }
       else sw.pressMs = Math.max(0, sw.pressMs - RUN_SUBSTEP * 0.5);
     }
+    // エレベーター: トリガーONで うごきだし、つくと ドアが あく
+    for (const lf of liftList) {
+      if (lf.state === 0 && triggerStates[lf.obj.color]) { lf.state = 1; lastEventT = runT; }
+      if (lf.state !== 1) continue;
+      if (!triggerStates[lf.obj.color]) continue;   // きりかえボタンで OFF に なると とちゅうで とまる
+      const dirY = Math.sign(lf.obj.y2 - lf.obj.y1) || -1;
+      let ny = lf.y + dirY * 0.9;               // 0.9px/サブステップ ≈ 108px/s
+      if ((dirY < 0 && ny <= lf.obj.y2) || (dirY > 0 && ny >= lf.obj.y2)) {
+        ny = lf.obj.y2; lf.state = 2; lastEventT = runT;
+        Composite.remove(engine.world, lf.door); lf.doorOpen = true;
+        if (!simMode) SND.open();
+      }
+      const d = lf.obj.dir;
+      Body.setPosition(lf.fl, { x: lf.obj.x, y: ny + 24 }, true);
+      Body.setPosition(lf.back, { x: lf.obj.x - d * 34, y: ny }, true);
+      if (!lf.doorOpen) Body.setPosition(lf.door, { x: lf.obj.x + d * 34, y: ny - 4 }, true);
+      lf.y = ny;
+    }
     // こわれる ゆか: ボールが のって 累計250ms で われる
     for (const cr of crumbleList) {
       if (cr.broken) continue;
@@ -2237,6 +2524,11 @@ function stepPhysics(dtMs) {
       const b = dm.body;
       if (Math.hypot(b.velocity.x, b.velocity.y) > 0.2 || Math.abs(b.angularVelocity) > 0.03) { dominoActive = true; break; }
     }
+    if (!dominoActive) for (const pk of plankList) {
+      const b = pk.body;
+      if (Math.hypot(b.velocity.x, b.velocity.y) > 0.2 || Math.abs(b.angularVelocity) > 0.03) { dominoActive = true; break; }
+    }
+    if (!dominoActive) for (const lf of liftList) if (lf.state === 1) { dominoActive = true; break; }
     if (dominoActive || runT - lastEventT < 2500) {
       for (const m of ballMeta) m.stallMs = 0;
       allStalled = false;
@@ -2385,6 +2677,52 @@ function drawCrumbles() {
     ctx.restore();
   }
 }
+function drawPlanks() {
+  for (const pk of (level.planks || [])) {
+    const st = scene === 'run' ? plankList.find(k => k.obj === pk) : null;
+    ctx.save();
+    if (st) { ctx.translate(st.body.position.x, st.body.position.y); ctx.rotate(st.body.angle); }
+    else { ctx.translate(pk.x, pk.y - PLANK_H / 2); }
+    ctx.fillStyle = '#c98b4a'; rr(-PLANK_W / 2, -PLANK_H / 2, PLANK_W, PLANK_H, 4); ctx.fill();
+    ctx.strokeStyle = '#96602b'; ctx.lineWidth = 2.5; rr(-PLANK_W / 2, -PLANK_H / 2, PLANK_W, PLANK_H, 4); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.arc(0, i * 26, 2.2, 0, 7); ctx.fill(); }
+    ctx.restore();
+  }
+}
+function drawLifts() {
+  for (const t of (level.triggers || [])) {
+    if (t.kind !== 'lift') continue;
+    const lf = scene === 'run' ? liftList.find(k => k.obj === t) : null;
+    const c = TRIGGER_COLORS[t.color];
+    const y = lf ? lf.y : t.y1;
+    const d = t.dir;
+    // シャフト(レール)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(120,130,150,.5)'; ctx.lineWidth = 3; ctx.setLineDash([6, 8]);
+    const yA = Math.min(t.y1, t.y2) - 34, yB = Math.max(t.y1, t.y2) + 34;
+    ctx.beginPath(); ctx.moveTo(t.x - 40, yA); ctx.lineTo(t.x - 40, yB); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(t.x + 40, yA); ctx.lineTo(t.x + 40, yB); ctx.stroke();
+    ctx.setLineDash([]);
+    // いきさきの やじるし
+    ctx.fillStyle = c.main; ctx.globalAlpha = 0.6;
+    const ay = t.y2 < t.y1 ? t.y2 - 26 : t.y2 + 26, as = t.y2 < t.y1 ? 1 : -1;
+    ctx.beginPath(); ctx.moveTo(t.x, ay); ctx.lineTo(t.x - 8, ay + as * 12); ctx.lineTo(t.x + 8, ay + as * 12); ctx.fill();
+    ctx.globalAlpha = 1;
+    // 車体: かたむいた ゆか + うしろの かべ + ドア
+    ctx.save(); ctx.translate(t.x, y + 24); ctx.rotate(d * 0.12);
+    ctx.fillStyle = '#8d99ae'; rr(-35, -5, 70, 10, 4); ctx.fill();
+    ctx.strokeStyle = '#5d6778'; ctx.lineWidth = 2; rr(-35, -5, 70, 10, 4); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#8d99ae'; rr(t.x - d * 34 - 5, y - 29, 10, 58, 4); ctx.fill();
+    ctx.strokeStyle = '#5d6778'; ctx.lineWidth = 2; rr(t.x - d * 34 - 5, y - 29, 10, 58, 4); ctx.stroke();
+    if (!(lf && lf.doorOpen)) {
+      ctx.fillStyle = c.main; rr(t.x + d * 34 - 5, y - 29, 10, 50, 4); ctx.fill();
+      ctx.strokeStyle = c.dark; ctx.lineWidth = 2; rr(t.x + d * 34 - 5, y - 29, 10, 50, 4); ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
 function drawWarps() {
   for (const w of (level.warps || [])) {
     warpRing(w.ax, w.ay, '#3d8bff', '#bfe0ff', globalT / 400);
@@ -2484,6 +2822,19 @@ function drawGoal() {
   ctx.fillStyle = '#ef476f';
   ctx.beginPath(); ctx.moveTo(GOAL_W / 2 - 6, -GOAL_H / 2 - 26);
   ctx.lineTo(GOAL_W / 2 - 30, -GOAL_H / 2 - 18); ctx.lineTo(GOAL_W / 2 - 6, -GOAL_H / 2 - 10); ctx.fill();
+  // ふくすうボールの めん: どの ボールを いれるかを ミニボールで しめす
+  const starts = ballStarts();
+  if (starts.length > 1) {
+    const need = level.goalAll ? starts.map((_, i) => i) : (level.goalBall != null ? [level.goalBall] : starts.map((_, i) => i));
+    const iy = -GOAL_H / 2 - 40;
+    for (let k = 0; k < need.length; k++) {
+      const bc = BALL_COLORS[need[k] % BALL_COLORS.length];
+      const ix = -10 + (k - (need.length - 1) / 2) * 17;
+      ctx.beginPath(); ctx.arc(ix, iy, 7, 0, 7);
+      ctx.fillStyle = bc.g1; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
   ctx.restore();
 }
 function drawStar(x, y, r, color) {
@@ -2976,6 +3327,8 @@ function drawGame(dt) {
   drawArea();
   drawStatics();
   drawCrumbles();
+  drawLifts();
+  drawPlanks();
   drawWarps();
   drawTriggers();
   drawStars();
