@@ -19,6 +19,12 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
+/* タップ対象は指が少し動いても反応するように、ブラウザのジェスチャ判定を切る */
+.item,.screen:not(#parent) .btn,.iconbtn,.lvbtn{touch-action:none; -webkit-touch-callout:none;}
+#parent .btn{touch-action:manipulation;}
+.item.pressed{transform:scale(.93);}
+.btn.pressed,.lvbtn.pressed{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.16);}
+.iconbtn.pressed{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
 body{
   margin:0; overflow:hidden; overscroll-behavior:none;
   font-family:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN","Hiragino Sans","Yu Gothic",-apple-system,"Segoe UI",sans-serif;
@@ -271,7 +277,9 @@ body{
       <div class="card">
         <div class="row">
           <label class="switch"><input type="checkbox" id="setVoice"> こえで よみあげる</label>
+          <button class="btn ghost small" id="btnVoiceTest">🔊 よみあげテスト</button>
         </div>
+        <div id="voiceDiag" style="font-size:14px;color:#6b6152"></div>
         <div class="row">
           <label for="setName" style="font-weight:800">おなまえ（ほめるときに よびます）</label>
           <input type="text" id="setName" placeholder="れい：しろちゃん" maxlength="8">
@@ -280,6 +288,16 @@ body{
           <button class="btn ghost small" id="btnReset">きろくを けす</button>
         </div>
       </div>
+
+      <h2>よみあげが 出ないとき（Android）</h2>
+      <p>Androidタブレットは、日本語の読み上げエンジンが入っていないと無音になります。上の「よみあげテスト」で音が出ない場合は次をご確認ください。</p>
+      <ul>
+        <li><b>設定 → ユーザー補助（またはシステム）→ テキスト読み上げの設定</b>で、エンジンを「<b>Google テキスト読み上げ</b>」にする</li>
+        <li>同じ画面の「言語」で<b>日本語</b>を選び、<b>音声データをダウンロード</b>する（「音声データのインストール」）</li>
+        <li>端末の<b>メディア音量</b>とサイレントモードを確認する</li>
+        <li>Chrome で開く（一部のブラウザアプリは読み上げに対応していません）</li>
+      </ul>
+      <p>読み上げが使えなくても、問題文は画面に大きく表示されるので学習は進められます。その場合はおうちの方が読んであげてください。</p>
 
       <h2>おうちでの こえかけ</h2>
       <ul>
@@ -376,35 +394,116 @@ const sfxWrong   = ()=>{ tone(300,.16,0,'triangle',.14); tone(220,.22,.14,'trian
 const sfxPlace   = ()=>{ tone(523,.10); tone(784,.14,.08); };
 const sfxFanfare = ()=>{ [523,659,784,1047].forEach((f,i)=>tone(f,.28,i*.13,'sine',.16)); };
 
-/* ---------------- 音声よみあげ ---------------- */
-let jaVoice=null, speechReady=false;
+/* ---------------- 音声よみあげ ----------------
+   Android(Chrome)対策:
+   ・voices の取得が遅れる/空で返る → ポーリングで待つ
+   ・cancel() の直後に speak() すると無音で落ちる → 少し間をあける
+   ・最初の1回が無音のまま終わることがある → 開始できなければ1度だけ再試行
+   ・タブが復帰すると pause 状態のまま止まる → resume() を都度呼ぶ
+------------------------------------------------ */
+const SP = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+const speechInfo = { supported: !!SP, voices:0, voice:'', started:false, tried:false };
+let jaVoice=null, speechUnlocked=false, speakSeq=0, lastSpeech='';
+
 function pickVoice(){
-  if(!('speechSynthesis' in window)) return;
-  const vs = speechSynthesis.getVoices();
+  if(!SP) return;
+  let vs=[]; try{ vs = SP.getVoices() || []; }catch(e){}
+  speechInfo.voices = vs.length;
   jaVoice = vs.find(v=>/^ja/i.test(v.lang) && /kyoko|o-ren|google|female|女性/i.test(v.name))
-         || vs.find(v=>/^ja/i.test(v.lang)) || null;
+         || vs.find(v=>/^ja/i.test(v.lang))
+         || vs.find(v=>/japan|日本/i.test(v.name)) || null;
+  speechInfo.voice = jaVoice ? `${jaVoice.name} (${jaVoice.lang})` : '';
 }
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-let lastSpeech='';
+if(SP){
+  pickVoice();
+  try{ SP.onvoiceschanged = pickVoice; }catch(e){}
+  let tries=0;
+  const vt = setInterval(()=>{ pickVoice(); if(jaVoice || ++tries>24) clearInterval(vt); }, 250);
+}
 function speak(text, rate=0.92){
   lastSpeech = text;
-  if(!state.settings.voice || !('speechSynthesis' in window)) return;
+  if(!state.settings.voice || !SP) return;
+  const my = ++speakSeq;
+  const fire = (attempt)=>{
+    if(my!==speakSeq) return;
+    let u;
+    try{
+      u = new SpeechSynthesisUtterance(text);
+      u.lang='ja-JP'; if(jaVoice) u.voice=jaVoice;
+      u.rate=rate; u.pitch=1.12; u.volume=1;
+      u.onstart = ()=>{ speechInfo.started=true; };
+      speechInfo.tried = true;
+      SP.resume(); SP.speak(u);
+    }catch(e){ return; }
+    // 一度も発声できていない端末でだけ、無音落ちを1回だけ拾いなおす
+    if(attempt===0 && !speechInfo.started){
+      setTimeout(()=>{
+        if(my===speakSeq && !speechInfo.started && !SP.speaking && !SP.pending) fire(1);
+      }, 350);
+    }
+  };
   try{
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang='ja-JP'; if(jaVoice) u.voice=jaVoice;
-    u.rate=rate; u.pitch=1.15; u.volume=1;
-    speechSynthesis.speak(u);
+    if(SP.speaking || SP.pending){ SP.cancel(); setTimeout(()=>fire(0), 130); }
+    else fire(0);
   }catch(e){}
 }
+function stopSpeak(){ speakSeq++; try{ SP && SP.cancel(); }catch(e){} }
 function unlockAudio(){
   ac();
-  if(!speechReady && 'speechSynthesis' in window){
-    speechReady=true;
-    try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; u.lang='ja-JP'; speechSynthesis.speak(u); }catch(e){}
+  if(!speechUnlocked && SP){
+    speechUnlocked = true;
+    // 最初のユーザー操作の中で1回だけ空発声しておく（iOS/Androidの発話許可）
+    try{
+      SP.resume();
+      const u=new SpeechSynthesisUtterance('　'); u.lang='ja-JP'; u.volume=0;
+      u.onstart=()=>{ speechInfo.started=true; };
+      SP.speak(u);
+    }catch(e){}
+    pickVoice();
   }
 }
-document.addEventListener('pointerdown', unlockAudio, {once:true});
+document.addEventListener('pointerdown', unlockAudio, {capture:true});
+document.addEventListener('touchstart', unlockAudio, {capture:true, passive:true});
+// 画面復帰後に発話が止まったままになるのを防ぐ
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ try{ SP && SP.resume(); }catch(e){} } });
+
+/* ---------------- タッチ応答 ----------------
+   click は指が数ミリ動くだけで発火しないことがあるため、
+   pointerdown（＝指が触れた瞬間）で反応させ、あとから来る click は捨てる。
+--------------------------------------------- */
+const TAPPABLE = '.item,.btn,.iconbtn,.lvbtn';
+let fastEl=null, fastAt=0;
+document.addEventListener('pointerdown', e=>{
+  if(!(e.target instanceof Element)) return;
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  const t = e.target.closest(TAPPABLE);
+  if(!t || t.disabled) return;
+  if(t.closest('#parent')) return;   // 保護者画面はスクロールを優先し、ふつうのクリックで動かす
+  e.preventDefault();
+  t.classList.add('pressed');
+  fastEl=t; fastAt=Date.now();
+  t.click();                       // 既存の click ハンドラをそのまま呼ぶ
+}, {capture:true, passive:false});
+const unpress = ()=>document.querySelectorAll('.pressed').forEach(el=>el.classList.remove('pressed'));
+['pointerup','pointercancel','pointerleave'].forEach(ev=>document.addEventListener(ev, unpress, true));
+// pointerdown で処理済みなら、そのあとに来る本物の click は無視する
+document.addEventListener('click', e=>{
+  if(!e.isTrusted || !(e.target instanceof Element)) return;
+  const t = e.target.closest(TAPPABLE);
+  if(t && t===fastEl && Date.now()-fastAt < 900){ e.preventDefault(); e.stopPropagation(); }
+}, true);
+
+/* 演出の待ち時間は「画面をタップしたら飛ばせる」ようにする（待たされて反応がないと感じさせない） */
+let skipNow=null;
+function waitStep(ms, minMs=380){
+  return new Promise(res=>{
+    let done=false;
+    const fin=()=>{ if(done) return; done=true; if(skipNow===fin) skipNow=null; clearTimeout(tid); res(); };
+    const tid=setTimeout(fin, ms);
+    setTimeout(()=>{ if(!done) skipNow=fin; }, Math.min(minMs, ms));
+  });
+}
+$('#play').addEventListener('pointerdown', ()=>{ if(skipNow) skipNow(); }, true);
 
 /* ---------------- 画面きりかえ ---------------- */
 function show(id){
@@ -412,7 +511,7 @@ function show(id){
   if(id==='home'){ $('#homeStars').textContent = '⭐ ' + state.stars; }
 }
 function goHome(){
-  try{ speechSynthesis.cancel(); }catch(e){}
+  stopSpeak();
   P.mode=null; P.phase=null; P.busy=false; P.token++;
   show('home');
 }
@@ -472,11 +571,15 @@ function layoutBoard(){
   const gap = Math.max(6, r.width*0.016);
   if(board.classList.contains('size')){
     // 画面の形にあわせて 1段／2段 を自動でえらび、いちばん大きく見える配置にする
+    // 絵文字は文字サイズより横に広く描かれる（≒1.26倍）。
+    // これを見込まないと大きい絵が となりのボタンに重なり、はしをタップしたときに
+    // となりが反応してしまうので、かならず自分のマスの中に収まるようにする。
+    const EW = 1.26;
     const fit = c => {
       const rows = Math.ceil(n/c);
       const cell = (r.width  - gap*(c+1))/c;
       const rowH = (r.height - gap*(rows+1))/rows;
-      return {base:Math.min(cell, rowH*0.88), cols:c, cell, rowH};
+      return {base:Math.min(cell/EW, rowH*0.86), cols:c, cell, rowH};
     };
     const one = fit(n);
     let best = one;
@@ -485,7 +588,7 @@ function layoutBoard(){
     if(best.base < one.base*1.35) best = one;
     items.forEach(el=>{
       const s=+el.dataset.scale;
-      el.style.width = best.cell+'px'; el.style.height = Math.min(best.rowH, best.base*1.14)+'px';
+      el.style.width = best.cell+'px'; el.style.height = Math.min(best.rowH, best.base*1.2)+'px';
       el.querySelector('.shape').style.fontSize = (best.base*s)+'px';
     });
   }else if(board.classList.contains('height')){
@@ -529,7 +632,8 @@ function flipReorder(mutate){
   });
 }
 const itemEl = rank => board.querySelector(`.item[data-rank="${rank}"]`);
-const lock   = v => board.classList.toggle('locked', v);
+// ロック解除の直後はごく短いあいだ受け付けない（連打で次の問題を誤って答えてしまうのを防ぐ）
+const lock   = v => { board.classList.toggle('locked', v); if(!v) P.acceptAt = Date.now()+220; };
 function clearMarks(){
   board.querySelectorAll('.item').forEach(el=>{
     el.classList.remove('placed','reveal','wrong','hintpulse');
@@ -563,7 +667,7 @@ const P = {
   step:1, seqTarget:1,
   lessonIdx:0,
   qIndex:0, qList:[], score:0, hinted:0, wrongCount:0, usedHint:false,
-  level:0, busy:false, token:0
+  level:0, busy:false, token:0, acceptAt:0
 };
 /* 画面を離れたあとに古いタイマーが動かないようにする */
 const newToken = ()=>++P.token;
@@ -582,7 +686,7 @@ function record(ok, usedHint){
 
 /* ---------- タップ処理の振り分け ---------- */
 function onTap(rank, el){
-  if(P.busy) return;
+  if(P.busy || Date.now() < (P.acceptAt||0)) return;
   sfxTap();
   if(P.phase==='order' || P.phase==='scaffold') tapSequence(rank, el);
   else if(P.phase==='check' || P.phase==='quiz') tapAnswer(rank, el);
@@ -620,7 +724,7 @@ async function tapSequence(rank, el){
   const word = w(P.type,P.dir);
   setPrompt(`これが <span class="num">${P.step}</span>ばんめに <em>${word}</em>！`,
             `${KANA_ORD[P.step]}に ${word}`);
-  await sleep(1250);
+  await waitStep(1100);
   if(!alive(tk)) return;
   P.busy=false; lock(false);
 
@@ -669,12 +773,12 @@ async function lessonRecap(){
       el.style.order = pos;
     });
   });
-  await sleep(700);
+  await waitStep(700);
   if(!alive(tk)) return;
   board.querySelectorAll('.item').forEach(el=>el.classList.add('reveal'));
   setPrompt(`${word} じゅんばん！ 1ばんめ、2ばんめ、3ばんめ…`,
             `${word} じゅんばんだね。いちばんめ、にばんめ、さんばんめ`);
-  await sleep(1800);
+  await waitStep(1600);
   if(!alive(tk)) return;
   const kk = P.k;
   setPrompt(`<span class="num">${kk}</span>ばんめに <em>${word}</em>のは これ！`,
@@ -720,7 +824,7 @@ function startScaffold(){
   bottom([]);
   const tk = P.token;
   setPrompt(`じゅんばんに かぞえて みよう！`, `じゅんばんに かぞえて みよう`);
-  setTimeout(()=>{ if(alive(tk) && P.phase==='scaffold') seqAsk(); }, 1400);
+  setTimeout(()=>{ if(alive(tk) && P.phase==='scaffold') seqAsk(); }, 1100);
 }
 async function scaffoldFinish(){
   const tk = P.token;
@@ -732,7 +836,7 @@ async function scaffoldFinish(){
   setPrompt(`そう！ これが <span class="num">${P.k}</span>ばんめに <em>${word}</em> だね`,
             `そう。これが ${KANA_ORD[P.k]}に ${word} だね`);
   sfxCorrect(); stamp('◯', '#3fb87a');
-  await sleep(2200);
+  await waitStep(1900);
   if(!alive(tk)) return;
   P.busy=false;
   finishQuestion(true, true);
@@ -752,7 +856,7 @@ async function tapAnswer(rank, el){
     const word=w(P.type,P.dir);
     setPrompt(`${nameCall()}${pick(PRAISE)}<br>これが <span class="num">${P.k}</span>ばんめに <em>${word}</em>！`,
               `${pick(PRAISE)} ${KANA_ORD[P.k]}に ${word} だね`);
-    await sleep(1900);
+    await waitStep(1600);
     if(!alive(tk)) return;
     P.busy=false;
     finishQuestion(true, P.usedHint);
@@ -777,8 +881,8 @@ function finishQuestion(ok, usedHint){
   markProgress(P.qIndex, usedHint ? 'hint' : 'ok');
   P.qIndex++;
   const tk = P.token;
-  if(P.qIndex >= P.qList.length) setTimeout(()=>{ if(alive(tk)) showResult(); }, 500);
-  else setTimeout(()=>{ if(alive(tk)) nextQuestion(); }, 500);
+  if(P.qIndex >= P.qList.length) setTimeout(()=>{ if(alive(tk)) showResult(); }, 350);
+  else setTimeout(()=>{ if(alive(tk)) nextQuestion(); }, 350);
 }
 
 /* =========================================================
@@ -876,6 +980,7 @@ function renderParent(){
   // 設定
   $('#setVoice').checked = !!state.settings.voice;
   $('#setName').value = state.settings.name || '';
+  pickVoice(); renderVoiceDiag();
   // 集計
   const byK={}, byType={};
   state.log.forEach(r=>{
@@ -911,7 +1016,25 @@ function renderParent(){
   }
   $('#statsCard').innerHTML = html;
 }
-$('#setVoice').addEventListener('change', e=>{ state.settings.voice=e.target.checked; save(); if(!e.target.checked){ try{speechSynthesis.cancel();}catch(err){} } });
+function renderVoiceDiag(msg){
+  const el=$('#voiceDiag'); if(!el) return;
+  if(!speechInfo.supported){ el.innerHTML='<b style="color:#c0392b">この端末（ブラウザ）は読み上げに対応していません。</b>'; return; }
+  const v = speechInfo.voice ? `日本語の声：<b>${speechInfo.voice}</b>` : '<b style="color:#c0392b">日本語の声が見つかりません</b>';
+  el.innerHTML = `${v}　／　利用可能な声：${speechInfo.voices}個` + (msg ? `<br>${msg}` : '');
+}
+$('#btnVoiceTest').addEventListener('click', ()=>{
+  unlockAudio(); pickVoice(); renderVoiceDiag('…テスト中');
+  speechInfo.started=false;
+  const wasOn = state.settings.voice; state.settings.voice = true;
+  speak('にばんめに おおきいのは どれかな');
+  setTimeout(()=>{
+    state.settings.voice = wasOn;
+    renderVoiceDiag(speechInfo.started
+      ? '<b style="color:#2e9a62">読み上げは動いています。</b>'
+      : '<b style="color:#c0392b">音が出ませんでした。</b> 下の「よみあげが 出ないとき（Android）」をご覧ください。');
+  }, 1800);
+});
+$('#setVoice').addEventListener('change', e=>{ state.settings.voice=e.target.checked; save(); if(!e.target.checked) stopSpeak(); });
 $('#setName').addEventListener('input', e=>{ state.settings.name=e.target.value.trim().slice(0,8); save(); });
 $('#btnReset').addEventListener('click', ()=>{
   if(confirm('学習の記録をすべて消します。よろしいですか？')){
