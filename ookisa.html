@@ -57,7 +57,8 @@ body{
   font-size:24px; box-shadow:0 3px 0 rgba(0,0,0,.12); cursor:pointer; display:flex; align-items:center; justify-content:center;
 }
 .iconbtn:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.12);}
-.pill{background:#fff; border-radius:999px; padding:8px 16px; font-weight:800; box-shadow:0 3px 0 rgba(0,0,0,.08); font-size:clamp(14px,2.2vmin,20px);}
+.pill{background:#fff; border-radius:999px; padding:8px 16px; font-weight:800; box-shadow:0 3px 0 rgba(0,0,0,.08); font-size:clamp(14px,2.2vmin,20px);
+  max-width:56vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 /* ---------- ホーム ---------- */
 #home{align-items:center; justify-content:center; gap:min(3vh,26px); text-align:center;}
@@ -74,13 +75,16 @@ body{
 .homefoot{position:absolute; right:14px; top:14px; display:flex; gap:10px;}
 
 /* ---------- レベル選択 ---------- */
-#levels .lvwrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:min(2.4vh,18px); padding:0 16px 16px;}
+#levels .lvwrap,#lessons .lvwrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:min(2.4vh,18px); padding:0 16px 16px; overflow:auto;}
 .lvbtn{
   width:min(88vw,760px); display:flex; align-items:center; gap:16px; text-align:left;
   background:#fff; border:none; border-radius:22px; padding:clamp(12px,2.2vh,20px) 20px;
   box-shadow:0 5px 0 rgba(0,0,0,.10); cursor:pointer; font-family:inherit; color:var(--ink);
 }
 .lvbtn:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.10);}
+.lvbtn .no.g{background:var(--green);}
+.lvbtn .tag{background:var(--orange); color:#fff; border-radius:999px; padding:4px 12px; font-size:.62em; font-weight:900; text-shadow:none; letter-spacing:0;}
+.lvbtn .done{color:var(--green);}
 .lvbtn .no{width:clamp(44px,7vmin,64px); height:clamp(44px,7vmin,64px); border-radius:50%; background:var(--orange); color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:clamp(20px,3.4vmin,30px); font-weight:900; flex:none;}
 .lvbtn .tx{flex:1;}
@@ -289,6 +293,16 @@ body{
     <div class="pill" id="homeStars">⭐ 0</div>
   </section>
 
+  <!-- ========== レッスン選択（まなぶ） ========== -->
+  <section class="screen" id="lessons">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <div class="pill">まなぶ　どれから する？</div>
+      <div class="spacer"></div>
+    </div>
+    <div class="lvwrap" id="lsList"></div>
+  </section>
+
   <!-- ========== レベル選択 ========== -->
   <section class="screen" id="levels">
     <div class="topbar">
@@ -421,11 +435,11 @@ const SCALES = [1, 0.80, 0.635, 0.505, 0.40];
 const PRAISE = ['すごい！','せいかい！','だいせいかい！','よく できました！','ばっちり！'];
 
 const LESSONS = [
-  {type:'size',   n:3, dir:'big',   check:2},
-  {type:'size',   n:3, dir:'small', check:2},
-  {type:'size',   n:4, dir:'big',   check:3},
-  {type:'height', n:4, dir:'big',   check:2},
-  {type:'length', n:4, dir:'big',   check:3}
+  {type:'size',   n:3, dir:'big',   check:2, title:'おおきい じゅんばん', sub:'3つ ならべて 2ばんめを おぼえる'},
+  {type:'size',   n:3, dir:'small', check:2, title:'ちいさい じゅんばん', sub:'3つ・ちいさい ほうから かぞえる'},
+  {type:'size',   n:4, dir:'big',   check:3, title:'4つを ならべる',       sub:'4つ・3ばんめまで'},
+  {type:'height', n:4, dir:'big',   check:2, title:'たかさ くらべ',         sub:'タワー 4つ'},
+  {type:'length', n:4, dir:'big',   check:3, title:'ながさ くらべ',         sub:'リボン 4つ'}
 ];
 const LEVELS = [
   {name:'レベル1　おおきい じゅん', sub:'3つ・おおきい ほうから', types:['size'], ns:[3], dirs:['big'], ks:[1,2,2,3]},
@@ -842,12 +856,13 @@ function startLesson(idx){
   show('play'); lessonIntro();
 }
 function lessonIntro(){
+  newToken(); P.busy=false;
   const L = LESSONS[P.lessonIdx];
   P.type=L.type; P.n=L.n; P.dir=L.dir; P.k=L.check;
   P.set = buildSet(P.type, P.n);
   P.phase=null; P.step=1; P.wrongCount=0;
   renderBoard(P.set); clearMarks(); lock(true);
-  $('#playInfo').textContent = `まなぶ ${P.lessonIdx+1}/${LESSONS.length}`;
+  $('#playInfo').textContent = `まなぶ ${P.lessonIdx+1}/${LESSONS.length}　${L.title}`;
   $('#progress').innerHTML='';
   const word = w(P.type,P.dir);
   const noun = NOUN[P.type] || 'もの';
@@ -904,8 +919,9 @@ function lessonDone(){
   sfxFanfare();
   const btns=[];
   if(!last) btns.push({t:'つぎへ ▶', cls:'green', fn:()=>{ P.lessonIdx++; lessonIntro(); }});
-  btns.push({t:'もんだいへ', cls:'orange', fn:()=>{ show('levels'); renderLevels(); }});
-  btns.push({t:'おうちへ', cls:'ghost', fn:goHome});
+  btns.push({t:'もういちど', cls:'blue', fn:()=>lessonIntro()});
+  if(last) btns.push({t:'もんだいへ', cls:'orange', fn:()=>{ renderLevels(); show('levels'); }});
+  btns.push({t:'いちらん', cls:'ghost', fn:()=>{ newToken(); P.mode=null; P.phase=null; P.busy=false; renderLessons(); show('lessons'); }});
   bottom(btns);
 }
 
@@ -1055,7 +1071,22 @@ function bottom(list){
 /* =========================================================
    ホーム / レベル選択 / 保護者
    ========================================================= */
-$('#btnLesson').addEventListener('click', ()=>{ sfxTap(); startLesson(Math.min(state.lessonDone, LESSONS.length-1)); });
+$('#btnLesson').addEventListener('click', ()=>{ sfxTap(); renderLessons(); show('lessons'); });
+
+function renderLessons(){
+  const wrap=$('#lsList'); wrap.innerHTML='';
+  const nextIdx = Math.min(state.lessonDone, LESSONS.length-1);
+  LESSONS.forEach((L,i)=>{
+    const done = i < state.lessonDone;
+    const b=document.createElement('button'); b.className='lvbtn';
+    b.innerHTML = `<span class="no g">${i+1}</span>
+      <span class="tx"><b>${L.title}</b><i>${L.sub}</i></span>
+      <span class="st">${done ? '<span class="done">✓ できた</span>' : ''}` +
+      `${(!done && i===nextIdx && state.lessonDone>0) ? '<span class="tag">つづき</span>' : ''}</span>`;
+    b.addEventListener('click', ()=>{ sfxTap(); startLesson(i); });
+    wrap.appendChild(b);
+  });
+}
 $('#btnQuiz').addEventListener('click',   ()=>{ sfxTap(); renderLevels(); show('levels'); });
 $('#btnParent').addEventListener('click', ()=>{ renderParent(); show('parent'); });
 
