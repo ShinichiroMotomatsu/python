@@ -32,7 +32,8 @@ body{
   background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
   user-select:none; -webkit-user-select:none; touch-action:manipulation;
 }
-#app{position:fixed; inset:0; display:flex; flex-direction:column;}
+/* iOS Safari はツールバーの出入りで 100vh がずれるため、実寸(--app-h)を JS から入れる */
+#app{position:fixed; left:0; top:0; width:100%; height:100%; height:var(--app-h,100%); display:flex; flex-direction:column;}
 .screen{position:absolute; inset:0; display:none; flex-direction:column; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
 .screen.active{display:flex;}
 
@@ -49,7 +50,7 @@ body{
 .btn.small{padding:12px 18px; font-size:clamp(15px,2.2vmin,20px); border-radius:18px;}
 .btn:disabled{filter:grayscale(.6) opacity(.6); pointer-events:none;}
 
-.topbar{display:flex; align-items:center; gap:10px; padding:10px 16px; min-height:60px;}
+.topbar{display:flex; align-items:center; gap:10px; padding:10px 16px; min-height:60px; flex:none;}
 .topbar .spacer{flex:1;}
 .iconbtn{
   border:none; background:#fff; color:var(--ink); width:52px; height:52px; border-radius:50%;
@@ -85,7 +86,8 @@ body{
 .lvbtn .tx{flex:1;}
 .lvbtn .tx b{font-size:clamp(18px,3vmin,28px); display:block;}
 .lvbtn .tx i{font-style:normal; font-size:clamp(13px,2vmin,18px); color:var(--ink2);}
-.lvbtn .st{font-size:clamp(16px,2.6vmin,24px); letter-spacing:2px; color:var(--yellow); text-shadow:0 1px 0 rgba(0,0,0,.12);}
+.lvbtn .st{font-size:clamp(16px,2.6vmin,24px); letter-spacing:2px; color:var(--yellow); text-shadow:0 1px 0 rgba(0,0,0,.12); white-space:nowrap;}
+.lvbtn .st .scnt{display:none; color:var(--ink2); font-weight:900;}
 
 /* ---------- プレイ画面 ---------- */
 #play{display:none;}
@@ -99,14 +101,15 @@ body{
 .prompt{
   display:flex; align-items:center; gap:14px; justify-content:center;
   margin:0 14px; padding:clamp(10px,2vh,18px) 20px; background:#fff; border-radius:22px;
-  box-shadow:var(--shadow); min-height:clamp(64px,11vh,110px);
+  box-shadow:var(--shadow); min-height:clamp(64px,11vh,110px); flex:none;
 }
-.prompt .txt{font-size:clamp(20px,4.2vmin,40px); font-weight:900; letter-spacing:.04em; line-height:1.3; text-align:center;}
+.prompt .txt{font-size:clamp(20px,4.2vmin,40px); font-weight:900; letter-spacing:.04em; line-height:1.3; text-align:center;
+  word-break:keep-all; overflow-wrap:break-word;} /* 単語の途中で改行させない */
 .prompt .txt em{font-style:normal; color:var(--orange-d); background:linear-gradient(transparent 62%, #ffe08a 62%); padding:0 .1em;}
 .prompt .txt .num{color:#fff; background:var(--orange); border-radius:12px; padding:2px 12px; margin-right:2px; display:inline-block;}
 
 #board{
-  flex:1; position:relative; display:flex; align-items:center; justify-content:center;
+  flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center;
   align-content:center; flex-wrap:wrap;
   gap:clamp(6px,1.6vw,22px); margin:clamp(6px,1.4vh,16px) 14px; padding:8px;
 }
@@ -156,7 +159,8 @@ body{
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 #board.locked .item{pointer-events:none;}
 
-.bottombar{display:flex; align-items:center; justify-content:center; gap:14px; padding:0 16px calc(12px + env(safe-area-inset-bottom)); min-height:76px;}
+.bottombar{display:flex; align-items:center; justify-content:center; gap:14px; flex:none; flex-wrap:wrap;
+  padding:0 16px calc(12px + env(safe-area-inset-bottom)); min-height:76px;}
 
 /* ---------- フィードバック ---------- */
 #fx{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:20;}
@@ -197,6 +201,75 @@ body{
 .switch{display:inline-flex; align-items:center; gap:8px; font-weight:800; cursor:pointer;}
 .switch input{width:22px; height:22px;}
 .tip{background:#fff9e6; border-left:6px solid var(--yellow); padding:12px 14px; border-radius:10px; margin:10px 0; font-size:15px; line-height:1.8;}
+
+/* ================= スマホ（はばの せまい画面） ================= */
+@media (max-width:520px){
+  .menu{flex-direction:column; align-items:stretch; width:100%; gap:12px; padding:0 18px;}
+  .menu .btn{min-width:0; width:100%; font-size:26px; padding:16px 18px;}
+  .menu .btn span.sub{font-size:.46em; margin-top:4px;}
+  #home{gap:14px;}
+  #home h1{font-size:27px;}
+  #home h1 small{font-size:.52em; margin-top:6px;}
+  .mascot{font-size:62px;}
+  .homefoot{right:10px; top:10px;}
+
+  .lvbtn{width:94vw; gap:10px; padding:10px 12px; border-radius:18px;}
+  .lvbtn .no{width:42px; height:42px; font-size:20px;}
+  .lvbtn .tx b{font-size:17px;} .lvbtn .tx i{font-size:12px;}
+  /* せまい画面では ⭐を ならべず 「⭐×8」と まとめて出す */
+  .lvbtn .st{text-align:right; letter-spacing:0; font-size:15px; flex:none;}
+  .lvbtn .st .sfull{display:none;}
+  .lvbtn .st .scnt{display:inline;}
+
+  .topbar{padding:8px 10px; min-height:52px; gap:8px;}
+  .iconbtn{width:46px; height:46px; font-size:21px;}
+  .pill{padding:6px 12px; font-size:13px;}
+  .prompt{margin:0 8px; padding:10px 12px; gap:8px; min-height:56px;}
+  .prompt .txt{font-size:21px;}
+  .prompt .txt .num{padding:1px 9px; border-radius:9px;}
+  #board{margin:8px; gap:8px; padding:4px;}
+  #board.length{padding-left:2%;}
+  .bottombar{min-height:62px; gap:10px; padding:0 10px calc(8px + env(safe-area-inset-bottom));}
+  .bottombar .btn{padding:13px 18px; font-size:18px; border-radius:20px;}
+  .item .badge{font-size:12px; padding:3px 9px; border-width:2px;}
+
+  #result .score{font-size:26px;} #result .stars{font-size:26px; letter-spacing:2px; max-width:92vw;}
+  #result .msg{font-size:16px; padding:0 16px;}
+
+  #parent .wrap{padding:16px 12px 60px;}
+  #parent h2{font-size:19px;}
+  #parent p,#parent li{font-size:14px; line-height:1.7;}
+  #parent .card{padding:12px; overflow-x:auto;}
+  #parent table{font-size:12px; min-width:340px;}
+  #parent th,#parent td{padding:7px 6px;}
+  #parent input[type=text]{width:100%;}
+  #parent .row{gap:8px;}
+}
+/* ================= よこ向きスマホなど 高さの ひくい画面 ================= */
+@media (max-height:520px){
+  .topbar{min-height:44px; padding:5px 10px;}
+  .iconbtn{width:42px; height:42px; font-size:19px;}
+  .prompt{min-height:44px; padding:6px 12px; margin:0 10px;}
+  .prompt .txt{font-size:clamp(17px,4.4vh,26px);}
+  #board{margin:6px 10px; padding:2px;}
+  .bottombar{min-height:50px; padding:0 10px calc(6px + env(safe-area-inset-bottom));}
+  .bottombar .btn{padding:9px 16px; font-size:16px; border-radius:16px;}
+  .item .badge{font-size:11px; padding:2px 8px; border-width:2px;}
+
+  #home{gap:8px;}
+  .mascot{font-size:42px;}
+  #home h1{font-size:20px;}
+  #home h1 small{font-size:.6em; margin-top:2px;}
+  .menu{gap:10px;}
+  .menu .btn{padding:10px 18px; font-size:19px;}
+  .menu .btn span.sub{font-size:.55em; margin-top:2px;}
+  #levels .lvwrap{gap:8px;}
+  .lvbtn{padding:8px 12px;}
+  .lvbtn .no{width:38px; height:38px; font-size:18px;}
+  .lvbtn .tx b{font-size:16px;} .lvbtn .tx i{font-size:11px;}
+  #result{gap:8px;}
+  #result .score{font-size:22px;} #result .stars{font-size:22px;} #result .msg{font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -569,6 +642,7 @@ function layoutBoard(){
   const n = items.length; if(!n) return;
   const r = board.getBoundingClientRect();
   const gap = Math.max(6, r.width*0.016);
+  board.style.gap = '';
   if(board.classList.contains('size')){
     // 画面の形にあわせて 1段／2段 を自動でえらび、いちばん大きく見える配置にする
     // 絵文字は文字サイズより横に広く描かれる（≒1.26倍）。
@@ -582,10 +656,17 @@ function layoutBoard(){
       return {base:Math.min(cell/EW, rowH*0.86), cols:c, cell, rowH};
     };
     const one = fit(n);
-    let best = one;
-    for(let c=1;c<n;c++){ const f=fit(c); if(f.base>best.base) best=f; }
-    // よこ一列が基本。２段にしてもあまり大きくならないなら一列のまま
+    let best = one, bestScore = one.base;
+    // 段数がふえるほど見くらべにくくなるので、少しだけ不利にして比べる
+    for(let c=1;c<n;c++){
+      const f = fit(c), rows = Math.ceil(n/c);
+      const score = f.base * (rows===1 ? 1 : rows===2 ? 0.98 : 0.94);
+      if(score > bestScore){ best=f; bestScore=score; }
+    }
+    // よこ一列が基本。２段にしてもあまり大きくならないなら一列のまま。
+    // 3つ以下は見くらべやすさを優先して、じゅうぶん見える大きさなら必ず一列。
     if(best.base < one.base*1.35) best = one;
+    if(n<=3 && one.base>=56) best = one;
     items.forEach(el=>{
       const s=+el.dataset.scale;
       el.style.width = best.cell+'px'; el.style.height = Math.min(best.rowH, best.base*1.2)+'px';
@@ -593,7 +674,7 @@ function layoutBoard(){
     });
   }else if(board.classList.contains('height')){
     const cell = (r.width - gap*(n+1))/n;
-    const wdt  = Math.min(cell*0.68, r.height*0.15);
+    const wdt  = Math.max(16, Math.min(cell*0.7, r.height*0.18, 96));
     const H    = r.height*0.74;
     items.forEach(el=>{
       const s=+el.dataset.scale, sh=el.querySelector('.shape');
@@ -601,17 +682,32 @@ function layoutBoard(){
       sh.style.width = wdt+'px'; sh.style.height = (H*s)+'px';
     });
   }else{ // length
-    const rowH = Math.min((r.height - gap*(n+1))/n, r.height*0.22);
+    // 高さが足りない画面（よこ向きスマホ等）でも押せる行の高さを確保するため、すき間を詰める
+    const g2   = Math.max(4, Math.min(gap, r.height*0.03));
+    board.style.gap = g2+'px';
+    const rowH = Math.min((r.height - g2*(n-1))/n, r.height*0.26);
     const W    = r.width*0.86;
     items.forEach(el=>{
       const s=+el.dataset.scale, sh=el.querySelector('.shape');
       el.style.height = rowH+'px'; el.style.width = (W*s)+'px';
-      sh.style.width = '100%'; sh.style.height = Math.min(rowH*0.62, 54)+'px';
+      sh.style.width = '100%'; sh.style.height = Math.max(16, Math.min(rowH*0.7, 54))+'px';
     });
   }
 }
-window.addEventListener('resize', ()=>{ layoutBoard(); });
-window.addEventListener('orientationchange', ()=>setTimeout(layoutBoard,300));
+/* iOS Safari はアドレスバーの出入りで 100vh がずれるので、実際の表示高さを入れる */
+function setAppHeight(){
+  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  if(h) document.documentElement.style.setProperty('--app-h', Math.round(h)+'px');
+  layoutBoard();
+}
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', ()=>{ setAppHeight(); [120,400,800].forEach(t=>setTimeout(setAppHeight,t)); });
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', setAppHeight);
+  window.visualViewport.addEventListener('scroll', setAppHeight);
+}
+window.addEventListener('pageshow', setAppHeight);
+setAppHeight();
 
 /* FLIP：順番どおりに並べ替えるアニメーション */
 function flipReorder(mutate){
@@ -968,9 +1064,11 @@ function renderLevels(){
   LEVELS.forEach((L,i)=>{
     const b=document.createElement('button'); b.className='lvbtn';
     const best = state.best[i]||0;
+    const nStar = Math.min(best, QUIZ_LEN);
     b.innerHTML = `<span class="no">${i+1}</span>
       <span class="tx"><b>${L.name.replace(/^レベル\d+　/,'')}</b><i>${L.sub}</i></span>
-      <span class="st">${'⭐'.repeat(Math.min(best,QUIZ_LEN)) || '・・・'}</span>`;
+      <span class="st"><span class="sfull">${'⭐'.repeat(nStar) || '・・・'}</span>` +
+      `<span class="scnt">${nStar ? '⭐×'+nStar : '・・・'}</span></span>`;
     b.addEventListener('click', ()=>{ sfxTap(); startQuiz(i); });
     wrap.appendChild(b);
   });
