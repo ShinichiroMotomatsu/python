@@ -482,7 +482,8 @@ body{
         <li>「↩ もどす」で最後の1つを戻せます。置き終わったら「できた！」を押します。</li>
         <li>数が違うときは、アプリが<b>1つずつ数えながら</b>「いま3つだね、2つにしてみよう」と教えます。</li>
         <li>2回間違えると、置く場所と数がうすい丸で表示されます。</li>
-        <li>レベル1=色と場所／レベル2=数（2〜4）／レベル3=大小も指定／レベル4=指示が2つ。</li>
+        <li>レベル1=色と場所（1〜3個）／レベル2=数が増える（2〜5個）／レベル3=大小も指定（1〜4個）／レベル4=指示が2つ（個数も別々）。</li>
+        <li>個数は毎回変わります。同じ問題内の2つの指示は必ず違う個数になり、前の問題と同じ個数が続かないようにしています。</li>
       </ul>
       <div class="tip">
         実際の試験では「最後まで聞いてから動く」ことが見られます。おうちでは<b>「まだ動かないでね、最後まで聞いてね」</b>と前置きしてから指示を出し、
@@ -1289,16 +1290,16 @@ const ohSize  = id => OH_SIZES.find(x=>x.id===id);
 const ohShape = id => OH_SHAPES.find(x=>x.id===id);
 
 const OH_LEVELS = [
-  {name:'いろと ばしょ',     sub:'「あおい まるに あかい おはじきを 2つ」', nc:2, reqs:1, counts:[1,2],     useSize:false, kinds:2},
-  {name:'かずも きいてね',   sub:'2〜4つ・いれものは 3つ',                   nc:3, reqs:1, counts:[2,3,4],   useSize:false, kinds:3},
-  {name:'おおきさも きいてね', sub:'おおきい／ちいさい おはじき',            nc:3, reqs:1, counts:[1,2,3],   useSize:true,  kinds:4},
-  {name:'ふたつの おねがい', sub:'2つの しじを おぼえて おく',              nc:3, reqs:2, counts:[1,2,3],   useSize:true,  kinds:4}
+  {name:'いろと ばしょ',      sub:'1〜3つ・いれものは 2つ',        nc:2, reqs:1, counts:[1,2,3],     useSize:false, kinds:2},
+  {name:'かずも きいてね',    sub:'2〜5つ・いれものは 3つ',        nc:3, reqs:1, counts:[2,3,4,5],   useSize:false, kinds:3},
+  {name:'おおきさも きいてね', sub:'おおきい／ちいさい・1〜4つ',    nc:3, reqs:1, counts:[1,2,3,4],   useSize:true,  kinds:4},
+  {name:'ふたつの おねがい',  sub:'2つの しじ・かずも ちがうよ',   nc:3, reqs:2, counts:[1,2,3,4],   useSize:true,  kinds:4}
 ];
 const OH_LEN = 6;
 
 const OH = {
   level:0, qIndex:0, qList:[], score:0, hinted:0,
-  containers:[], kinds:[], req:[], sel:null, history:[],
+  containers:[], kinds:[], req:[], sel:null, history:[], lastCount:0,
   tries:0, busy:false, token:0, acceptAt:0, sayText:''
 };
 const ohAlive = t => OH.token===t;
@@ -1329,8 +1330,18 @@ function ohMake(level){
     if(level===0) cand = cand.filter(k=>k.colorId!==containers[ci].colorId).concat(cand.length?[]:cand);
     if(!cand.length) cand = kinds;
     const k = pick(cand); usedK.push(k);
-    req.push({ci, colorId:k.colorId, sizeId:L.useSize?k.sizeId:null, count:pick(L.counts)});
+    // かずは 毎回 かわるように：同じ問題の中では ちがう かず、
+    // 前の問題と まったく同じ かずの ならびにも しない
+    let cnt, guard2=0;
+    do{
+      cnt = pick(L.counts); guard2++;
+    }while(guard2<20 && (
+      req.some(r=>r.count===cnt) ||                              // 同じ問題内で かぶらない
+      (req.length===0 && L.counts.length>1 && cnt===OH.lastCount) // 前の問題と 同じ かずで 始めない
+    ));
+    req.push({ci, colorId:k.colorId, sizeId:L.useSize?k.sizeId:null, count:cnt});
   }
+  OH.lastCount = req[0].count;
   return {containers, kinds, req};
 }
 
@@ -1410,10 +1421,13 @@ function ohLayout(){
   const gap=Math.max(8, r.width*0.022);
   const cell=(r.width-gap*(nc+1))/nc;
   const side=Math.max(86, Math.min(cell, r.height*0.94, 340));
-  const pb=Math.max(16, side*0.23);
-  bd.querySelectorAll('.ohc').forEach(el=>{ el.style.width=side+'px'; el.style.height=side+'px'; });
-  bd.querySelectorAll('.ohc .ohp').forEach(el=>{
-    el.style.setProperty('--w', (el.dataset.size==='small'? pb*0.6 : pb)+'px');
+  bd.querySelectorAll('.ohc').forEach(el=>{
+    el.style.width=side+'px'; el.style.height=side+'px';
+    // 中の かずが ふえても はみ出さないように、おはじきの 大きさを 調整する
+    const ps=el.querySelectorAll('.ohp');
+    const ratio = ps.length<=2 ? 0.30 : ps.length<=4 ? 0.25 : ps.length<=6 ? 0.21 : 0.18;
+    const pb=Math.max(14, side*ratio);
+    ps.forEach(e=>e.style.setProperty('--w', (e.dataset.size==='small'? pb*0.6 : pb)+'px'));
   });
   const tr=$('#ohTray').getBoundingClientRect();
   const tp=Math.max(15, Math.min(tr.height*0.46, 56));
