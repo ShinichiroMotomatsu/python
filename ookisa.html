@@ -20,7 +20,7 @@
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
 /* タップ対象は指が少し動いても反応するように、ブラウザのジェスチャ判定を切る */
-.item,.screen:not(#parent) .btn,.iconbtn,.lvbtn{touch-action:none; -webkit-touch-callout:none;}
+.item,.screen:not(#parent) .btn,.iconbtn,.lvbtn,.ohc,.ohk{touch-action:none; -webkit-touch-callout:none;}
 #parent .btn{touch-action:manipulation;}
 .item.pressed{transform:scale(.93);}
 .btn.pressed,.lvbtn.pressed{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.16);}
@@ -206,6 +206,49 @@ body{
 .switch input{width:22px; height:22px;}
 .tip{background:#fff9e6; border-left:6px solid var(--yellow); padding:12px 14px; border-radius:10px; margin:10px 0; font-size:15px; line-height:1.8;}
 
+/* ---------- おはじき ---------- */
+.ohwrap{flex:1; min-height:0; display:flex; flex-direction:column;}
+#ohBoard{flex:1; min-height:0; display:flex; align-items:center; justify-content:center;
+  flex-wrap:wrap; align-content:center; gap:clamp(8px,2.2vw,28px); padding:clamp(6px,1.4vh,14px) 12px;}
+.ohc{
+  position:relative; display:flex; align-items:center; justify-content:center;
+  flex-wrap:wrap; align-content:center; gap:5%; padding:7%;
+  border:7px solid var(--c); background:var(--bgc); border-radius:22px;
+  cursor:pointer; transition:transform .1s, box-shadow .2s; flex:none;
+}
+.ohc.circle{border-radius:50%;}
+.ohc.pressed{transform:scale(.97);}
+.ohc.focus{box-shadow:0 0 0 6px rgba(255,159,67,.85); animation:ohfocus 1.1s ease-in-out infinite;}
+@keyframes ohfocus{0%,100%{box-shadow:0 0 0 5px rgba(255,159,67,.9);}50%{box-shadow:0 0 0 16px rgba(255,159,67,.12);}}
+.ohp{
+  width:var(--w,30px); height:var(--w,30px); border-radius:50%; flex:none; pointer-events:none;
+  background:radial-gradient(circle at 33% 27%, rgba(255,255,255,.85), rgba(255,255,255,0) 46%), var(--c);
+  box-shadow:0 2px 0 rgba(0,0,0,.20), inset 0 -3px 7px rgba(0,0,0,.20);
+  animation:ohpop .3s cubic-bezier(.2,1.7,.4,1);
+}
+.ohp.ghost{opacity:.4; background:none; border:3px dashed var(--c); box-shadow:none; animation:none;}
+.ohp.cnt{animation:ohcnt .5s;}
+@keyframes ohpop{from{transform:scale(.2); opacity:0;}to{transform:scale(1); opacity:1;}}
+@keyframes ohcnt{0%,100%{transform:scale(1);}45%{transform:scale(1.45);}}
+
+#ohTray{
+  flex:none; display:flex; align-items:center; justify-content:center; gap:clamp(8px,2vw,22px);
+  height:clamp(84px,16vh,152px); margin:0 10px calc(10px + env(safe-area-inset-bottom));
+  padding:6px 10px; border-radius:22px; background:rgba(255,255,255,.62); box-shadow:inset 0 2px 8px rgba(0,0,0,.06);
+}
+#ohTray.hintpulse{animation:pulse 1s ease-in-out infinite;}
+.ohk{
+  display:flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:18px;
+  border:4px solid transparent; background:#fff; box-shadow:0 3px 0 rgba(0,0,0,.10); cursor:pointer;
+  transition:transform .12s, border-color .15s, background .15s;
+}
+.ohk.sel{border-color:var(--orange); background:#fff6e6; transform:translateY(-5px); box-shadow:0 6px 0 rgba(0,0,0,.10);}
+.ohk.pressed{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.10);}
+.ohk .ohp{animation:none;}
+.ohk .ohp + .ohp{margin-left:calc(var(--w,30px) * -0.42);}
+.prompt .txt b.ohc-w{font-weight:900;}
+.prompt .txt.long{font-size:clamp(16px,3.1vmin,28px);}
+
 /* ================= スマホ（はばの せまい画面） ================= */
 @media (max-width:520px){
   .menu{flex-direction:column; align-items:stretch; width:100%; gap:12px; padding:0 18px;}
@@ -248,6 +291,10 @@ body{
   #parent th,#parent td{padding:7px 6px;}
   #parent input[type=text]{width:100%;}
   #parent .row{gap:8px;}
+  #ohBoard{gap:8px; padding:6px;}
+  #ohTray{height:78px; gap:8px; margin:0 8px calc(8px + env(safe-area-inset-bottom)); padding:5px 6px;}
+  .ohk{padding:6px 9px; border-radius:14px; border-width:3px;}
+  .ohc{border-width:5px;}
 }
 /* ================= よこ向きスマホなど 高さの ひくい画面 ================= */
 @media (max-height:520px){
@@ -273,6 +320,10 @@ body{
   .lvbtn .tx b{font-size:16px;} .lvbtn .tx i{font-size:11px;}
   #result{gap:8px;}
   #result .score{font-size:22px;} #result .stars{font-size:22px;} #result .msg{font-size:14px;}
+  #ohTray{height:64px; margin:0 8px calc(5px + env(safe-area-inset-bottom));}
+  .ohk{padding:5px 8px;}
+  #ohBoard{padding:4px 8px;}
+  .ohc{border-width:5px;}
 }
 </style>
 </head>
@@ -285,10 +336,11 @@ body{
       <button class="iconbtn" id="btnParent" title="おうちのかた">⚙️</button>
     </div>
     <div class="mascot">🐯</div>
-    <h1>おおきさ じゅんばん<small>1ばんめ・2ばんめ・3ばんめ の れんしゅう</small></h1>
+    <h1>おおきさ と おはじき<small>じゅんばん ／ おはじきの れんしゅう</small></h1>
     <div class="menu">
       <button class="btn green" id="btnLesson">まなぶ<span class="sub">じゅんばんの きまりを おぼえる</span></button>
-      <button class="btn orange" id="btnQuiz">もんだい<span class="sub">こたえて みよう</span></button>
+      <button class="btn orange" id="btnQuiz">もんだい<span class="sub">おおきさの じゅんばん</span></button>
+      <button class="btn blue" id="btnOh">おはじき<span class="sub">いわれた とおりに おいてみよう</span></button>
     </div>
     <div class="pill" id="homeStars">⭐ 0</div>
   </section>
@@ -327,7 +379,35 @@ body{
     </div>
     <div id="board"></div>
     <div class="bottombar" id="bottombar"></div>
-    <div id="fx"><div class="stamp" id="stamp"></div><div class="toast" id="toast"></div></div>
+  </section>
+
+  <!-- ========== おはじき：レベル選択 ========== -->
+  <section class="screen" id="ohLevels">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <div class="pill">おはじき　どれに する？</div>
+      <div class="spacer"></div>
+    </div>
+    <div class="lvwrap" id="ohList"></div>
+  </section>
+
+  <!-- ========== おはじき：れんしゅう ========== -->
+  <section class="screen" id="oh">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <div class="progress" id="ohProgress"></div>
+      <div class="spacer"></div>
+      <div class="pill" id="ohInfo"></div>
+    </div>
+    <div class="prompt">
+      <div class="txt" id="ohTxt">じゅんび ちゅう…</div>
+      <button class="iconbtn" id="ohSpeak" title="もういちど きく">🔊</button>
+    </div>
+    <div class="ohwrap">
+      <div id="ohBoard"></div>
+      <div id="ohTray"></div>
+    </div>
+    <div class="bottombar" id="ohBottom"></div>
   </section>
 
   <!-- ========== けっか ========== -->
@@ -395,6 +475,21 @@ body{
         <li>「小さい方」から数える問題も出ます。<b>数え始める向き</b>が変わることに気づけたら大きな前進です。</li>
       </ul>
 
+      <h2>おはじき（しじの ききとり）</h2>
+      <p>「青い丸の中に赤いおはじきを2つ入れてください」のように、<b>色・大きさ・置く場所・数</b>をまとめて聞き取り、その通りに操作できるかの練習です。指示は音声でも読み上げます（🔊で聞き直せます）。</p>
+      <ul>
+        <li>下のトレイでおはじきの種類を<b>選んでから</b>、入れものをタップすると1つ置けます。続けてタップすれば何個でも置けます。</li>
+        <li>「↩ もどす」で最後の1つを戻せます。置き終わったら「できた！」を押します。</li>
+        <li>数が違うときは、アプリが<b>1つずつ数えながら</b>「いま3つだね、2つにしてみよう」と教えます。</li>
+        <li>2回間違えると、置く場所と数がうすい丸で表示されます。</li>
+        <li>レベル1=色と場所（1〜3個）／レベル2=数が増える（2〜5個）／レベル3=大小も指定（1〜4個）／レベル4=指示が2つ（個数も別々）。</li>
+        <li>個数は毎回変わります。同じ問題内の2つの指示は必ず違う個数になり、前の問題と同じ個数が続かないようにしています。</li>
+      </ul>
+      <div class="tip">
+        実際の試験では「最後まで聞いてから動く」ことが見られます。おうちでは<b>「まだ動かないでね、最後まで聞いてね」</b>と前置きしてから指示を出し、
+        言い終わってから<b>「どうぞ」</b>と合図する練習をすると効果的です。うまくいかないときは、指示を「色」「場所」「数」の順に一つずつ区切って伝え、慣れたらつなげてください。
+      </div>
+
       <h2>もんだいの こうせい</h2>
       <ul>
         <li><b>レベル1</b>：3つ／大きい方から（1〜3ばんめ）</li>
@@ -405,6 +500,8 @@ body{
       <p style="color:#8a8271;font-size:13px">※ 記録はこのタブレットの中だけに保存されます（localStorage）。</p>
     </div>
   </section>
+
+  <div id="fx"><div class="stamp" id="stamp"></div><div class="toast" id="toast"></div></div>
 </div>
 
 <script>
@@ -451,7 +548,7 @@ const QUIZ_LEN = 8;
 
 /* ---------------- 保存データ ---------------- */
 const KEY = 'ookisa_v1';
-const DEFAULT_STATE = { stars:0, lessonDone:0, best:[0,0,0,0], settings:{voice:true, name:''}, stats:{}, log:[] };
+const DEFAULT_STATE = { stars:0, lessonDone:0, best:[0,0,0,0], ohBest:[0,0,0,0], settings:{voice:true, name:''}, stats:{}, log:[] };
 let state = load();
 function load(){
   try{
@@ -558,7 +655,7 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ try{ S
    click は指が数ミリ動くだけで発火しないことがあるため、
    pointerdown（＝指が触れた瞬間）で反応させ、あとから来る click は捨てる。
 --------------------------------------------- */
-const TAPPABLE = '.item,.btn,.iconbtn,.lvbtn';
+const TAPPABLE = '.item,.btn,.iconbtn,.lvbtn,.ohc,.ohk';
 let fastEl=null, fastAt=0;
 document.addEventListener('pointerdown', e=>{
   if(!(e.target instanceof Element)) return;
@@ -600,6 +697,7 @@ function show(id){
 function goHome(){
   stopSpeak();
   P.mode=null; P.phase=null; P.busy=false; P.token++;
+  OH.token++; OH.busy=false;
   show('home');
 }
 $$('[data-home]').forEach(b=>b.addEventListener('click', goHome));
@@ -712,7 +810,7 @@ function layoutBoard(){
 function setAppHeight(){
   const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
   if(h) document.documentElement.style.setProperty('--app-h', Math.round(h)+'px');
-  layoutBoard();
+  layoutBoard(); if(typeof ohLayout==='function') ohLayout();
 }
 window.addEventListener('resize', setAppHeight);
 window.addEventListener('orientationchange', ()=>{ setAppHeight(); [120,400,800].forEach(t=>setTimeout(setAppHeight,t)); });
@@ -1052,10 +1150,13 @@ function showResult(){
       ? 'ぜんぶ できたね！ すごい！'
       : (hint>0 ? '✨は ヒントを つかった もんだいだよ。<br>つぎは じぶんで やってみよう！' : 'つづけて れんしゅう しよう！');
   $('#resMascot').textContent = (got+hint===total) ? '🏆' : '🐯';
+  $('#resAgain').dataset.mode = 'quiz';
   sfxFanfare();
   speak(got+hint===total ? `${nameCall()}ぜんぶ できたね。すごい` : `${nameCall()}よく がんばりました`);
 }
-$('#resAgain').addEventListener('click', ()=>startQuiz(P.level));
+$('#resAgain').addEventListener('click', ()=>{
+  if($('#resAgain').dataset.mode==='oh') startOh(OH.level); else startQuiz(P.level);
+});
 
 /* ---------- 下部ボタン ---------- */
 function bottom(list){
@@ -1118,7 +1219,7 @@ function renderParent(){
     const f = r.ok ? (r.hint?'hint':'ok') : 'ng';
     k[f]++; t[f]++;
   });
-  const label={size:'おおきさ',height:'たかさ',length:'ながさ'};
+  const label={size:'おおきさ',height:'たかさ',length:'ながさ',ohajiki:'おはじき'};
   const rows = v => {
     const tot=v.ok+v.hint+v.ng; const pct=tot?Math.round(v.ok/tot*100):0;
     return `<td>${tot}</td><td>${v.ok}</td><td>${v.hint}</td><td class="rate">${tot?pct+'%':'—'}
@@ -1170,6 +1271,370 @@ $('#btnReset').addEventListener('click', ()=>{
     state = JSON.parse(JSON.stringify(DEFAULT_STATE)); save(); renderParent(); show('home');
   }
 });
+
+/* =========================================================
+   （F）おはじき：いわれた とおりに おく れんしゅう
+       いろ・おおきさ・おく ばしょ・かず の しじを 聞きとる
+   ========================================================= */
+const OH_COLORS = [
+  {id:'red',    name:'あかい',   c:'#ff5a5f', d:'#c62f36', bg:'rgba(255,90,95,.12)'},
+  {id:'blue',   name:'あおい',   c:'#3f9fe0', d:'#1f6d9e', bg:'rgba(63,159,224,.12)'},
+  {id:'yellow', name:'きいろい', c:'#ffc93c', d:'#b8820a', bg:'rgba(255,201,60,.16)'},
+  {id:'green',  name:'みどりの', c:'#5ec46a', d:'#2e7c3a', bg:'rgba(94,196,106,.12)'}
+];
+const OH_SIZES  = [{id:'big', name:'おおきい'}, {id:'small', name:'ちいさい'}];
+const OH_SHAPES = [{id:'circle', name:'まる'}, {id:'square', name:'しかく'}];
+const KANA_CNT  = {1:'ひとつ',2:'ふたつ',3:'みっつ',4:'よっつ',5:'いつつ'};
+const ohColor = id => OH_COLORS.find(x=>x.id===id);
+const ohSize  = id => OH_SIZES.find(x=>x.id===id);
+const ohShape = id => OH_SHAPES.find(x=>x.id===id);
+
+const OH_LEVELS = [
+  {name:'いろと ばしょ',      sub:'1〜3つ・いれものは 2つ',        nc:2, reqs:1, counts:[1,2,3],     useSize:false, kinds:2},
+  {name:'かずも きいてね',    sub:'2〜5つ・いれものは 3つ',        nc:3, reqs:1, counts:[2,3,4,5],   useSize:false, kinds:3},
+  {name:'おおきさも きいてね', sub:'おおきい／ちいさい・1〜4つ',    nc:3, reqs:1, counts:[1,2,3,4],   useSize:true,  kinds:4},
+  {name:'ふたつの おねがい',  sub:'2つの しじ・かずも ちがうよ',   nc:3, reqs:2, counts:[1,2,3,4],   useSize:true,  kinds:4}
+];
+const OH_LEN = 6;
+
+const OH = {
+  level:0, qIndex:0, qList:[], score:0, hinted:0,
+  containers:[], kinds:[], req:[], sel:null, history:[], lastCount:0,
+  tries:0, busy:false, token:0, acceptAt:0, sayText:''
+};
+const ohAlive = t => OH.token===t;
+
+/* ---------- 問題づくり ---------- */
+function ohMake(level){
+  const L = OH_LEVELS[level];
+  const ccols = shuffle(OH_COLORS).slice(0, L.nc);
+  const containers = ccols.map((c,i)=>({colorId:c.id, shapeId:pick(OH_SHAPES).id, pieces:[]}));
+  if(containers.length>1 && containers.every(c=>c.shapeId===containers[0].shapeId)){
+    containers[0].shapeId = OH_SHAPES.find(s=>s.id!==containers[0].shapeId).id;
+  }
+  // トレイに ならべる おはじきの しゅるい
+  let kinds=[];
+  if(L.useSize){
+    shuffle(OH_COLORS).slice(0,2).forEach(c=>OH_SIZES.forEach(s=>kinds.push({colorId:c.id, sizeId:s.id})));
+  }else{
+    shuffle(OH_COLORS).slice(0,L.kinds).forEach(c=>kinds.push({colorId:c.id, sizeId:'big'}));
+  }
+  kinds = shuffle(kinds).slice(0, L.kinds);
+  // しじ
+  const req=[], usedC=[], usedK=[];
+  for(let i=0;i<L.reqs;i++){
+    let ci, guard=0;
+    do{ ci=rnd(containers.length); guard++; }while(usedC.includes(ci) && guard<30);
+    usedC.push(ci);
+    let cand = kinds.filter(k=>!usedK.some(u=>u.colorId===k.colorId&&u.sizeId===k.sizeId));
+    if(level===0) cand = cand.filter(k=>k.colorId!==containers[ci].colorId).concat(cand.length?[]:cand);
+    if(!cand.length) cand = kinds;
+    const k = pick(cand); usedK.push(k);
+    // かずは 毎回 かわるように：同じ問題の中では ちがう かず、
+    // 前の問題と まったく同じ かずの ならびにも しない
+    let cnt, guard2=0;
+    do{
+      cnt = pick(L.counts); guard2++;
+    }while(guard2<20 && (
+      req.some(r=>r.count===cnt) ||                              // 同じ問題内で かぶらない
+      (req.length===0 && L.counts.length>1 && cnt===OH.lastCount) // 前の問題と 同じ かずで 始めない
+    ));
+    req.push({ci, colorId:k.colorId, sizeId:L.useSize?k.sizeId:null, count:cnt});
+  }
+  OH.lastCount = req[0].count;
+  return {containers, kinds, req};
+}
+
+/* ---------- ことば ---------- */
+function ohPhrase(r, containers){
+  const col=ohColor(r.colorId), sz=r.sizeId?ohSize(r.sizeId):null;
+  const cc=containers[r.ci], ccol=ohColor(cc.colorId), csh=ohShape(cc.shapeId);
+  return {
+    html:`<em>${ccol.name} ${csh.name}</em>の なかに、` +
+         `${sz?sz.name+' ':''}<b class="ohc-w" style="color:${col.d}">${col.name}</b> おはじきを ` +
+         `<span class="num">${r.count}</span>つ`,
+    say :`${ccol.name} ${csh.name}の なかに、${sz?sz.name+' ':''}${col.name} おはじきを ${KANA_CNT[r.count]}`
+  };
+}
+function ohInstruction(){
+  const ps = OH.req.map(r=>ohPhrase(r, OH.containers));
+  return {
+    html: ps.map(p=>p.html).join('、<br>') + ' いれて ください',
+    say : ps.map(p=>p.say).join('、') + ' いれて ください'
+  };
+}
+const ohCName = ci => {
+  const c=OH.containers[ci];
+  return `${ohColor(c.colorId).name} ${ohShape(c.shapeId).name}`;
+};
+
+/* ---------- びょうが ---------- */
+function ohPieceEl(colorId, sizeId, cls){
+  const el=document.createElement('span');
+  el.className='ohp'+(cls?' '+cls:'');
+  el.dataset.size=sizeId; el.dataset.color=colorId;
+  el.style.setProperty('--c', ohColor(colorId).c);
+  return el;
+}
+function ohRender(){
+  const bd=$('#ohBoard'); bd.innerHTML='';
+  OH.containers.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='ohc '+c.shapeId;
+    el.dataset.ci=i;
+    el.style.setProperty('--c', ohColor(c.colorId).c);
+    el.style.setProperty('--bgc', ohColor(c.colorId).bg);
+    el.addEventListener('click', ()=>ohTapContainer(i));
+    bd.appendChild(el);
+  });
+  const tr=$('#ohTray'); tr.innerHTML='';
+  OH.kinds.forEach((k,i)=>{
+    const el=document.createElement('div');
+    el.className='ohk'; el.dataset.ki=i;
+    for(let j=0;j<3;j++) el.appendChild(ohPieceEl(k.colorId, k.sizeId));
+    el.addEventListener('click', ()=>ohSelect(i));
+    tr.appendChild(el);
+  });
+  ohPaint(); ohLayout();
+}
+function ohPaint(){
+  // いれものの中身
+  OH.containers.forEach((c,i)=>{
+    const el=$(`#ohBoard .ohc[data-ci="${i}"]`); if(!el) return;
+    const keep=[...el.querySelectorAll('.ohp:not(.ghost)')];
+    if(keep.length>c.pieces.length){ keep.slice(c.pieces.length).forEach(e=>e.remove()); }
+    c.pieces.forEach((p,j)=>{
+      if(!keep[j]) el.appendChild(ohPieceEl(p.colorId, p.sizeId));
+    });
+  });
+  // トレイの えらばれている しゅるい
+  $$('#ohTray .ohk').forEach(el=>{
+    el.classList.toggle('sel', OH.sel!==null && +el.dataset.ki===OH.sel);
+  });
+  ohLayout();
+}
+function ohLayout(){
+  // 画面を作る前にも呼ばれるので、DOMだけを見て判断する
+  const bd=$('#ohBoard'); if(!bd) return;
+  const nc=bd.querySelectorAll('.ohc').length; if(!nc) return;
+  const r=bd.getBoundingClientRect();
+  const gap=Math.max(8, r.width*0.022);
+  const cell=(r.width-gap*(nc+1))/nc;
+  const side=Math.max(86, Math.min(cell, r.height*0.94, 340));
+  bd.querySelectorAll('.ohc').forEach(el=>{
+    el.style.width=side+'px'; el.style.height=side+'px';
+    // 中の かずが ふえても はみ出さないように、おはじきの 大きさを 調整する
+    const ps=el.querySelectorAll('.ohp');
+    const ratio = ps.length<=2 ? 0.30 : ps.length<=4 ? 0.25 : ps.length<=6 ? 0.21 : 0.18;
+    const pb=Math.max(14, side*ratio);
+    ps.forEach(e=>e.style.setProperty('--w', (e.dataset.size==='small'? pb*0.6 : pb)+'px'));
+  });
+  const tr=$('#ohTray').getBoundingClientRect();
+  const tp=Math.max(15, Math.min(tr.height*0.46, 56));
+  $$('#ohTray .ohk .ohp').forEach(el=>{
+    el.style.setProperty('--w', (el.dataset.size==='small'? tp*0.6 : tp)+'px');
+  });
+}
+
+/* ---------- そうさ ---------- */
+function ohSelect(ki){
+  if(OH.busy) return;
+  sfxTap(); OH.sel=ki;
+  $('#ohTray').classList.remove('hintpulse');
+  ohPaint();
+}
+function ohTapContainer(ci){
+  if(OH.busy || Date.now()<OH.acceptAt) return;
+  if(OH.sel===null){
+    sfxTap(); toast('したの おはじきを えらんでね', 1600);
+    speak('したの おはじきを えらんでね');
+    $('#ohTray').classList.add('hintpulse');
+    setTimeout(()=>$('#ohTray').classList.remove('hintpulse'), 2600);
+    return;
+  }
+  const c=OH.containers[ci];
+  if(c.pieces.length>=8) return;
+  const k=OH.kinds[OH.sel];
+  c.pieces.push({colorId:k.colorId, sizeId:k.sizeId});
+  OH.history.push(ci);
+  sfxPlace();
+  $$('#ohBoard .ohc').forEach(e=>e.classList.remove('focus'));
+  $$('#ohBoard .ohp.ghost').forEach(e=>e.remove());
+  ohPaint();
+}
+function ohUndo(){
+  if(OH.busy) return;
+  const ci=OH.history.pop();
+  if(ci===undefined){ toast('まだ おいて ないよ'); return; }
+  OH.containers[ci].pieces.pop();
+  tone(480,.10,0,'triangle',.12);
+  ohPaint();
+}
+
+/* ---------- こたえあわせ ---------- */
+function ohJudge(){
+  for(let i=0;i<OH.containers.length;i++){
+    if(OH.req.some(r=>r.ci===i)) continue;
+    if(OH.containers[i].pieces.length){
+      const t=ohCName(OH.req[0].ci);
+      return {ok:false, focus:OH.req[0].ci, msg:`${ohCName(i)}では ないよ。<br><em>${t}</em>の なかに いれてね`,
+              say:`${ohCName(i)}では ないよ。${t}の なかに いれてね`};
+    }
+  }
+  for(const r of OH.req){
+    const ps=OH.containers[r.ci].pieces, col=ohColor(r.colorId), nm=ohCName(r.ci);
+    if(!ps.length)
+      return {ok:false, focus:r.ci, msg:`<em>${nm}</em>の なかに いれてね`, say:`${nm}の なかに いれてね`};
+    if(ps.some(p=>p.colorId!==r.colorId))
+      return {ok:false, focus:r.ci, msg:`おはじきの いろが ちがうよ。<br><em>${col.name}</em> おはじきだよ`,
+              say:`おはじきの いろが ちがうよ。${col.name} おはじき だよ`};
+    if(r.sizeId && ps.some(p=>p.sizeId!==r.sizeId)){
+      const sz=ohSize(r.sizeId);
+      return {ok:false, focus:r.ci, msg:`おおきさが ちがうよ。<br><em>${sz.name}</em> おはじきだよ`,
+              say:`おおきさが ちがうよ。${sz.name} おはじき だよ`};
+    }
+    if(ps.length!==r.count)
+      return {ok:false, focus:r.ci, count:true, need:r.count,
+              msg:`かずが ちがうみたい。かぞえて みよう！`, say:'かずが ちがうみたい。かぞえて みよう'};
+  }
+  return {ok:true};
+}
+// まちがいが「かず」のときは、いっしょに かぞえて みせる
+async function ohCountAloud(ci, need){
+  const tk=OH.token;
+  const el=$(`#ohBoard .ohc[data-ci="${ci}"]`); if(!el) return;
+  const ps=[...el.querySelectorAll('.ohp:not(.ghost)')];
+  for(let i=0;i<ps.length;i++){
+    if(!ohAlive(tk)) return;
+    ps[i].classList.add('cnt'); tone(600+i*80,.12);
+    speak(KANA_CNT[i+1] || String(i+1));
+    await waitStep(520, 520);
+    if(!ohAlive(tk)) return;
+    ps[i].classList.remove('cnt');
+  }
+  if(!ohAlive(tk)) return;
+  ohSetPrompt(`いま <span class="num">${ps.length}</span>つ だね。<br><em>${need}つ</em>に して みよう！`,
+              `いま ${KANA_CNT[ps.length]||ps.length} だね。${KANA_CNT[need]}に して みよう`);
+}
+async function ohDone(){
+  if(OH.busy) return;
+  const tk=OH.token;
+  const v=ohJudge();
+  if(v.ok){
+    OH.busy=true;
+    sfxCorrect(); stamp('◯','#3fb87a');
+    ohSetPrompt(`${nameCall()}${pick(PRAISE)}<br>いわれた とおりに できたね！`,
+                `${pick(PRAISE)} いわれた とおりに できたね`);
+    ohBottom([]);
+    await waitStep(1700);
+    if(!ohAlive(tk)) return;
+    OH.busy=false;
+    ohFinish(true, OH.tries>=2);
+    return;
+  }
+  OH.tries++;
+  sfxWrong(); stamp('？','#ff9f43');
+  const el=$(`#ohBoard .ohc[data-ci="${v.focus}"]`); if(el) el.classList.add('focus');
+  ohSetPrompt(v.msg, v.say);
+  if(v.count){ OH.busy=true; await ohCountAloud(v.focus, v.need); OH.busy=false; if(!ohAlive(tk)) return; }
+  if(OH.tries>=2){
+    // ヒント：おく ばしょと かずを うすく みせる
+    let ghosts=0;
+    OH.req.forEach(r=>{
+      const c=$(`#ohBoard .ohc[data-ci="${r.ci}"]`); if(!c) return;
+      c.classList.add('focus');
+      const have=c.querySelectorAll('.ohp:not(.ghost)').length;
+      for(let i=have;i<r.count;i++){ c.appendChild(ohPieceEl(r.colorId, r.sizeId||'big','ghost')); ghosts++; }
+    });
+    ohLayout();
+    if(ghosts) $('#ohTxt').insertAdjacentHTML('beforeend','<br><span style="font-size:.66em">うすい まるの ところに おいて みよう</span>');
+  }
+  // しばらくしたら、もういちど しじを 出して 聞かせる
+  setTimeout(()=>{
+    if(!ohAlive(tk) || OH.busy) return;
+    const ins=ohInstruction();
+    ohSetPrompt(ins.html, ins.say);
+  }, 2800);
+}
+
+/* ---------- がめん ---------- */
+function ohSetPrompt(html, say){
+  const el=$('#ohTxt');
+  el.innerHTML=html;
+  el.classList.toggle('long', el.textContent.length>34);
+  if(say){ OH.sayText=say; speak(say); }
+}
+function ohBottom(list){
+  const bar=$('#ohBottom'); bar.innerHTML='';
+  list.forEach(b=>{
+    const el=document.createElement('button');
+    el.className='btn '+(b.cls||'')+(b.cls==='ghost'?' small':'');
+    el.textContent=b.t; el.addEventListener('click', ()=>{ sfxTap(); b.fn(); });
+    bar.appendChild(el);
+  });
+}
+function ohMarkProgress(i, cls){ const d=$('#ohProgress').children; if(d[i]) d[i].className=cls; }
+
+function startOh(level){
+  OH.token++; OH.level=level; OH.qIndex=0; OH.score=0; OH.hinted=0; OH.busy=false;
+  OH.qList=new Array(OH_LEN).fill(0);
+  $('#ohInfo').textContent=`おはじき ${level+1}`;
+  $('#ohProgress').innerHTML=OH.qList.map(()=>'<i></i>').join('');
+  show('oh');
+  ohNext();
+}
+function ohNext(){
+  OH.token++;
+  const q=ohMake(OH.level);
+  OH.containers=q.containers; OH.kinds=q.kinds; OH.req=q.req;
+  OH.sel = OH.kinds.length===1 ? 0 : null;
+  OH.history=[]; OH.tries=0; OH.busy=false; OH.acceptAt=Date.now()+250;
+  ohRender();
+  [...$('#ohProgress').children].forEach((d,i)=>d.classList.toggle('now', i===OH.qIndex));
+  const ins=ohInstruction();
+  ohSetPrompt(ins.html, ins.say);
+  ohBottom([{t:'↩ もどす', cls:'ghost', fn:ohUndo}, {t:'できた！', cls:'green', fn:ohDone}]);
+}
+function ohFinish(ok, hinted){
+  state.log.push({t:Date.now(), type:'ohajiki', k:0, n:OH.level+1, ok:!!ok, hint:!!hinted});
+  if(state.log.length>200) state.log=state.log.slice(-200);
+  if(ok && !hinted){ OH.score++; state.stars++; } else if(ok){ OH.hinted++; }
+  save();
+  ohMarkProgress(OH.qIndex, hinted?'hint':'ok');
+  OH.qIndex++;
+  const tk=OH.token;
+  if(OH.qIndex>=OH.qList.length) setTimeout(()=>{ if(ohAlive(tk)) ohResult(); }, 400);
+  else setTimeout(()=>{ if(ohAlive(tk)) ohNext(); }, 400);
+}
+function ohResult(){
+  show('result');
+  const total=OH.qList.length, got=OH.score, hint=OH.hinted;
+  state.ohBest[OH.level]=Math.max(state.ohBest[OH.level]||0, got); save();
+  $('#resScore').textContent=`${total}もん ちゅう ${got+hint}もん できた！`;
+  $('#resStars').textContent='⭐'.repeat(got)+'✨'.repeat(hint) || '💪';
+  $('#resMsg').innerHTML = got+hint===total ? 'いわれた とおりに ぜんぶ できたね！'
+     : 'よく きいて できたね。もういちど やって みよう！';
+  $('#resMascot').textContent=(got+hint===total)?'🏆':'🐯';
+  $('#resAgain').dataset.mode='oh';
+  sfxFanfare();
+  speak(got+hint===total ? `${nameCall()}ぜんぶ できたね。すごい` : `${nameCall()}よく がんばりました`);
+}
+function renderOhLevels(){
+  const wrap=$('#ohList'); wrap.innerHTML='';
+  OH_LEVELS.forEach((L,i)=>{
+    const b=document.createElement('button'); b.className='lvbtn';
+    const best=state.ohBest[i]||0, nStar=Math.min(best, OH_LEN);
+    b.innerHTML=`<span class="no">${i+1}</span>
+      <span class="tx"><b>${L.name}</b><i>${L.sub}</i></span>
+      <span class="st"><span class="sfull">${'⭐'.repeat(nStar)||'・・・'}</span>` +
+      `<span class="scnt">${nStar?'⭐×'+nStar:'・・・'}</span></span>`;
+    b.addEventListener('click', ()=>{ sfxTap(); startOh(i); });
+    wrap.appendChild(b);
+  });
+}
+$('#btnOh').addEventListener('click', ()=>{ sfxTap(); renderOhLevels(); show('ohLevels'); });
+$('#ohSpeak').addEventListener('click', ()=>{ if(OH.sayText) speak(OH.sayText); });
+$('#oh').addEventListener('pointerdown', ()=>{ if(skipNow) skipNow(); }, true);
 
 /* 起動 */
 show('home');
