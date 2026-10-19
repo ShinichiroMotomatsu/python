@@ -448,6 +448,10 @@ body{
         </div>
         <div id="voiceDiag" style="font-size:14px;color:#6b6152"></div>
         <div class="row">
+          <label class="switch"><input type="checkbox" id="setOhCount"> おはじきを おくたびに かぞえる</label>
+        </div>
+        <p style="font-size:13px;color:#8a8271;margin:0">1つ置くたびに「ひとつ・ふたつ…」と読み上げ、手が止まると「ぜんぶで よっつ」と言い切ります。4つ以上の数が曖昧なうちはONのままが有効です。</p>
+        <div class="row">
           <label for="setName" style="font-weight:800">おなまえ（ほめるときに よびます）</label>
           <input type="text" id="setName" placeholder="れい：しろちゃん" maxlength="8">
         </div>
@@ -484,7 +488,20 @@ body{
         <li>2回間違えると、置く場所と数がうすい丸で表示されます。</li>
         <li>レベル1=色と場所（1〜3個）／レベル2=数が増える（2〜5個）／レベル3=大小も指定（1〜4個）／レベル4=指示が2つ（個数も別々）。</li>
         <li>個数は毎回変わります。同じ問題内の2つの指示は必ず違う個数になり、前の問題と同じ個数が続かないようにしています。</li>
+        <li>置くたびに「ひとつ・ふたつ…」と読み上げ、手が止まると「ぜんぶで よっつ」と言い切ります（上の設定でOFFにできます）。置いた音も1つごとに高くなります。</li>
       </ul>
+      <div class="tip">
+        <b>4つ以上が あいまいなとき</b><br>
+        3つまでは「見た瞬間に分かる」力で答えられますが、4つ以上は<b>「1つずつ数えて、最後に言った数が全体の数」という手続き</b>が必要になります。3歳台はちょうどこの切り替えの時期で、手続きが自動化していないため「あってる？」と確認を求めます。
+        <ul>
+          <li><b>動かしながら数える</b>：置いてあるものを指さすと二度数え・飛ばしが起きます。1つずつ取って移しながら数えると、ほぼ間違えません。</li>
+          <li><b>並べ方を決める</b>：4つは2×2の四角、5つはサイコロの5の形。毎回同じ形なら見ただけで分かるようになります。</li>
+          <li><b>言い切る</b>：数え終わりに「ぜんぶで よっつ だね」と毎回ふたをする。「いくつあった？」と聞いて数え直すなら、まだ基数性が育っていない合図です。</li>
+          <li><b>「あってる？」には○×で答えない</b>：「じぶんで かぞえて たしかめてみて」と返し、確かめた行動のほうを褒めます。</li>
+          <li><b>3を土台に</b>：「ここまで みっつ、あと ひとつで よっつ」。できている3から積み上げるほうが確実です。</li>
+          <li>数に集中させたいときは、色や大小の指定がない<b>レベル2</b>（2〜5つ）を使ってください。</li>
+        </ul>
+      </div>
       <div class="tip">
         実際の試験では「最後まで聞いてから動く」ことが見られます。おうちでは<b>「まだ動かないでね、最後まで聞いてね」</b>と前置きしてから指示を出し、
         言い終わってから<b>「どうぞ」</b>と合図する練習をすると効果的です。うまくいかないときは、指示を「色」「場所」「数」の順に一つずつ区切って伝え、慣れたらつなげてください。
@@ -548,7 +565,7 @@ const QUIZ_LEN = 8;
 
 /* ---------------- 保存データ ---------------- */
 const KEY = 'ookisa_v1';
-const DEFAULT_STATE = { stars:0, lessonDone:0, best:[0,0,0,0], ohBest:[0,0,0,0], settings:{voice:true, name:''}, stats:{}, log:[] };
+const DEFAULT_STATE = { stars:0, lessonDone:0, best:[0,0,0,0], ohBest:[0,0,0,0], settings:{voice:true, ohCount:true, name:''}, stats:{}, log:[] };
 let state = load();
 function load(){
   try{
@@ -1209,6 +1226,7 @@ function renderLevels(){
 function renderParent(){
   // 設定
   $('#setVoice').checked = !!state.settings.voice;
+  $('#setOhCount').checked = state.settings.ohCount!==false;
   $('#setName').value = state.settings.name || '';
   pickVoice(); renderVoiceDiag();
   // 集計
@@ -1265,6 +1283,7 @@ $('#btnVoiceTest').addEventListener('click', ()=>{
   }, 1800);
 });
 $('#setVoice').addEventListener('change', e=>{ state.settings.voice=e.target.checked; save(); if(!e.target.checked) stopSpeak(); });
+$('#setOhCount').addEventListener('change', e=>{ state.settings.ohCount=e.target.checked; save(); });
 $('#setName').addEventListener('input', e=>{ state.settings.name=e.target.value.trim().slice(0,8); save(); });
 $('#btnReset').addEventListener('click', ()=>{
   if(confirm('学習の記録をすべて消します。よろしいですか？')){
@@ -1284,7 +1303,7 @@ const OH_COLORS = [
 ];
 const OH_SIZES  = [{id:'big', name:'おおきい'}, {id:'small', name:'ちいさい'}];
 const OH_SHAPES = [{id:'circle', name:'まる'}, {id:'square', name:'しかく'}];
-const KANA_CNT  = {1:'ひとつ',2:'ふたつ',3:'みっつ',4:'よっつ',5:'いつつ'};
+const KANA_CNT  = {1:'ひとつ',2:'ふたつ',3:'みっつ',4:'よっつ',5:'いつつ',6:'むっつ',7:'ななつ',8:'やっつ'};
 const ohColor = id => OH_COLORS.find(x=>x.id===id);
 const ohSize  = id => OH_SIZES.find(x=>x.id===id);
 const ohShape = id => OH_SHAPES.find(x=>x.id===id);
@@ -1443,6 +1462,28 @@ function ohSelect(ki){
   $('#ohTray').classList.remove('hintpulse');
   ohPaint();
 }
+// 置いた数にあわせて 音の高さを 上げる（声が使えない端末でも かずが わかる）
+function ohPlaceSound(n){
+  const f = 480 + (Math.min(n,8)-1)*85;
+  tone(f,.10); tone(f*1.5,.13,.07);
+}
+/* 1つ置くたびに「ひとつ、ふたつ…」と数え、手が止まったら「ぜんぶで ◯つ」と言い切る。
+   （数えた最後のことばが ぜんぶの かず ＝ 基数性 を 耳から入れるため）        */
+let ohSettleTimer=null;
+function ohSayCount(ci, placed){
+  if(!state.settings.ohCount) return;
+  const n = OH.containers[ci].pieces.length;
+  if(placed && n) speak(KANA_CNT[n] || String(n), 1.0);
+  clearTimeout(ohSettleTimer);
+  const tk=OH.token;
+  ohSettleTimer=setTimeout(()=>{
+    if(!ohAlive(tk) || OH.busy) return;
+    const m = OH.containers[ci] ? OH.containers[ci].pieces.length : 0;
+    if(m) speak(`ぜんぶで ${KANA_CNT[m] || m}`, .95);
+  }, 1500);
+}
+function ohStopCount(){ clearTimeout(ohSettleTimer); }
+
 function ohTapContainer(ci){
   if(OH.busy || Date.now()<OH.acceptAt) return;
   if(OH.sel===null){
@@ -1457,7 +1498,8 @@ function ohTapContainer(ci){
   const k=OH.kinds[OH.sel];
   c.pieces.push({colorId:k.colorId, sizeId:k.sizeId});
   OH.history.push(ci);
-  sfxPlace();
+  ohPlaceSound(c.pieces.length);
+  ohSayCount(ci, true);
   $$('#ohBoard .ohc').forEach(e=>e.classList.remove('focus'));
   $$('#ohBoard .ohp.ghost').forEach(e=>e.remove());
   ohPaint();
@@ -1468,6 +1510,7 @@ function ohUndo(){
   if(ci===undefined){ toast('まだ おいて ないよ'); return; }
   OH.containers[ci].pieces.pop();
   tone(480,.10,0,'triangle',.12);
+  ohSayCount(ci, false);
   ohPaint();
 }
 
@@ -1518,6 +1561,7 @@ async function ohCountAloud(ci, need){
 }
 async function ohDone(){
   if(OH.busy) return;
+  ohStopCount();
   const tk=OH.token;
   const v=ohJudge();
   if(v.ok){
@@ -1584,7 +1628,7 @@ function startOh(level){
   ohNext();
 }
 function ohNext(){
-  OH.token++;
+  OH.token++; ohStopCount();
   const q=ohMake(OH.level);
   OH.containers=q.containers; OH.kinds=q.kinds; OH.req=q.req;
   OH.sel = OH.kinds.length===1 ? 0 : null;
